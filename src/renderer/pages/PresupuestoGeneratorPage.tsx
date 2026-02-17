@@ -105,7 +105,11 @@ const PresupuestoGeneratorPage: React.FC = () => {
     <AdminLayout>
       {contextHolder}
       <Card
-        title={<Title level={4}>Generar Presupuesto</Title>}
+        title={
+          <Title level={3} style={{ marginTop: '8px' }}>
+            Generar Presupuesto
+          </Title>
+        }
         extra={
           <Space>
             <Button

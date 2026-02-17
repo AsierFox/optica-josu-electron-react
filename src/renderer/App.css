@@ -14,6 +14,27 @@ body,
   height: 100%;
 }
 
+.collapse {
+  background-color: #f0f7ff;
+  transition: all 0.3s;
+  border-radius: 8px;
+}
+
+.collapse:hover {
+  background-color: #c5e0ff;
+}
+
+.collapse .tag {
+  background-color: #f2f2f2;
+  border-radius: 15px;
+  border: 1px solid #d9d9d9;
+}
+
+.collapse .tag:hover {
+  color: black !important;
+  background-color: #dbecff !important;
+}
+
 .card-wrapper {
   border-radius: 16px;
   border: none;
