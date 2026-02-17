@@ -31,10 +31,7 @@ const ProductStockFilters: React.FC<Props> = ({ onFilterChange }) => {
   return (
     <div
       style={{
-        padding: '16px 0px',
-        borderRadius: '8px 8px 0 0', // Redondeamos solo arriba para unirlo a la tabla
-        border: '1px solid #f0f0f0',
-        borderBottom: 'none', // Quitamos el borde inferior para que "encaje" con la tabla
+        padding: '0px 0px 30px 0px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -42,7 +39,7 @@ const ProductStockFilters: React.FC<Props> = ({ onFilterChange }) => {
     >
       <Space size="middle">
         <Text strong style={{ marginRight: 8, fontSize: '16px' }}>
-          Gestión de Inventario
+          Gestión del Inventario
         </Text>
         <Divider
           type="vertical"

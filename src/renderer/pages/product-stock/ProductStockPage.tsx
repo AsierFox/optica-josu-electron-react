@@ -9,7 +9,6 @@ import ProductStockFilters from './ProductStockFilters';
 import ProductStockStats from './ProductStockStats';
 import ProductStockTable from './ProductStockTable';
 
-// TODO Actualizar products junto con DataSource
 // TODO Al guardar el tipo y las fechas se pierden
 const ProductStockPage: React.FC = () => {
   const [isLoading, setLoading] = useState<boolean>(true);
@@ -122,6 +121,7 @@ const ProductStockPage: React.FC = () => {
       );
 
       setTableDataSource(newDataSource);
+      setProducts(newDataSource);
       setEditingProduct(null);
 
       api.success({
@@ -161,19 +161,23 @@ const ProductStockPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingProduct]);
 
-  const handleDelete = useCallback(async (record: ProductModel) => {
-    try {
-      if (Number(record.id)) {
-        await window.electron.ipcMysql.deleteProduct(Number(record.id));
+  const handleDelete = useCallback(
+    async (record: ProductModel) => {
+      try {
+        if (Number(record.id)) {
+          await window.electron.ipcMysql.deleteProduct(Number(record.id));
+        }
+        const productsWithRemovedOne = tableDataSource.filter(
+          (item: ProductModel) => item.id !== record.id,
+        );
+        setTableDataSource(productsWithRemovedOne);
+        setProducts(productsWithRemovedOne);
+      } catch (error) {
+        setErrorMessage(`Error al eliminar producto: ${error}`);
       }
-      setTableDataSource(
-        tableDataSource.filter((item) => item.id !== record.id),
-      );
-    } catch (error) {
-      setErrorMessage(`Error al eliminar producto: ${error}`);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    },
+    [tableDataSource],
+  );
 
   useEffect(() => {
     const getProductsWithTypes = async () => {
