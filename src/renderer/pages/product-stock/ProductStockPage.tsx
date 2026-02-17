@@ -1,20 +1,16 @@
-import {
-  CheckOutlined,
-  CloseOutlined,
-  DeleteOutlined,
-  EditOutlined,
-  PlusOutlined,
-} from '@ant-design/icons';
+import { CloseOutlined, PlusOutlined } from '@ant-design/icons';
 import { Alert, Button, Form, notification, Popconfirm, Space } from 'antd';
 import dayjs from 'dayjs';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import ProductModel from '../../../main/models/product.model';
 import ProductTypeModel from '../../../main/models/productType.model';
 import AdminLayout from '../../layouts/AdminLayout';
-import utils from '../../utils/util';
+import ProductStockFilters from './ProductStockFilters';
 import ProductStockStats from './ProductStockStats';
 import ProductStockTable from './ProductStockTable';
 
+// TODO Actualizar products junto con DataSource
+// TODO Al guardar el tipo y las fechas se pierden
 const ProductStockPage: React.FC = () => {
   const [isLoading, setLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -24,9 +20,6 @@ const ProductStockPage: React.FC = () => {
   const [tableDataSource, setTableDataSource] = useState<ProductModel[]>([]);
   const [products, setProducts] = useState<ProductModel[]>([]);
   const [productTypes, setProductTypes] = useState<ProductTypeModel[]>([]);
-  const [searchFilter, setSearchFilter] = useState<{ proveedor: string }>({
-    proveedor: '',
-  });
 
   const [api, contextHolder] = notification.useNotification();
   const [form] = Form.useForm();
@@ -71,7 +64,35 @@ const ProductStockPage: React.FC = () => {
     fechaVenta: product?.fechaVenta ? dayjs(product?.fechaVenta) : null,
   });
 
-  const handleSave = async () => {
+  const getProductTypesOptionsForSelect = () => {
+    return productTypes.map((productType) => ({
+      value: productType.id,
+      label: productType.type,
+    }));
+  };
+
+  const handleFilter = useCallback(
+    (filters: { proveedor: string; firma: string }) => {
+      const { proveedor, firma } = filters;
+
+      const filteredData = products.filter((item) => {
+        const matchProveedor = item.proveedor
+          .toUpperCase()
+          .includes(proveedor.toUpperCase());
+
+        const matchFirma = item.firma
+          .toUpperCase()
+          .includes(firma.toUpperCase());
+
+        return matchProveedor && matchFirma;
+      });
+
+      setTableDataSource(filteredData);
+    },
+    [products],
+  );
+
+  const handleSave = useCallback(async () => {
     if (!editingProduct) {
       setErrorMessage('Error al guardar producto: handleSave NULL');
       return;
@@ -116,15 +137,19 @@ const ProductStockPage: React.FC = () => {
         `Error de conexión con base de datos: ${error.message || error}`,
       );
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editingProduct, form, api]);
 
-  const handleEdit = (record: ProductModel) => {
-    form.setFieldsValue(prepareProductForTable(record));
+  const handleEdit = useCallback(
+    (record: ProductModel) => {
+      form.setFieldsValue(prepareProductForTable(record));
 
-    setEditingProduct(record);
-  };
+      setEditingProduct(record);
+    },
+    [form],
+  );
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     if (editingProduct?.id.toString().startsWith(NEW_PRODUCT_ID_PREFIX)) {
       setTableDataSource(
         tableDataSource.filter((item) => item.id !== editingProduct.id),
@@ -133,9 +158,10 @@ const ProductStockPage: React.FC = () => {
 
     setEditingProduct(null);
     setErrorMessage(null);
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editingProduct]);
 
-  const handleDelete = async (record: ProductModel) => {
+  const handleDelete = useCallback(async (record: ProductModel) => {
     try {
       if (Number(record.id)) {
         await window.electron.ipcMysql.deleteProduct(Number(record.id));
@@ -146,222 +172,8 @@ const ProductStockPage: React.FC = () => {
     } catch (error) {
       setErrorMessage(`Error al eliminar producto: ${error}`);
     }
-  };
-
-  const getProductTypesOptionsForSelect = () => {
-    return productTypes.map((productType) => ({
-      value: productType.id,
-      label: productType.type,
-    }));
-  };
-
-  const columns = useMemo(() => {
-    // Generar filtros únicos una sola vez por renderizado
-    const proveedorFilters = utils
-      .uniq(
-        products.map((product: ProductModel) =>
-          product.proveedor.toUpperCase(),
-        ),
-      )
-      .map((filter) => ({ text: filter, value: filter }));
-
-    const firmaFilters = utils
-      .uniq(
-        products.map((product: ProductModel) => product.firma.toUpperCase()),
-      )
-      .map((filter) => ({ text: filter, value: filter }));
-
-    return [
-      {
-        title: 'ID',
-        dataIndex: 'id',
-      },
-      {
-        title: 'Proveedor',
-        dataIndex: 'proveedor',
-        filters: proveedorFilters,
-        onFilter: (value: string, record: ProductModel) =>
-          utils.equalsStrings(record.proveedor, value),
-        sorter: (a: ProductModel, b: ProductModel) =>
-          a.proveedor.localeCompare(b.proveedor),
-        onCell: (record: ProductModel) => ({
-          dataIndex: 'proveedor',
-          record,
-          editingProduct,
-        }),
-      },
-      {
-        title: 'Firma',
-        dataIndex: 'firma',
-        filters: firmaFilters,
-        onFilter: (value: string, record: ProductModel) =>
-          utils.equalsStrings(record.firma, value),
-        sorter: (a: ProductModel, b: ProductModel) =>
-          a.firma.localeCompare(b.firma),
-        onCell: (record: ProductModel) => ({
-          dataIndex: 'firma',
-          record,
-          editingProduct,
-        }),
-      },
-      {
-        title: 'Tipo de Producto',
-        dataIndex: 'type',
-        onFilter: (value: string, record: ProductModel) =>
-          utils.equalsStrings(record.type, value),
-        sorter: (a: ProductModel, b: ProductModel) =>
-          a.type.localeCompare(b.type),
-        onCell: (record: ProductModel) => ({
-          dataIndex: 'typeId',
-          type: 'select',
-          record,
-          editingProduct,
-          selectOptions: getProductTypesOptionsForSelect(),
-        }),
-      },
-      {
-        title: 'Referencia',
-        dataIndex: 'referencia',
-        sorter: (a: ProductModel, b: ProductModel) =>
-          a.referencia.localeCompare(b.referencia),
-        onCell: (record: ProductModel) => ({
-          dataIndex: 'referencia',
-          record,
-          editingProduct,
-        }),
-      },
-      {
-        title: 'Modelo y Color',
-        dataIndex: 'modeloColor',
-        sorter: (a: ProductModel, b: ProductModel) =>
-          a.modeloColor.localeCompare(b.modeloColor),
-        onCell: (record: ProductModel) => ({
-          dataIndex: 'modeloColor',
-          record,
-          editingProduct,
-        }),
-      },
-      {
-        title: 'Calibre y Puente',
-        dataIndex: 'calibrePuente',
-        sorter: (a: ProductModel, b: ProductModel) =>
-          a.calibrePuente.localeCompare(b.calibrePuente),
-        onCell: (record: ProductModel) => ({
-          dataIndex: 'calibrePuente',
-          record,
-          editingProduct,
-        }),
-      },
-      {
-        title: 'Fecha de Compra',
-        dataIndex: 'fechaCompra',
-        sorter: (a: ProductModel, b: ProductModel) =>
-          dayjs(a.fechaCompra).unix() - dayjs(b.fechaCompra).unix(),
-        onCell: (record: ProductModel) => ({
-          dataIndex: 'fechaCompra',
-          type: 'date',
-          record,
-          editingProduct,
-        }),
-      },
-      {
-        title: 'Precio de Compra',
-        dataIndex: 'precioCompra',
-        render: (_: any, record: ProductModel) =>
-          record.precioCompra ? `${record.precioCompra} €` : null,
-        onCell: (record: ProductModel) => ({
-          dataIndex: 'precioCompra',
-          type: 'money',
-          record,
-          editingProduct,
-        }),
-      },
-      {
-        title: 'Fecha de Venta',
-        dataIndex: 'fechaVenta',
-        onCell: (record: ProductModel) => ({
-          dataIndex: 'fechaVenta',
-          type: 'date',
-          record,
-          editingProduct,
-        }),
-      },
-      {
-        title: 'Precio de Venta',
-        dataIndex: 'precioVenta',
-        render: (_: any, record: ProductModel) =>
-          record.precioVenta ? `${record.precioVenta} €` : null,
-        onCell: (record: ProductModel) => ({
-          dataIndex: 'precioVenta',
-          type: 'money',
-          record,
-          editingProduct,
-        }),
-      },
-      {
-        title: 'Cantidad',
-        dataIndex: 'cantidad',
-        onCell: (record: ProductModel) => ({
-          dataIndex: 'cantidad',
-          type: 'number',
-          record,
-          editingProduct,
-        }),
-      },
-      {
-        title: 'Operaciones',
-        fixed: 'right',
-        render: (_: any, record: ProductModel) =>
-          editingProduct?.id === record.id ? (
-            <Space>
-              <Button
-                type="primary"
-                size="small"
-                icon={<CheckOutlined />}
-                onClick={handleSave}
-              >
-                Guardar
-              </Button>
-              <Popconfirm
-                title="¿Desea cancelar la edición del producto?"
-                onConfirm={() => handleCancel()}
-              >
-                <Button danger size="small" icon={<CloseOutlined />}>
-                  Cancelar
-                </Button>
-              </Popconfirm>
-            </Space>
-          ) : (
-            <Space>
-              <Button
-                size="small"
-                color="cyan"
-                variant="dashed"
-                icon={<EditOutlined />}
-                disabled={!!editingProduct}
-                onClick={() => handleEdit(record)}
-              >
-                Editar
-              </Button>
-              <Popconfirm
-                title="¿Desea borrar producto?"
-                onConfirm={() => handleDelete(record)}
-              >
-                <Button
-                  danger
-                  size="small"
-                  icon={<DeleteOutlined />}
-                  disabled={!!editingProduct}
-                >
-                  Eliminar
-                </Button>
-              </Popconfirm>
-            </Space>
-          ),
-      },
-    ];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editingProduct, tableDataSource]);
+  }, []);
 
   useEffect(() => {
     const getProductsWithTypes = async () => {
@@ -378,17 +190,6 @@ const ProductStockPage: React.FC = () => {
     getProductsWithTypes();
   }, []);
 
-  useEffect(() => {
-    setTableDataSource(
-      products.filter((row) =>
-        row.proveedor
-          .toUpperCase()
-          .startsWith(searchFilter.proveedor.toUpperCase()),
-      ),
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchFilter]);
-
   return (
     <AdminLayout>
       {contextHolder}
@@ -401,6 +202,8 @@ const ProductStockPage: React.FC = () => {
           description={errorMessage}
         />
       ) : null}
+
+      <ProductStockFilters onFilterChange={handleFilter} />
 
       <Space size="middle" style={{ marginBottom: 16 }}>
         <Button

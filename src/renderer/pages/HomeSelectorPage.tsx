@@ -1,4 +1,4 @@
-import { DatabaseOutlined, FileTextOutlined } from '@ant-design/icons';
+import { FileTextOutlined, LineChartOutlined } from '@ant-design/icons';
 import { Card, Col, Row, Space, Typography } from 'antd';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -33,7 +33,9 @@ const HomeSelectorPage: React.FC = () => {
               onClick={() => navigate(ROUTES.PRODUCT_STOCK)}
             >
               <Space direction="vertical" size="middle">
-                <DatabaseOutlined style={{ fontSize: '40px', color: '#fff' }} />
+                <LineChartOutlined
+                  style={{ fontSize: '40px', color: '#fff' }}
+                />
                 <Title level={4} style={{ color: '#fff', margin: 0 }}>
                   Inventario
                 </Title>

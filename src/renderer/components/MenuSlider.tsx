@@ -1,15 +1,15 @@
-import React from 'react';
-import { Menu, Typography } from 'antd';
 import {
+  FileTextOutlined,
   LineChartOutlined,
-  SolutionOutlined,
   ToolOutlined,
 } from '@ant-design/icons';
+import { Menu, Typography } from 'antd';
 import Sider from 'antd/es/layout/Sider';
+import React from 'react';
 import { useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { RootState } from '../app/store';
 import { ROUTES } from '../app/constants';
+import { RootState } from '../app/store';
 
 const { Title } = Typography;
 
@@ -101,7 +101,7 @@ const MenuSlider: React.FC = () => {
           },
           {
             key: menuOptions[ROUTES.PRESUPUESTO_GENERATOR].key,
-            icon: <SolutionOutlined />,
+            icon: <FileTextOutlined />,
             label: menuOptions[ROUTES.PRESUPUESTO_GENERATOR].label,
             onClick: () => {
               navigate(ROUTES.PRESUPUESTO_GENERATOR);
