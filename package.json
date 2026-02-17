@@ -1,9 +1,10 @@
 {
-  "name": "electron-react-boilerplate",
+  "name": "optica-josu-electron-react",
   "description": "A foundation for scalable desktop apps",
   "keywords": [
+    "optica",
+    "josu",
     "electron",
-    "boilerplate",
     "react",
     "typescript",
     "ts",
