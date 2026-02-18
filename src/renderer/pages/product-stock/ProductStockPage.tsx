@@ -1,5 +1,6 @@
 import { CloseOutlined, PlusOutlined } from '@ant-design/icons';
 import { Alert, Button, Form, notification, Popconfirm, Space } from 'antd';
+import { FilterValue } from 'antd/es/table/interface';
 import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useState } from 'react';
 import ProductModel from '../../../main/models/product.model';
@@ -8,8 +9,9 @@ import AdminLayout from '../../layouts/AdminLayout';
 import ProductStockFilters from './ProductStockFilters';
 import ProductStockStats from './ProductStockStats';
 import ProductStockTable from './ProductStockTable';
+import util from '../../utils/util';
 
-// TODO Al guardar el tipo y las fechas se pierden
+// FIXME Al guardar el tipo y las fechas se pierden
 const ProductStockPage: React.FC = () => {
   const [isLoading, setLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -71,19 +73,29 @@ const ProductStockPage: React.FC = () => {
   };
 
   const handleFilter = useCallback(
-    (filters: { proveedor: string; firma: string }) => {
-      const { proveedor, firma } = filters;
-
+    (filters: Readonly<Record<string, FilterValue>>) => {
       const filteredData = products.filter((item) => {
-        const matchProveedor = item.proveedor
-          .toUpperCase()
-          .includes(proveedor.toUpperCase());
-
-        const matchFirma = item.firma
-          .toUpperCase()
-          .includes(firma.toUpperCase());
-
-        return matchProveedor && matchFirma;
+        return Object.entries(filters).every(([key, filter]) => {
+          const searchFilter = filters[key];
+          // Si no hay filtro, no filtramos
+          switch (searchFilter.type) {
+            case 'SINGLE':
+              if (!searchFilter.value) {
+                return true;
+              }
+              return util.includesStrings(
+                item[searchFilter.targetKey],
+                searchFilter.value,
+              );
+            case 'MULTIPLE':
+              if (searchFilter.value.length <= 0) {
+                return true;
+              }
+              return searchFilter.value.includes(item[searchFilter.targetKey]);
+            default:
+              return true;
+          }
+        });
       });
 
       setTableDataSource(filteredData);
@@ -207,7 +219,7 @@ const ProductStockPage: React.FC = () => {
         />
       ) : null}
 
-      <ProductStockFilters onFilterChange={handleFilter} />
+      <ProductStockFilters products={products} onFilterChange={handleFilter} />
 
       <Space size="middle" style={{ marginBottom: 16 }}>
         <Button
