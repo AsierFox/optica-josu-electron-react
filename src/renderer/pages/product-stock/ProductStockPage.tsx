@@ -87,11 +87,18 @@ const ProductStockPage: React.FC = () => {
                 item[searchFilter.targetKey],
                 searchFilter.value,
               );
+            // Casuistica para busqueda por array
             case 'MULTIPLE':
               if (searchFilter.value.length <= 0) {
                 return true;
               }
-              return searchFilter.value.includes(item[searchFilter.targetKey]);
+              const itemValue = item[searchFilter.targetKey];
+              // Formateamos el valor en caso de que llegue a ser un number
+              const searchValue = isNaN(itemValue)
+                ? itemValue.toUpperCase()
+                : itemValue;
+
+              return searchFilter.value.includes(searchValue);
             default:
               return true;
           }
@@ -219,7 +226,11 @@ const ProductStockPage: React.FC = () => {
         />
       ) : null}
 
-      <ProductStockFilters products={products} onFilterChange={handleFilter} />
+      <ProductStockFilters
+        products={products}
+        productTypes={productTypes}
+        onFilterChange={handleFilter}
+      />
 
       <Space size="middle" style={{ marginBottom: 16 }}>
         <Button

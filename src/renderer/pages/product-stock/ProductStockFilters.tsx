@@ -1,8 +1,10 @@
-import { AlertOutlined, ShopOutlined, TagOutlined } from '@ant-design/icons';
-import { Collapse, Divider, Input, Space, Typography } from 'antd';
+import { AlertOutlined, ShopOutlined } from '@ant-design/icons';
+import { Collapse, Divider, Input, Select, Space, Typography } from 'antd';
 import CheckableTag from 'antd/es/tag/CheckableTag';
 import React, { useEffect, useMemo, useState } from 'react';
 import ProductModel from '../../../main/models/product.model';
+import { PRODUCT_FIELD_NAMES } from '../../app/constants';
+import ProductTypeModel from '../../../main/models/productType.model';
 
 const { Text } = Typography;
 
@@ -15,10 +17,15 @@ interface FilterValue {
 
 interface Props {
   products: ProductModel[];
-  onFilterChange: (filters: Record<string, FilterValue>) => void;
+  productTypes: ProductTypeModel[];
+  onFilterChange: (filters: Readonly<Record<string, FilterValue>>) => void;
 }
 
-const ProductStockFilters: React.FC<Props> = ({ products, onFilterChange }) => {
+const ProductStockFilters: React.FC<Props> = ({
+  products,
+  productTypes,
+  onFilterChange,
+}) => {
   const [filters, setFilters] = useState<Record<string, FilterValue>>({
     proveedorInput: {
       type: 'SINGLE',
@@ -35,9 +42,19 @@ const ProductStockFilters: React.FC<Props> = ({ products, onFilterChange }) => {
       targetKey: 'referencia',
       value: '',
     },
+    modeloColorInput: {
+      type: 'SINGLE',
+      targetKey: 'modeloColor',
+      value: '',
+    },
+    calibrePuenteInput: {
+      type: 'SINGLE',
+      targetKey: 'calibrePuente',
+      value: '',
+    },
     proveedorCollapse: {
       type: 'MULTIPLE',
-      targetKey: 'firma',
+      targetKey: 'proveedor',
       value: [],
     },
     firmaCollapse: {
@@ -45,11 +62,18 @@ const ProductStockFilters: React.FC<Props> = ({ products, onFilterChange }) => {
       targetKey: 'firma',
       value: [],
     },
+    typeSelect: {
+      type: 'MULTIPLE',
+      targetKey: 'typeId',
+      value: [],
+    },
   });
 
   const proveedoresUnicos = useMemo(
     () =>
-      Array.from(new Set(products.map((p) => p.firma.toUpperCase()))).sort(),
+      Array.from(
+        new Set(products.map((p) => p.proveedor.toUpperCase())),
+      ).sort(),
     [products],
   );
 
@@ -58,6 +82,25 @@ const ProductStockFilters: React.FC<Props> = ({ products, onFilterChange }) => {
       Array.from(new Set(products.map((p) => p.firma.toUpperCase()))).sort(),
     [products],
   );
+
+  const searchFilterInputs: string[] = [
+    'proveedorInput',
+    'firmaInput',
+    'referenciaInput',
+    'modeloColorInput',
+    'calibrePuenteInput',
+  ];
+
+  const searchFilterCollapses: { name: string; tags: string[] }[] = [
+    {
+      name: 'proveedorCollapse',
+      tags: proveedoresUnicos,
+    },
+    {
+      name: 'firmaCollapse',
+      tags: firmasUnicas,
+    },
+  ];
 
   // Notificar al padre cuando cambie cualquier filtro
   useEffect(() => {
@@ -93,169 +136,157 @@ const ProductStockFilters: React.FC<Props> = ({ products, onFilterChange }) => {
     });
   };
 
+  const handleSelectChange = (key: string, values) => {
+    setFilters({
+      ...filters,
+      [key]: {
+        ...filters[key],
+        value: values,
+      },
+    });
+  };
+
   return (
     <div
       style={{
         background: '#fff',
       }}
     >
-      <Text strong style={{ fontSize: '18px', color: '#141414' }}>
+      <Text strong style={{ fontSize: '15px', color: '#141414' }}>
         Gestión de Inventario
       </Text>
+
       <Divider />
 
       <Space size="middle">
-        <Input
-          placeholder="Buscar Proveedor..."
-          prefix={<ShopOutlined style={{ color: '#bfbfbf' }} />}
-          value={filters.proveedorInput.value}
-          onChange={(e) => handleInputChange('proveedorInput', e.target.value)}
-          style={{ width: 220, borderRadius: '8px' }}
-          allowClear
-        />
+        {searchFilterInputs.map((searchFilterInput: string) => (
+          <div
+            key={`input_${searchFilterInput}`}
+            style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}
+          >
+            <span
+              style={{
+                fontWeight: 500,
+                fontSize: '12px',
+                marginLeft: '4px',
+              }}
+            >
+              {PRODUCT_FIELD_NAMES[filters[searchFilterInput].targetKey]}
+            </span>
 
-        <Input
-          placeholder="Buscar Firma..."
-          prefix={<TagOutlined style={{ color: '#bfbfbf' }} />}
-          value={filters.firmaInput.value}
-          onChange={(e) => handleInputChange('firmaInput', e.target.value)}
-          style={{ width: 220, borderRadius: '8px' }}
-          allowClear
-        />
-
-        <Input
-          placeholder="Buscar Referencia..."
-          prefix={<TagOutlined style={{ color: '#bfbfbf' }} />}
-          value={filters.referenciaInput.value}
-          onChange={(e) => handleInputChange('referenciaInput', e.target.value)}
-          style={{ width: 220, borderRadius: '8px' }}
-          allowClear
-        />
+            <Input
+              placeholder={`Buscar ${PRODUCT_FIELD_NAMES[filters[searchFilterInput].targetKey]}...`}
+              prefix={<ShopOutlined style={{ color: '#bfbfbf' }} />}
+              value={filters[searchFilterInput].value}
+              onChange={(e) =>
+                handleInputChange(searchFilterInput, e.target.value)
+              }
+              style={{ width: 220, borderRadius: '8px' }}
+              allowClear
+            />
+          </div>
+        ))}
       </Space>
 
       <Divider />
 
-      <Collapse
-        ghost
-        className="collapse"
-        style={{
-          marginTop: 8,
-        }}
-        items={[
-          {
-            key: '1',
-            label: 'Agrupación de Proovedores',
-            extra:
-              filters.proveedorCollapse.value.length > 0 ? (
-                <Text type="danger" style={{ fontWeight: 700 }}>
-                  <AlertOutlined /> FILTROS ACTIVOS
-                </Text>
-              ) : null,
-            children: (
-              <div
-                style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: '10px',
-                }}
-              >
-                {proveedoresUnicos.map((firma) => {
-                  const isActive = filters.proveedorCollapse.value.includes(
-                    firma.toUpperCase(),
-                  );
-                  return (
-                    <CheckableTag
-                      key={firma}
-                      className="tag"
-                      checked={isActive}
-                      onChange={(checked) =>
-                        handleTagChange('proveedorCollapse', checked, firma)
-                      }
-                      style={{
-                        fontSize: '13px',
-                        padding: '5px 14px',
-                        height: 'auto',
-                        color: isActive ? 'white' : 'black',
-                        backgroundColor: isActive ? '#2389ff' : '#f2f2f2',
-                        transition: 'all 0.2s',
-                        margin: 0,
-                        boxShadow: isActive
-                          ? '0 2px 4px rgba(24, 144, 255, 0.15)'
-                          : 'none',
-                      }}
-                    >
-                      <span style={{ fontWeight: isActive ? 600 : 400 }}>
-                        {firma}
-                      </span>
-                    </CheckableTag>
-                  );
-                })}
-              </div>
-            ),
-          },
-        ]}
-      />
+      {searchFilterCollapses.map((searchFilterCollapse) => (
+        <Collapse
+          ghost
+          className="collapse"
+          style={{
+            marginTop: 8,
+          }}
+          items={[
+            {
+              key: `collapse_${searchFilterCollapse.name}`,
+              label: `Agrupaciones de ${PRODUCT_FIELD_NAMES[filters[searchFilterCollapse.name].targetKey]}`,
+              extra:
+                filters[searchFilterCollapse.name].value.length > 0 ? (
+                  <Text type="danger" style={{ fontWeight: 700 }}>
+                    <AlertOutlined /> FILTROS ACTIVOS
+                  </Text>
+                ) : null,
+              children: (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '10px',
+                  }}
+                >
+                  {searchFilterCollapse.tags.map((tag) => {
+                    const isActive = filters[
+                      searchFilterCollapse.name
+                    ].value.includes(tag.toUpperCase());
+                    return (
+                      <CheckableTag
+                        key={`tag_${tag}`}
+                        className="tag"
+                        checked={isActive}
+                        onChange={(checked) =>
+                          handleTagChange(
+                            searchFilterCollapse.name,
+                            checked,
+                            tag,
+                          )
+                        }
+                        style={{
+                          fontSize: '13px',
+                          padding: '5px 14px',
+                          height: 'auto',
+                          color: isActive ? 'white' : 'black',
+                          backgroundColor: isActive ? '#2389ff' : '#f2f2f2',
+                          transition: 'all 0.2s',
+                          margin: 0,
+                          boxShadow: isActive
+                            ? '0 2px 4px rgba(24, 144, 255, 0.15)'
+                            : 'none',
+                        }}
+                      >
+                        <span style={{ fontWeight: isActive ? 600 : 400 }}>
+                          {tag}
+                        </span>
+                      </CheckableTag>
+                    );
+                  })}
+                </div>
+              ),
+            },
+          ]}
+        />
+      ))}
 
-      <Collapse
-        ghost
-        className="collapse"
-        style={{
-          marginTop: 8,
-        }}
-        items={[
-          {
-            key: '1',
-            label: 'Agrupación de Firmas',
-            extra:
-              filters.firmaCollapse.value.length > 0 ? (
-                <Text type="danger" style={{ fontWeight: 700 }}>
-                  <AlertOutlined /> FILTROS ACTIVOS
-                </Text>
-              ) : null,
-            children: (
-              <div
-                style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: '10px',
-                }}
-              >
-                {firmasUnicas.map((firma) => {
-                  const isActive = filters.firmaCollapse.value.includes(
-                    firma.toUpperCase(),
-                  );
-                  return (
-                    <CheckableTag
-                      key={firma}
-                      className="tag"
-                      checked={isActive}
-                      onChange={(checked) =>
-                        handleTagChange('firmaCollapse', checked, firma)
-                      }
-                      style={{
-                        fontSize: '13px',
-                        padding: '5px 14px',
-                        height: 'auto',
-                        color: isActive ? 'white' : 'black',
-                        backgroundColor: isActive ? '#2389ff' : '#f2f2f2',
-                        transition: 'all 0.2s',
-                        margin: 0,
-                        boxShadow: isActive
-                          ? '0 2px 4px rgba(24, 144, 255, 0.15)'
-                          : 'none',
-                      }}
-                    >
-                      <span style={{ fontWeight: isActive ? 600 : 400 }}>
-                        {firma}
-                      </span>
-                    </CheckableTag>
-                  );
-                })}
-              </div>
-            ),
-          },
-        ]}
-      />
+      <Divider />
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <span
+          style={{ fontWeight: 'bold', fontSize: '12px', marginLeft: '4px' }}
+        >
+          Tipo de Producto
+        </span>
+
+        <Select
+          mode="multiple"
+          allowClear
+          placeholder="Seleccionar Tipo de Producto..."
+          // El valor viene de tu estado global de filtros
+          value={filters.typeSelect.value}
+          // Al cambiar, mandamos el array completo de strings
+          onChange={(selectedValues) =>
+            handleSelectChange('typeSelect', selectedValues)
+          }
+          // Opciones (esto podría venir de un searchFilterCollapse.tags)
+          options={productTypes.map((productType: ProductTypeModel) => ({
+            label: productType.type,
+            value: productType.id,
+          }))}
+          // Para que al buscar no importe mayúsculas/minúsculas
+          filterOption={(input, option) =>
+            (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+          }
+        />
+      </div>
 
       <Divider />
     </div>

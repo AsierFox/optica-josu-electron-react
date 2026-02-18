@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react';
 import { Line, Pie } from '@ant-design/charts';
+import { Card, Col, Row } from 'antd';
 import dayjs from 'dayjs';
-import { Row, Col, Card } from 'antd';
+import React, { useMemo } from 'react';
 import ProductModel from '../../../main/models/product.model';
 import ProductTypeModel from '../../../main/models/productType.model';
 
@@ -13,7 +13,9 @@ interface Props {
 // Usamos useMemo para que el cálculo solo se haga cuando 'products' cambie de verdad
 const ProductStockStats: React.FC<Props> = ({ products, productTypes }) => {
   const productsByMonthsData = useMemo(() => {
-    if (!products || products.length === 0) return [];
+    if (!products || products.length === 0) {
+      return [];
+    }
 
     const groupByMonth = products.reduce((acc: any, product: ProductModel) => {
       const dateFormatted = dayjs(product.createdAt || new Date()).format(

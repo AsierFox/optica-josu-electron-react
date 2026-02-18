@@ -8,6 +8,7 @@ import { Button, Popconfirm, Space, Table } from 'antd';
 import dayjs from 'dayjs';
 import React, { useMemo } from 'react';
 import ProductModel from '../../../main/models/product.model';
+import { PRODUCT_FIELD_NAMES } from '../../app/constants';
 import utils from '../../utils/util';
 import EditableTableCell from './EditableTableCell';
 
@@ -51,11 +52,11 @@ const ProductStockTable: React.FC<Props> = ({
 
     return [
       {
-        title: 'ID',
+        title: PRODUCT_FIELD_NAMES.id,
         dataIndex: 'id',
       },
       {
-        title: 'Proveedor',
+        title: PRODUCT_FIELD_NAMES.proveedor,
         dataIndex: 'proveedor',
         filters: proveedorFilters,
         onFilter: (value: string, record: ProductModel) =>
@@ -69,7 +70,7 @@ const ProductStockTable: React.FC<Props> = ({
         }),
       },
       {
-        title: 'Firma',
+        title: PRODUCT_FIELD_NAMES.firma,
         dataIndex: 'firma',
         filters: firmaFilters,
         onFilter: (value: string, record: ProductModel) =>
@@ -83,7 +84,7 @@ const ProductStockTable: React.FC<Props> = ({
         }),
       },
       {
-        title: 'Tipo de Producto',
+        title: PRODUCT_FIELD_NAMES.type,
         dataIndex: 'type',
         onFilter: (value: string, record: ProductModel) =>
           utils.equalsStrings(record.type, value),
@@ -98,7 +99,7 @@ const ProductStockTable: React.FC<Props> = ({
         }),
       },
       {
-        title: 'Referencia',
+        title: PRODUCT_FIELD_NAMES.referencia,
         dataIndex: 'referencia',
         sorter: (a: ProductModel, b: ProductModel) =>
           a.referencia.localeCompare(b.referencia),
@@ -109,7 +110,7 @@ const ProductStockTable: React.FC<Props> = ({
         }),
       },
       {
-        title: 'Modelo y Color',
+        title: PRODUCT_FIELD_NAMES.modeloColor,
         dataIndex: 'modeloColor',
         sorter: (a: ProductModel, b: ProductModel) =>
           a.modeloColor.localeCompare(b.modeloColor),
@@ -120,7 +121,7 @@ const ProductStockTable: React.FC<Props> = ({
         }),
       },
       {
-        title: 'Calibre y Puente',
+        title: PRODUCT_FIELD_NAMES.calibrePuente,
         dataIndex: 'calibrePuente',
         sorter: (a: ProductModel, b: ProductModel) =>
           a.calibrePuente.localeCompare(b.calibrePuente),
@@ -131,7 +132,7 @@ const ProductStockTable: React.FC<Props> = ({
         }),
       },
       {
-        title: 'Fecha de Compra',
+        title: PRODUCT_FIELD_NAMES.fechaCompra,
         dataIndex: 'fechaCompra',
         sorter: (a: ProductModel, b: ProductModel) =>
           dayjs(a.fechaCompra).unix() - dayjs(b.fechaCompra).unix(),
@@ -143,7 +144,7 @@ const ProductStockTable: React.FC<Props> = ({
         }),
       },
       {
-        title: 'Precio de Compra',
+        title: PRODUCT_FIELD_NAMES.precioCompra,
         dataIndex: 'precioCompra',
         render: (_: any, record: ProductModel) =>
           record.precioCompra ? `${record.precioCompra} €` : null,
@@ -155,7 +156,7 @@ const ProductStockTable: React.FC<Props> = ({
         }),
       },
       {
-        title: 'Fecha de Venta',
+        title: PRODUCT_FIELD_NAMES.fechaCompra,
         dataIndex: 'fechaVenta',
         onCell: (record: ProductModel) => ({
           dataIndex: 'fechaVenta',
@@ -165,7 +166,7 @@ const ProductStockTable: React.FC<Props> = ({
         }),
       },
       {
-        title: 'Precio de Venta',
+        title: PRODUCT_FIELD_NAMES.precioVenta,
         dataIndex: 'precioVenta',
         render: (_: any, record: ProductModel) =>
           record.precioVenta ? `${record.precioVenta} €` : null,
@@ -177,7 +178,7 @@ const ProductStockTable: React.FC<Props> = ({
         }),
       },
       {
-        title: 'Cantidad',
+        title: PRODUCT_FIELD_NAMES.cantidad,
         dataIndex: 'cantidad',
         onCell: (record: ProductModel) => ({
           dataIndex: 'cantidad',

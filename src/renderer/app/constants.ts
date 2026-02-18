@@ -10,3 +10,18 @@ export const ROUTES = {
   PRODUCT_STOCK: '/product-stock',
   PRESUPUESTO_GENERATOR: '/presupuesto-generator',
 };
+
+export const PRODUCT_FIELD_NAMES = {
+  id: 'ID',
+  proveedor: 'Proveedor',
+  firma: 'Firma',
+  referencia: 'Referencia',
+  modeloColor: 'Modelo y Color',
+  type: 'Tipo de Producto',
+  calibrePuente: 'Calibre y Puente',
+  precioCompra: 'Precio de Compra',
+  precioVenta: 'Precio de Venta',
+  cantidad: 'Cantidad',
+  fechaCompra: 'Fecha de Compra',
+  fechaVenta: 'Fecha de Venta',
+}
