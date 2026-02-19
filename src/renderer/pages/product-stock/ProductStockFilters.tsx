@@ -18,7 +18,6 @@ interface Props {
   ) => void;
 }
 
-// FIXME Desabilitar filtros de tags cuando se este creando o editando
 const ProductStockFilters: React.FC<Props> = ({
   allDisabled = false,
   products,
@@ -227,14 +226,17 @@ const ProductStockFilters: React.FC<Props> = ({
                         key={`tag_${tag}`}
                         className="tag"
                         checked={isActive}
-                        onChange={(checked) =>
-                          handleTagChange(
-                            searchFilterCollapse.name,
-                            checked,
-                            tag,
-                          )
-                        }
+                        onChange={(checked) => {
+                          if (!allDisabled) {
+                            handleTagChange(
+                              searchFilterCollapse.name,
+                              checked,
+                              tag,
+                            );
+                          }
+                        }}
                         style={{
+                          pointerEvents: allDisabled ? 'none' : 'auto',
                           fontSize: '13px',
                           padding: '5px 14px',
                           height: 'auto',
