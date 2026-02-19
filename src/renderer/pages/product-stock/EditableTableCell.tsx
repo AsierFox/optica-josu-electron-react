@@ -52,7 +52,8 @@ const EditableTableCell = ({
     // eslint-disable-next-line react/jsx-props-no-spreading
     <td {...restProps}>
       <Form.Item
-        name={dataIndex} // Crucial: vincula el input con el campo del objeto
+        // Crucial: vincula el input con el campo del objeto
+        name={dataIndex}
         style={{ margin: 0 }}
         rules={[
           {

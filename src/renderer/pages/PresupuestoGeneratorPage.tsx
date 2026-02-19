@@ -1,7 +1,8 @@
+/* eslint-disable react/jsx-props-no-spreading */
 import {
   DeleteOutlined,
   FilePdfOutlined,
-  PlusOutlined,
+  PlusOutlined
 } from '@ant-design/icons';
 import {
   Button,
@@ -12,364 +13,437 @@ import {
   Input,
   InputNumber,
   notification,
+  Popconfirm,
   Row,
-  Select,
   Space,
+  Tooltip,
   Typography,
 } from 'antd';
+import dayjs from 'dayjs';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import React, { useRef, useState } from 'react';
-import dayjs from 'dayjs';
+import React, { useRef } from 'react';
 import AdminLayout from '../layouts/AdminLayout';
 
 const { Text, Title } = Typography;
 
 const PresupuestoGeneratorPage: React.FC = () => {
-  const [totals, setTotals] = useState({ base: 0, iva: 0, total: 0 });
-  const [productsForPrint, setProductsForPrint] = useState<any[]>([]);
-  const [cliente, setCliente] = useState('');
-
   const [api, contextHolder] = notification.useNotification();
   const [form] = Form.useForm();
   const componentRef = useRef<HTMLDivElement>(null);
 
   const handleGeneratePDF = async () => {
-    let divPrintElement: HTMLDivElement | null = null;
+    const divPrintElement = componentRef.current;
+    if (!divPrintElement) {
+      return;
+    }
+    const container = divPrintElement.parentElement!;
+
     try {
       await form.validateFields();
 
-      divPrintElement = componentRef.current;
-      if (!divPrintElement) return;
-
-      // Temporalmente lo hacemos visible para que html2canvas pueda "verlo"
-      divPrintElement.parentElement!.style.display = 'block';
+      container.style.visibility = 'visible';
+      container.style.height = 'auto';
 
       const canvas = await html2canvas(divPrintElement, {
-        scale: 2, // Doble resolución para que el texto no se vea borroso
+        scale: 2,
         useCORS: true,
         logging: false,
+        backgroundColor: '#ffffff',
       });
 
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgProps = pdf.getImageProperties(imgData);
       const pdfWidth = pdf.internal.pageSize.getWidth();
+      const imgProps = pdf.getImageProperties(imgData);
       const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       pdf.save(
-        `Presupuesto_${cliente || 'Cliente'}_${dayjs().format('YYYY_MM_DD')}.pdf`,
+        `Presupuesto_${form.getFieldValue('cliente')}_${dayjs().format('YYYY_MM_DD')}.pdf`,
       );
     } catch (error) {
       if (error && error.errorFields) {
-        api.error({
+        api.warning({
           placement: 'top',
-          type: 'error',
-          message: '¡Revisa los campos del presupuesto!',
+          message: '¡Revisa los campos obligatorios!',
         });
         return;
       }
-
       api.error({
         placement: 'top',
         type: 'error',
         message: '¡Error generando el PDF!',
       });
     } finally {
-      if (divPrintElement) {
-        divPrintElement.parentElement!.style.display = 'none';
-      }
+      container.style.visibility = 'hidden';
+      container.style.height = '0';
     }
-  };
-
-  const handleValuesChange = (_: any, allValues: any) => {
-    const items = allValues.items || [];
-    setCliente(allValues.cliente);
-    setProductsForPrint(items);
-
-    let base = 0;
-    let totalIva = 0;
-    items.forEach((item: any) => {
-      if (item?.precio && item?.cantidad) {
-        const lineBase = item.precio * item.cantidad;
-        const ivaPercent = item.iva || 0;
-        base += lineBase;
-        totalIva += lineBase * (ivaPercent / 100);
-      }
-    });
-    setTotals({ base, iva: totalIva, total: base + totalIva });
   };
 
   return (
     <AdminLayout>
       {contextHolder}
-      <Card
-        title={
-          <Title level={3} style={{ marginTop: '8px' }}>
-            Generar Presupuesto
-          </Title>
-        }
-        extra={
-          <Space>
+      <div style={{ margin: '0 auto', padding: '30px' }}>
+        <Card
+          variant="borderless"
+          className="shadow-sm"
+          title={
+            <Space direction="vertical" size={0}>
+              <Title level={4} style={{ margin: 0 }}>
+                Generador de Presupuestos
+              </Title>
+            </Space>
+          }
+          extra={
             <Button
-              icon={<FilePdfOutlined />}
               type="primary"
+              size="large"
+              icon={<FilePdfOutlined />}
               onClick={handleGeneratePDF}
+              style={{ borderRadius: '6px', fontWeight: 500 }}
             >
-              Generar PDF
+              Exportar PDF
             </Button>
-          </Space>
-        }
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          onValuesChange={handleValuesChange}
-          initialValues={{
-            items: [{}], // Una fila vacía al empezar
-            fecha: new Date().toLocaleDateString(),
-          }}
+          }
         >
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="cliente"
-                label="Cliente / Paciente"
-                rules={[{ required: true, message: 'Falta el nombre' }]}
-              >
-                <Input placeholder="Nombre del cliente" />
-              </Form.Item>
-            </Col>
-            <Col span={6}>
-              <Form.Item name="fecha" label="Fecha">
-                <Input disabled />
-              </Form.Item>
-            </Col>
-          </Row>
+          <Form
+            form={form}
+            layout="vertical"
+            initialValues={{ items: [{}], fecha: dayjs().format('DD/MM/YYYY') }}
+          >
+            {/* SECCIÓN CLIENTE */}
+            <Row gutter={24}>
+              <Col xs={24} sm={16}>
+                <Form.Item
+                  name="cliente"
+                  label={<Text strong>Información del Cliente</Text>}
+                  rules={[
+                    { required: true, message: 'El nombre es obligatorio' },
+                  ]}
+                >
+                  <Input
+                    placeholder="Nombre completo o Razón Social"
+                    size="large"
+                  />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={8}>
+                <Form.Item
+                  name="fecha"
+                  label={<Text strong>Fecha de Emisión</Text>}
+                >
+                  <Input
+                    disabled
+                    size="large"
+                    style={{ textAlign: 'center' }}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
 
-          <Divider orientation="left">Conceptos</Divider>
+            <Divider orientation="left">
+              <Text type="secondary">CONCEPTOS</Text>
+            </Divider>
 
-          <Form.List name="items">
-            {(fields, { add, remove }) => (
-              <div
-                style={{ display: 'flex', flexDirection: 'column', rowGap: 16 }}
-              >
-                {fields.map(({ key, name, ...restField }) => (
-                  <Row gutter={16} key={key} align="bottom">
-                    <Col span={8}>
-                      <Form.Item
-                        {...restField}
-                        name={[name, 'descripcion']}
-                        label="Descripción"
-                        rules={[
-                          { required: true, message: 'Falta descripción' },
-                        ]}
-                      >
-                        <Input placeholder="Ej. Lentes Progresivas" />
-                      </Form.Item>
-                    </Col>
-                    <Col span={3}>
-                      <Form.Item
-                        {...restField}
-                        name={[name, 'cantidad']}
-                        label="Cant."
-                        rules={[{ required: true, message: '?' }]}
-                      >
-                        <InputNumber min={1} style={{ width: '100%' }} />
-                      </Form.Item>
-                    </Col>
-                    <Col span={4}>
-                      <Form.Item
-                        {...restField}
-                        name={[name, 'precio']}
-                        label="Precio Unidad"
-                        rules={[{ required: true, message: '?' }]}
-                      >
-                        <InputNumber
-                          min={0}
-                          step={0.01}
-                          addonAfter="€"
-                          style={{ width: '100%' }}
-                        />
-                      </Form.Item>
-                    </Col>
-                    <Col span={4}>
-                      <Form.Item
-                        {...restField}
-                        name={[name, 'iva']}
-                        label="IVA %"
-                        initialValue={21}
-                      >
-                        <Select
-                          options={[
-                            { value: 21, label: '21%' },
-                            { value: 10, label: '10%' },
-                            { value: 4, label: '4%' },
-                            { value: 0, label: 'Exento' },
-                          ]}
-                        />
-                      </Form.Item>
-                    </Col>
-                    <Col
-                      span={3}
-                      style={{
-                        textAlign: 'center',
-                        height: '65px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        paddingBottom: '15px',
-                      }}
-                    >
-                      <Text style={{ fontSize: '20px' }}>
-                        {(
-                          (form.getFieldValue(['items', name, 'precio']) || 0) *
-                          (form.getFieldValue(['items', name, 'cantidad']) || 0)
-                        ).toFixed(2)}{' '}
-                        €
+            {/* LIST OF ITEMS */}
+            <Form.List name="items">
+              {(fields, { add, remove }) => (
+                <>
+                  {/* Cabecera de la "tabla" para escritorio */}
+                  <Row
+                    gutter={16}
+                    style={{ marginBottom: 8, padding: '0 8px' }}
+                    className="hidden-xs"
+                  >
+                    <Col span={10}>
+                      <Text type="secondary" strong>
+                        Descripción del Servicio o Producto
                       </Text>
                     </Col>
-                    <Col
-                      span={2}
+                    <Col span={4}>
+                      <Text type="secondary" strong>
+                        Cant.
+                      </Text>
+                    </Col>
+                    <Col span={5}>
+                      <Text type="secondary" strong>
+                        Precio Unit.
+                      </Text>
+                    </Col>
+                    <Col span={3}>
+                      <Text type="secondary" strong>
+                        Subtotal
+                      </Text>
+                    </Col>
+                    <Col span={2} />
+                  </Row>
+
+                  {fields.map(({ key, name, ...restField }) => (
+                    <div
+                      key={key}
                       style={{
-                        textAlign: 'center',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        paddingBottom: '10px',
+                        background: '#f8f9fa',
+                        padding: '16px',
+                        borderRadius: '8px',
+                        marginBottom: 12,
+                        border: '1px solid #f0f0f0',
                       }}
                     >
-                      <Button
-                        type="text"
-                        danger
-                        onClick={() => remove(name)}
-                        icon={<DeleteOutlined />}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          width: '60px',
-                          height: '60px',
-                        }}
-                      />
-                    </Col>
-                  </Row>
-                ))}
-                <Form.Item>
+                      <Row gutter={16} align="middle">
+                        <Col xs={24} sm={10}>
+                          <Form.Item
+                            {...restField}
+                            name={[name, 'descripcion']}
+                            rules={[
+                              {
+                                required: true,
+                                message: '¡Este campo es obligatorio!',
+                              },
+                            ]}
+                            style={{ marginBottom: 0 }}
+                          >
+                            <Input
+                              placeholder="Ej. Lente Progresiva Alta Gama"
+                              variant="borderless"
+                              style={{ background: '#fff' }}
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={12} sm={4}>
+                          <Form.Item
+                            {...restField}
+                            name={[name, 'cantidad']}
+                            rules={[
+                              {
+                                required: true,
+                                message: '¡Este campo es obligatorio!',
+                              },
+                            ]}
+                            style={{ marginBottom: 0 }}
+                          >
+                            <InputNumber
+                              min={1}
+                              style={{ background: '#fff', width: '100%' }}
+                              placeholder="1"
+                              variant="borderless"
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={12} sm={5}>
+                          <Form.Item
+                            {...restField}
+                            name={[name, 'precio']}
+                            rules={[
+                              {
+                                required: true,
+                                message: '¡Este campo es obligatorio!',
+                              },
+                            ]}
+                            style={{ marginBottom: 0 }}
+                          >
+                            <InputNumber
+                              min={0}
+                              step={0.01}
+                              addonAfter="€"
+                              style={{ background: '#fff', width: '100%' }}
+                              variant="borderless"
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={20} sm={3} style={{ textAlign: 'right' }}>
+                          <Form.Item shouldUpdate noStyle>
+                            {() => {
+                              const item = form.getFieldValue(['items', name]);
+                              const subtotal =
+                                (item?.precio || 0) * (item?.cantidad || 0);
+                              return (
+                                <Text strong style={{ fontSize: '15px' }}>
+                                  {subtotal.toFixed(2)}€
+                                </Text>
+                              );
+                            }}
+                          </Form.Item>
+                        </Col>
+                        <Col xs={4} sm={2} style={{ textAlign: 'center' }}>
+                          <Popconfirm
+                            title="¿Desea eliminar esta fila?"
+                            onConfirm={() => remove(name)}
+                          >
+                            <Tooltip title="Eliminar fila">
+                              <Button
+                                type="text"
+                                danger
+                                icon={<DeleteOutlined />}
+                              />
+                            </Tooltip>
+                          </Popconfirm>
+                        </Col>
+                      </Row>
+                    </div>
+                  ))}
+
                   <Button
                     type="dashed"
                     onClick={() => add()}
                     block
                     icon={<PlusOutlined />}
+                    style={{
+                      height: '45px',
+                      marginTop: '8px',
+                      color: '#1890ff',
+                      borderColor: '#1890ff',
+                    }}
                   >
-                    Añadir concepto
+                    Añadir concepto nuevo
                   </Button>
-                </Form.Item>
-              </div>
-            )}
-          </Form.List>
+                </>
+              )}
+            </Form.List>
 
-          <Divider />
+            <Row justify="end" style={{ marginTop: 40 }}>
+              <Col xs={24} sm={10}>
+                <div
+                  style={{
+                    background: '#1d3557',
+                    color: '#fff',
+                    padding: '24px',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  }}
+                >
+                  <Form.Item
+                    shouldUpdate={(prev, curr) => prev.items !== curr.items}
+                    noStyle
+                  >
+                    {() => {
+                      const items = form.getFieldValue('items') || [];
+                      const base = items.reduce(
+                        (acc: number, cur: any) =>
+                          acc + (cur?.precio || 0) * (cur?.cantidad || 0),
+                        0,
+                      );
+                      const iva = base * 0.21;
+                      const total = base + iva;
 
-          <Row justify="end">
-            <Col span={8}>
-              <div
-                style={{
-                  background: '#fafafa',
-                  padding: '16px',
-                  borderRadius: '8px',
-                }}
-              >
-                <Row justify="space-between">
-                  <Text>Base Imponible:</Text>
-                  <Text strong>{totals.base.toFixed(2)} €</Text>
-                </Row>
-                <Row justify="space-between">
-                  <Text>IVA:</Text>
-                  <Text strong>{totals.iva.toFixed(2)} €</Text>
-                </Row>
-                <Divider style={{ margin: '12px 0' }} />
-                <Row justify="space-between">
-                  <Text strong>TOTAL:</Text>
-                  <Title level={3} style={{ margin: 0, color: '#1890ff' }}>
-                    {totals.total.toFixed(2)} €
-                  </Title>
-                </Row>
-              </div>
-            </Col>
-          </Row>
-        </Form>
-      </Card>
+                      return (
+                        <Space
+                          direction="vertical"
+                          style={{ width: '100%' }}
+                          size="middle"
+                        >
+                          <Row justify="space-between">
+                            <Text style={{ color: '#fff' }}>
+                              Base Imponible:
+                            </Text>
+                            <Text style={{ color: '#fff' }}>
+                              {base.toFixed(2)} €
+                            </Text>
+                          </Row>
+                          <Row justify="space-between">
+                            <Text style={{ color: '#fff' }}>IVA (21%):</Text>
+                            <Text style={{ color: '#fff' }}>
+                              {iva.toFixed(2)} €
+                            </Text>
+                          </Row>
+                          <Divider
+                            style={{
+                              margin: '8px 0',
+                              borderColor: 'rgba(255,255,255,0.1)',
+                            }}
+                          />
+                          <Row justify="space-between" align="middle">
+                            <Text
+                              strong
+                              style={{ color: '#fff', fontSize: '18px' }}
+                            >
+                              TOTAL:
+                            </Text>
+                            <Title
+                              level={2}
+                              style={{ margin: 0, color: '#a8dadc' }}
+                            >
+                              {total.toFixed(2)} €
+                            </Title>
+                          </Row>
+                        </Space>
+                      );
+                    }}
+                  </Form.Item>
+                </div>
+              </Col>
+            </Row>
+          </Form>
+        </Card>
+      </div>
 
-      {/* --- PDF Oculto para Imprimir --- */}
-      <div style={{ display: 'none' }}>
+      {/* --- EL PDF (FUERA DEL FORMULARIO PARA EVITAR BUCLES) --- */}
+      <div
+        style={{
+          position: 'absolute',
+          left: '-9999px',
+          top: 0,
+          visibility: 'hidden',
+          height: 0,
+          overflow: 'hidden',
+        }}
+      >
         <div
           ref={componentRef}
-          style={{ padding: '40px', color: '#000', background: '#fff' }}
+          style={{ padding: '40px', background: '#fff', width: '210mm' }}
         >
-          <Row justify="space-between">
-            <Col>
-              <Title level={2}>PRESUPUESTO</Title>
-              <Text strong>Centro Óptico Josu</Text>
-            </Col>
-            <Col style={{ textAlign: 'right' }}>
-              <Text>Fecha: {new Date().toLocaleDateString()}</Text>
-            </Col>
-          </Row>
-          <Divider style={{ borderTop: '2px solid #000' }} />
-          <div style={{ marginBottom: 20 }}>
-            <Text type="secondary">CLIENTE:</Text>
-            <br />
-            <Text strong>{cliente || '________________'}</Text>
-          </div>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr
-                style={{
-                  background: '#f5f5f5',
-                  borderBottom: '1px solid #000',
-                }}
-              >
-                <th style={{ padding: 10, textAlign: 'left' }}>Descripción</th>
-                <th style={{ padding: 10 }}>Cant.</th>
-                <th style={{ padding: 10, textAlign: 'right' }}>Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {productsForPrint.map((item, i) => (
-                <tr
-                  key={`print_item_${i}`}
-                  style={{ borderBottom: '1px solid #eee' }}
-                >
-                  <td style={{ padding: 10 }}>{item?.descripcion}</td>
-                  <td style={{ padding: 10, textAlign: 'center' }}>
-                    {item?.cantidad}
-                  </td>
-                  <td style={{ padding: 10, textAlign: 'right' }}>
-                    {((item?.precio || 0) * (item?.cantidad || 0)).toFixed(2)}€
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <Row justify="end" style={{ marginTop: 20 }}>
-            <Col span={8}>
-              <Row justify="space-between">
-                <Text>Base:</Text>
-                <Text>{totals.base.toFixed(2)} €</Text>
-              </Row>
-              <Row justify="space-between">
-                <Text>IVA:</Text>
-                <Text>{totals.iva.toFixed(2)} €</Text>
-              </Row>
-              <Divider style={{ margin: '5px 0' }} />
-              <Row justify="space-between">
-                <Text strong>TOTAL:</Text>
-                <Text strong>{totals.total.toFixed(2)} €</Text>
-              </Row>
-            </Col>
-          </Row>
+          <Title level={2}>PRESUPUESTO</Title>
+          <Text strong>Óptica Josu</Text>
+          <Divider />
+
+          <Form.Item shouldUpdate noStyle>
+            {() => {
+              const data = form.getFieldsValue();
+              const items = data.items || [];
+              const base = items.reduce(
+                (acc: number, cur: any) =>
+                  acc + (cur?.precio || 0) * (cur?.cantidad || 0),
+                0,
+              );
+              return (
+                <>
+                  <p>Cliente: {data.cliente}</p>
+                  <table
+                    style={{
+                      width: '100%',
+                      borderCollapse: 'collapse',
+                      marginTop: 20,
+                    }}
+                  >
+                    <thead>
+                      <tr style={{ borderBottom: '2px solid #000' }}>
+                        <th style={{ textAlign: 'left' }}>Descripción</th>
+                        <th>Cant.</th>
+                        <th style={{ textAlign: 'right' }}>Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {items.map((it: any, i: number) => (
+                        <tr key={i}>
+                          <td>{it.descripcion}</td>
+                          <td style={{ textAlign: 'center' }}>{it.cantidad}</td>
+                          <td style={{ textAlign: 'right' }}>
+                            {((it.precio || 0) * (it.cantidad || 0)).toFixed(2)}
+                            €
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <div style={{ textAlign: 'right', marginTop: 30 }}>
+                    <Text strong style={{ fontSize: 20 }}>
+                      TOTAL: {(base * 1.21).toFixed(2)} €
+                    </Text>
+                  </div>
+                </>
+              );
+            }}
+          </Form.Item>
         </div>
       </div>
     </AdminLayout>

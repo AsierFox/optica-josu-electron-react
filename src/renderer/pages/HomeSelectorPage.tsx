@@ -1,9 +1,10 @@
 import { FileTextOutlined, LineChartOutlined } from '@ant-design/icons';
-import { Card, Col, Row, Space, Typography } from 'antd';
+import { Card, Col, Divider, Row, Space, Typography } from 'antd';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../app/constants';
 import AdminLayout from '../layouts/AdminLayout';
+import logoOptica from '../../../assets/optica-josu-logo.png';
 
 const { Title, Text } = Typography;
 
@@ -12,13 +13,46 @@ const HomeSelectorPage: React.FC = () => {
 
   return (
     <AdminLayout>
-      <div style={{ margin: '60px auto', padding: '0 20px' }}>
+      <div style={{ margin: '20px auto', padding: '0 20px' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            marginBottom: '40px',
+          }}
+        >
+          <Text
+            strong
+            style={{
+              marginBottom: '12px',
+              fontSize: '14px',
+              letterSpacing: '3px',
+              textTransform: 'uppercase',
+              color: '#8c8c8c',
+            }}
+          >
+            Óptica <span style={{ color: '#1890ff' }}>Josu</span>
+          </Text>
+          <img
+            src={logoOptica}
+            alt="Logo Óptica Josu"
+            style={{
+              width: '100px',
+              height: 'auto',
+              filter: 'drop-shadow(0px 4px 8px rgba(0,0,0,0.1))',
+            }}
+          />
+        </div>
+
+        <Divider style={{ margin: '0 0 40px 0' }} />
+
         <header style={{ textAlign: 'center', marginBottom: '60px' }}>
           <Title level={1} className="main-title">
             Panel de Control
           </Title>
           <Text type="secondary" style={{ fontSize: '18px', fontWeight: 400 }}>
-            Selecciona una herramienta
+            Selecciona una herramienta para comenzar
           </Text>
         </header>
 

@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-props-no-spreading */
 import { Line, Pie } from '@ant-design/charts';
 import { Card, Col, Row } from 'antd';
 import dayjs from 'dayjs';
