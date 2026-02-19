@@ -8,6 +8,7 @@ import { Button, Popconfirm, Space, Table } from 'antd';
 import dayjs from 'dayjs';
 import React, { useMemo } from 'react';
 import ProductModel from '../../../main/models/product.model';
+import ProductTypeModel from '../../../main/models/productType.model';
 import { PRODUCT_FIELD_NAMES } from '../../app/constants';
 import utils from '../../utils/util';
 import EditableTableCell from './EditableTableCell';
@@ -17,7 +18,7 @@ interface Props {
   dataSource: ProductModel[];
   products: ProductModel[]; // Para los filtros
   editingProduct: ProductModel | null;
-  productTypesOptions: { value: number; label: string }[];
+  productTypes: ProductTypeModel[];
   onSave: () => void;
   onEdit: (record: ProductModel) => void;
   onCancel: () => void;
@@ -29,7 +30,7 @@ const ProductStockTable: React.FC<Props> = ({
   dataSource,
   products,
   editingProduct,
-  productTypesOptions,
+  productTypes,
   onSave,
   onEdit,
   onCancel,
@@ -49,6 +50,20 @@ const ProductStockTable: React.FC<Props> = ({
         products.map((product: ProductModel) => product.firma.toUpperCase()),
       )
       .map((filter: string) => ({ text: filter, value: filter }));
+
+    const productTypeFilters = productTypes.map(
+      (productType: ProductTypeModel) => ({
+        text: productType.type,
+        value: productType.id,
+      }),
+    );
+
+    const productTypesSelectOptions = productTypes.map(
+      (productType: ProductTypeModel) => ({
+        value: productType.id,
+        label: productType.type,
+      }),
+    );
 
     return [
       {
@@ -86,6 +101,7 @@ const ProductStockTable: React.FC<Props> = ({
       {
         title: PRODUCT_FIELD_NAMES.type,
         dataIndex: 'type',
+        filters: productTypeFilters,
         onFilter: (value: string, record: ProductModel) =>
           utils.equalsStrings(record.type, value),
         sorter: (a: ProductModel, b: ProductModel) =>
@@ -95,7 +111,7 @@ const ProductStockTable: React.FC<Props> = ({
           type: 'select',
           record,
           editingProduct,
-          selectOptions: productTypesOptions,
+          selectOptions: productTypesSelectOptions,
         }),
       },
       {
@@ -243,7 +259,7 @@ const ProductStockTable: React.FC<Props> = ({
   }, [
     editingProduct,
     products,
-    productTypesOptions,
+    productTypes,
     onSave,
     onEdit,
     onCancel,

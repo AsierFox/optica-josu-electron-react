@@ -1,17 +1,16 @@
 import { CloseOutlined, PlusOutlined } from '@ant-design/icons';
 import { Alert, Button, Form, notification, Popconfirm, Space } from 'antd';
-import { FilterValue } from 'antd/es/table/interface';
 import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useState } from 'react';
 import ProductModel from '../../../main/models/product.model';
 import ProductTypeModel from '../../../main/models/productType.model';
 import AdminLayout from '../../layouts/AdminLayout';
+import util from '../../utils/util';
 import ProductStockFilters from './ProductStockFilters';
+import { ProductStockFilterValue } from './ProductStockFilterValue';
 import ProductStockStats from './ProductStockStats';
 import ProductStockTable from './ProductStockTable';
-import util from '../../utils/util';
 
-// FIXME Al guardar el tipo y las fechas se pierden
 const ProductStockPage: React.FC = () => {
   const [isLoading, setLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -59,50 +58,45 @@ const ProductStockPage: React.FC = () => {
     fechaVenta: product.fechaVenta?.format('YYYY-MM-DD'),
   });
 
-  const prepareProductForTable = (product: ProductModel) => ({
+  const prepareProductForEditOnTable = (
+    product: ProductModel,
+  ): ProductModel => ({
     ...product,
     fechaCompra: product?.fechaCompra ? dayjs(product?.fechaCompra) : null,
     fechaVenta: product?.fechaVenta ? dayjs(product?.fechaVenta) : null,
   });
 
-  const getProductTypesOptionsForSelect = () => {
-    return productTypes.map((productType) => ({
-      value: productType.id,
-      label: productType.type,
-    }));
-  };
-
   const handleFilter = useCallback(
-    (filters: Readonly<Record<string, FilterValue>>) => {
+    (filters: Readonly<Record<string, ProductStockFilterValue>>) => {
       const filteredData = products.filter((item) => {
-        return Object.entries(filters).every(([key, filter]) => {
-          const searchFilter = filters[key];
-          // Si no hay filtro, no filtramos
-          switch (searchFilter.type) {
-            case 'SINGLE':
-              if (!searchFilter.value) {
-                return true;
-              }
-              return util.includesStrings(
-                item[searchFilter.targetKey],
-                searchFilter.value,
-              );
-            // Casuistica para busqueda por array
-            case 'MULTIPLE':
-              if (searchFilter.value.length <= 0) {
-                return true;
-              }
-              const itemValue = item[searchFilter.targetKey];
-              // Formateamos el valor en caso de que llegue a ser un number
-              const searchValue = isNaN(itemValue)
-                ? itemValue.toUpperCase()
-                : itemValue;
+        return Object.values(filters).every(
+          (filter: ProductStockFilterValue) => {
+            switch (filter.type) {
+              case 'SINGLE':
+                if (!filter.value) {
+                  return true;
+                }
+                return util.includesStrings(
+                  item[filter.targetKey],
+                  filter.value,
+                );
+              // Casuistica para busqueda por array
+              case 'MULTIPLE':
+                if (filter.value.length <= 0) {
+                  return true;
+                }
+                const itemValue = item[filter.targetKey];
+                // Formateamos el valor en caso de que llegue a ser un number
+                const searchValue = isNaN(itemValue)
+                  ? itemValue.toUpperCase()
+                  : itemValue;
 
-              return searchFilter.value.includes(searchValue);
-            default:
-              return true;
-          }
-        });
+                return filter.value.includes(searchValue);
+              default:
+                return true;
+            }
+          },
+        );
       });
 
       setTableDataSource(filteredData);
@@ -134,9 +128,25 @@ const ProductStockPage: React.FC = () => {
         );
       }
 
-      // Actualizamos tabla sin recargar
-      const newDataSource = tableDataSource.map((product: ProductModel) =>
-        product.id === editingProduct.id ? finalProduct : product,
+      // Buscamos y actualizamos en el array de la tabla el registro en concreto,
+      // para actualizar tabla sin recargar
+      const newDataSource: ProductModel[] = tableDataSource.map(
+        (product: ProductModel) =>
+          product.id === editingProduct.id
+            ? {
+                ...finalProduct,
+                type: productTypes.find(
+                  (productType: ProductTypeModel) =>
+                    productType.id === finalProduct.typeId,
+                )?.type,
+                fechaCompra: finalProduct.fechaCompra
+                  ? util.formatDateToYYYYMMDD(dayjs(finalProduct.fechaCompra))
+                  : null,
+                fechaVenta: finalProduct.fechaCompra
+                  ? util.formatDateToYYYYMMDD(dayjs(finalProduct.fechaCompra))
+                  : null,
+              }
+            : product,
       );
 
       setTableDataSource(newDataSource);
@@ -161,7 +171,7 @@ const ProductStockPage: React.FC = () => {
 
   const handleEdit = useCallback(
     (record: ProductModel) => {
-      form.setFieldsValue(prepareProductForTable(record));
+      form.setFieldsValue(prepareProductForEditOnTable(record));
 
       setEditingProduct(record);
     },
@@ -227,6 +237,7 @@ const ProductStockPage: React.FC = () => {
       ) : null}
 
       <ProductStockFilters
+        allDisabled={!!editingProduct}
         products={products}
         productTypes={productTypes}
         onFilterChange={handleFilter}
@@ -257,7 +268,7 @@ const ProductStockPage: React.FC = () => {
           dataSource={tableDataSource}
           products={products}
           editingProduct={editingProduct}
-          productTypesOptions={getProductTypesOptionsForSelect()}
+          productTypes={productTypes}
           onSave={handleSave}
           onEdit={handleEdit}
           onCancel={handleCancel}

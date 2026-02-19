@@ -3,30 +3,31 @@ import { Collapse, Divider, Input, Select, Space, Typography } from 'antd';
 import CheckableTag from 'antd/es/tag/CheckableTag';
 import React, { useEffect, useMemo, useState } from 'react';
 import ProductModel from '../../../main/models/product.model';
-import { PRODUCT_FIELD_NAMES } from '../../app/constants';
 import ProductTypeModel from '../../../main/models/productType.model';
+import { PRODUCT_FIELD_NAMES } from '../../app/constants';
+import { ProductStockFilterValue } from './ProductStockFilterValue';
 
 const { Text } = Typography;
 
-interface FilterValue {
-  // Mejor los UnionType, porque los enum generan código JavaScript extra al compilar
-  type: 'SINGLE' | 'MULTIPLE';
-  targetKey: string;
-  value: string | string[];
-}
-
 interface Props {
+  allDisabled: boolean;
   products: ProductModel[];
   productTypes: ProductTypeModel[];
-  onFilterChange: (filters: Readonly<Record<string, FilterValue>>) => void;
+  onFilterChange: (
+    filters: Readonly<Record<string, ProductStockFilterValue>>,
+  ) => void;
 }
 
+// FIXME Desabilitar filtros de tags cuando se este creando o editando
 const ProductStockFilters: React.FC<Props> = ({
+  allDisabled = false,
   products,
   productTypes,
   onFilterChange,
 }) => {
-  const [filters, setFilters] = useState<Record<string, FilterValue>>({
+  const [filters, setFilters] = useState<
+    Record<string, ProductStockFilterValue>
+  >({
     proveedorInput: {
       type: 'SINGLE',
       targetKey: 'proveedor',
@@ -136,7 +137,7 @@ const ProductStockFilters: React.FC<Props> = ({
     });
   };
 
-  const handleSelectChange = (key: string, values) => {
+  const handleSelectChange = (key: string, values: string | string[]) => {
     setFilters({
       ...filters,
       [key]: {
@@ -175,6 +176,7 @@ const ProductStockFilters: React.FC<Props> = ({
             </span>
 
             <Input
+              disabled={allDisabled}
               placeholder={`Buscar ${PRODUCT_FIELD_NAMES[filters[searchFilterInput].targetKey]}...`}
               prefix={<ShopOutlined style={{ color: '#bfbfbf' }} />}
               value={filters[searchFilterInput].value}
@@ -192,6 +194,7 @@ const ProductStockFilters: React.FC<Props> = ({
 
       {searchFilterCollapses.map((searchFilterCollapse) => (
         <Collapse
+          key={`collapse_${searchFilterCollapse.name}`}
           ghost
           className="collapse"
           style={{
@@ -199,7 +202,7 @@ const ProductStockFilters: React.FC<Props> = ({
           }}
           items={[
             {
-              key: `collapse_${searchFilterCollapse.name}`,
+              key: `collapse_children_${searchFilterCollapse.name}`,
               label: `Agrupaciones de ${PRODUCT_FIELD_NAMES[filters[searchFilterCollapse.name].targetKey]}`,
               extra:
                 filters[searchFilterCollapse.name].value.length > 0 ? (
@@ -267,6 +270,7 @@ const ProductStockFilters: React.FC<Props> = ({
         </span>
 
         <Select
+          disabled={allDisabled}
           mode="multiple"
           allowClear
           placeholder="Seleccionar Tipo de Producto..."
