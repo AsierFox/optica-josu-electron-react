@@ -74,6 +74,7 @@ const ProductStockTable: React.FC<Props> = ({
         title: PRODUCT_FIELD_NAMES.proveedor,
         dataIndex: 'proveedor',
         filters: proveedorFilters,
+        filterSearch: true,
         onFilter: (value: string, record: ProductModel) =>
           utils.equalsStrings(record.proveedor, value),
         sorter: (a: ProductModel, b: ProductModel) =>
@@ -88,6 +89,7 @@ const ProductStockTable: React.FC<Props> = ({
         title: PRODUCT_FIELD_NAMES.firma,
         dataIndex: 'firma',
         filters: firmaFilters,
+        filterSearch: true,
         onFilter: (value: string, record: ProductModel) =>
           utils.equalsStrings(record.firma, value),
         sorter: (a: ProductModel, b: ProductModel) =>
@@ -102,6 +104,7 @@ const ProductStockTable: React.FC<Props> = ({
         title: PRODUCT_FIELD_NAMES.type,
         dataIndex: 'type',
         filters: productTypeFilters,
+        filterSearch: true,
         onFilter: (value: string, record: ProductModel) =>
           utils.equalsStrings(record.type, value),
         sorter: (a: ProductModel, b: ProductModel) =>
