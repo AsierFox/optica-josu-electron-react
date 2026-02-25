@@ -2,7 +2,7 @@
 import {
   DeleteOutlined,
   FilePdfOutlined,
-  PlusOutlined
+  PlusOutlined,
 } from '@ant-design/icons';
 import {
   Button,
@@ -15,6 +15,7 @@ import {
   notification,
   Popconfirm,
   Row,
+  Select,
   Space,
   Tooltip,
   Typography,
@@ -26,11 +27,25 @@ import React, { useRef } from 'react';
 import AdminLayout from '../../layouts/AdminLayout';
 
 const { Text, Title } = Typography;
+const { Option } = Select;
 
 const PresupuestoGeneratorPage: React.FC = () => {
   const [api, contextHolder] = notification.useNotification();
   const [form] = Form.useForm();
   const componentRef = useRef<HTMLDivElement>(null);
+
+  const defaultConceptFormValues = { cantidad: '1', precio: 0, iva: 0.21 };
+  const defaultFormValues = {
+    items: [defaultConceptFormValues],
+    fecha: dayjs().format('DD/MM/YYYY'),
+  };
+
+  const ivaOptions = [
+    { label: '21%', value: 0.21 },
+    { label: '10%', value: 0.1 },
+    { label: '4%', value: 0.04 },
+    { label: '0%', value: 0 },
+  ];
 
   const handleGeneratePDF = async () => {
     const divPrintElement = componentRef.current;
@@ -89,11 +104,9 @@ const PresupuestoGeneratorPage: React.FC = () => {
           variant="borderless"
           className="shadow-sm"
           title={
-            <Space direction="vertical" size={0}>
-              <Title level={4} style={{ margin: 0 }}>
-                Generador de Presupuestos
-              </Title>
-            </Space>
+            <Title level={4} style={{ margin: 0 }}>
+              Generador de Presupuestos
+            </Title>
           }
           extra={
             <Button
@@ -101,18 +114,12 @@ const PresupuestoGeneratorPage: React.FC = () => {
               size="large"
               icon={<FilePdfOutlined />}
               onClick={handleGeneratePDF}
-              style={{ borderRadius: '6px', fontWeight: 500 }}
             >
               Exportar PDF
             </Button>
           }
         >
-          <Form
-            form={form}
-            layout="vertical"
-            initialValues={{ items: [{}], fecha: dayjs().format('DD/MM/YYYY') }}
-          >
-            {/* SECCIÓN CLIENTE */}
+          <Form form={form} layout="vertical" initialValues={defaultFormValues}>
             <Row gutter={24}>
               <Col xs={24} sm={16}>
                 <Form.Item
@@ -150,25 +157,29 @@ const PresupuestoGeneratorPage: React.FC = () => {
             <Form.List name="items">
               {(fields, { add, remove }) => (
                 <>
-                  {/* Cabecera de la "tabla" para escritorio */}
                   <Row
                     gutter={16}
                     style={{ marginBottom: 8, padding: '0 8px' }}
                     className="hidden-xs"
                   >
-                    <Col span={10}>
+                    <Col span={8}>
                       <Text type="secondary" strong>
                         Descripción del Servicio o Producto
                       </Text>
                     </Col>
-                    <Col span={4}>
+                    <Col span={3}>
                       <Text type="secondary" strong>
                         Cant.
                       </Text>
                     </Col>
-                    <Col span={5}>
+                    <Col span={4}>
                       <Text type="secondary" strong>
-                        Precio Unit.
+                        Precio Unidad
+                      </Text>
+                    </Col>
+                    <Col span={4}>
+                      <Text type="secondary" strong>
+                        IVA
                       </Text>
                     </Col>
                     <Col span={3}>
@@ -191,7 +202,7 @@ const PresupuestoGeneratorPage: React.FC = () => {
                       }}
                     >
                       <Row gutter={16} align="middle">
-                        <Col xs={24} sm={10}>
+                        <Col xs={24} sm={8}>
                           <Form.Item
                             {...restField}
                             name={[name, 'descripcion']}
@@ -204,13 +215,13 @@ const PresupuestoGeneratorPage: React.FC = () => {
                             style={{ marginBottom: 0 }}
                           >
                             <Input
-                              placeholder="Ej. Lente Progresiva Alta Gama"
+                              placeholder="Concepto..."
                               variant="borderless"
                               style={{ background: '#fff' }}
                             />
                           </Form.Item>
                         </Col>
-                        <Col xs={12} sm={4}>
+                        <Col xs={8} sm={3}>
                           <Form.Item
                             {...restField}
                             name={[name, 'cantidad']}
@@ -224,13 +235,12 @@ const PresupuestoGeneratorPage: React.FC = () => {
                           >
                             <InputNumber
                               min={1}
-                              style={{ background: '#fff', width: '100%' }}
-                              placeholder="1"
+                              style={{ width: '100%', background: '#fff' }}
                               variant="borderless"
                             />
                           </Form.Item>
                         </Col>
-                        <Col xs={12} sm={5}>
+                        <Col xs={16} sm={4}>
                           <Form.Item
                             {...restField}
                             name={[name, 'precio']}
@@ -251,7 +261,30 @@ const PresupuestoGeneratorPage: React.FC = () => {
                             />
                           </Form.Item>
                         </Col>
-                        <Col xs={20} sm={3} style={{ textAlign: 'right' }}>
+                        <Col xs={12} sm={4}>
+                          <Form.Item
+                            {...restField}
+                            name={[name, 'iva']}
+                            rules={[{ required: true }]}
+                            style={{ marginBottom: 0 }}
+                          >
+                            <Select
+                              style={{ width: '100%', background: '#fff' }}
+                              variant="borderless"
+                            >
+                              {ivaOptions.map((opt) => (
+                                <Option key={opt.value} value={opt.value}>
+                                  {opt.label}
+                                </Option>
+                              ))}
+                            </Select>
+                          </Form.Item>
+                        </Col>
+                        <Col
+                          xs={8}
+                          sm={3}
+                          style={{ paddingLeft: '20px', textAlign: 'left' }}
+                        >
                           <Form.Item shouldUpdate noStyle>
                             {() => {
                               const item = form.getFieldValue(['items', name]);
@@ -285,7 +318,7 @@ const PresupuestoGeneratorPage: React.FC = () => {
 
                   <Button
                     type="dashed"
-                    onClick={() => add()}
+                    onClick={() => add(defaultConceptFormValues)}
                     block
                     icon={<PlusOutlined />}
                     style={{
@@ -301,6 +334,7 @@ const PresupuestoGeneratorPage: React.FC = () => {
               )}
             </Form.List>
 
+            {/* TOTALES */}
             <Row justify="end" style={{ marginTop: 40 }}>
               <Col xs={24} sm={10}>
                 <div
@@ -311,10 +345,7 @@ const PresupuestoGeneratorPage: React.FC = () => {
                     borderRadius: '12px',
                   }}
                 >
-                  <Form.Item
-                    shouldUpdate={(prev, curr) => prev.items !== curr.items}
-                    noStyle
-                  >
+                  <Form.Item shouldUpdate noStyle>
                     {() => {
                       const items = form.getFieldValue('items') || [];
                       const base = items.reduce(
@@ -322,8 +353,11 @@ const PresupuestoGeneratorPage: React.FC = () => {
                           acc + (cur?.precio || 0) * (cur?.cantidad || 0),
                         0,
                       );
-                      const iva = base * 0.21;
-                      const total = base + iva;
+                      const totalIva = items.reduce((acc: number, cur: any) => {
+                        const lineBase =
+                          (cur?.precio || 0) * (cur?.cantidad || 0);
+                        return acc + lineBase * (cur?.iva || 0);
+                      }, 0);
 
                       return (
                         <Space
@@ -340,9 +374,9 @@ const PresupuestoGeneratorPage: React.FC = () => {
                             </Text>
                           </Row>
                           <Row justify="space-between">
-                            <Text style={{ color: '#fff' }}>IVA (21%):</Text>
+                            <Text style={{ color: '#fff' }}>Total IVA:</Text>
                             <Text style={{ color: '#fff' }}>
-                              {iva.toFixed(2)} €
+                              {totalIva.toFixed(2)} €
                             </Text>
                           </Row>
                           <Divider
@@ -362,7 +396,7 @@ const PresupuestoGeneratorPage: React.FC = () => {
                               level={2}
                               style={{ margin: 0, color: '#ffffff' }}
                             >
-                              {total.toFixed(2)} €
+                              {(base + totalIva).toFixed(2)} €
                             </Title>
                           </Row>
                         </Space>
@@ -376,7 +410,7 @@ const PresupuestoGeneratorPage: React.FC = () => {
         </Card>
       </div>
 
-      {/* --- EL PDF (FUERA DEL FORMULARIO PARA EVITAR BUCLES) --- */}
+      {/* --- ESTRUCTURA PDF --- */}
       <div
         style={{
           position: 'absolute',
@@ -394,16 +428,13 @@ const PresupuestoGeneratorPage: React.FC = () => {
           <Title level={2}>PRESUPUESTO</Title>
           <Text strong>Óptica Josu</Text>
           <Divider />
-
           <Form.Item shouldUpdate noStyle>
             {() => {
               const data = form.getFieldsValue();
               const items = data.items || [];
-              const base = items.reduce(
-                (acc: number, cur: any) =>
-                  acc + (cur?.precio || 0) * (cur?.cantidad || 0),
-                0,
-              );
+              let totalBase = 0;
+              let totalIvaCalc = 0;
+
               return (
                 <>
                   <p>Cliente: {data.cliente}</p>
@@ -418,25 +449,45 @@ const PresupuestoGeneratorPage: React.FC = () => {
                       <tr style={{ borderBottom: '2px solid #000' }}>
                         <th style={{ textAlign: 'left' }}>Descripción</th>
                         <th>Cant.</th>
-                        <th style={{ textAlign: 'right' }}>Total</th>
+                        <th>P. Unit</th>
+                        <th>IVA</th>
+                        <th style={{ textAlign: 'right' }}>Subtotal</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {items.map((it: any, i: number) => (
-                        <tr key={i}>
-                          <td>{it.descripcion}</td>
-                          <td style={{ textAlign: 'center' }}>{it.cantidad}</td>
-                          <td style={{ textAlign: 'right' }}>
-                            {((it.precio || 0) * (it.cantidad || 0)).toFixed(2)}
-                            €
-                          </td>
-                        </tr>
-                      ))}
+                      {items.map((it: any, i: number) => {
+                        const lineBase = (it.precio || 0) * (it.cantidad || 0);
+                        const lineIva = lineBase * (it.iva || 0);
+                        totalBase += lineBase;
+                        totalIvaCalc += lineIva;
+                        return (
+                          <tr
+                            key={i}
+                            style={{ borderBottom: '1px solid #eee' }}
+                          >
+                            <td>{it.descripcion}</td>
+                            <td style={{ textAlign: 'center' }}>
+                              {it.cantidad}
+                            </td>
+                            <td style={{ textAlign: 'center' }}>
+                              {(it.precio || 0).toFixed(2)}€
+                            </td>
+                            <td style={{ textAlign: 'center' }}>
+                              {(it.iva || 0) * 100}%
+                            </td>
+                            <td style={{ textAlign: 'right' }}>
+                              {lineBase.toFixed(2)}€
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                   <div style={{ textAlign: 'right', marginTop: 30 }}>
-                    <Text strong style={{ fontSize: 20 }}>
-                      TOTAL: {(base * 1.21).toFixed(2)} €
+                    <p>Base: {totalBase.toFixed(2)} €</p>
+                    <p>IVA: {totalIvaCalc.toFixed(2)} €</p>
+                    <Text strong style={{ fontSize: 22 }}>
+                      TOTAL: {(totalBase + totalIvaCalc).toFixed(2)} €
                     </Text>
                   </div>
                 </>
