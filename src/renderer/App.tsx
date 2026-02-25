@@ -12,7 +12,7 @@ import './App.css';
 import { ROUTES } from './app/constants';
 import { store } from './app/store';
 import HomeSelector from './pages/HomeSelectorPage';
-import PresupuestoGenerator from './pages/PresupuestoGeneratorPage';
+import PresupuestoGenerator from './pages/presupuesto-generator/PresupuestoGeneratorPage';
 import ProductStockPage from './pages/product-stock/ProductStockPage';
 
 require('dayjs/locale/es');

@@ -36,7 +36,7 @@ const ProductStockTable: React.FC<Props> = ({
   onCancel,
   onDelete,
 }) => {
-  const columns = useMemo(() => {
+  const columns: any = useMemo(() => {
     const proveedorFilters = utils
       .uniq(
         products.map((product: ProductModel) =>

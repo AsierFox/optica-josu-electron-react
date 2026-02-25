@@ -1,5 +1,18 @@
-import { AlertOutlined, ShopOutlined } from '@ant-design/icons';
-import { Collapse, Divider, Input, Select, Space, Typography } from 'antd';
+import {
+  AlertOutlined,
+  ShopOutlined,
+  SwapRightOutlined,
+} from '@ant-design/icons';
+import {
+  Collapse,
+  DatePicker,
+  Divider,
+  Input,
+  InputNumber,
+  Select,
+  Space,
+  Typography,
+} from 'antd';
 import CheckableTag from 'antd/es/tag/CheckableTag';
 import React, { useEffect, useMemo, useState } from 'react';
 import ProductModel from '../../../main/models/product.model';
@@ -8,6 +21,7 @@ import { PRODUCT_FIELD_NAMES } from '../../app/constants';
 import { ProductStockFilterValue } from './ProductStockFilterValue';
 
 const { Text } = Typography;
+const { RangePicker } = DatePicker;
 
 interface Props {
   allDisabled: boolean;
@@ -264,35 +278,198 @@ const ProductStockFilters: React.FC<Props> = ({
 
       <Divider />
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        <span
-          style={{ fontWeight: 'bold', fontSize: '12px', marginLeft: '4px' }}
+      <Space style={{ width: '100%' }} wrap size={[16, 16]}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '4px',
+            minWidth: '150px',
+            flex: 1,
+          }}
         >
-          Tipo de Producto
-        </span>
+          <span
+            style={{
+              fontWeight: 500,
+              fontSize: '12px',
+              marginLeft: '4px',
+            }}
+          >
+            Tipo de Producto
+          </span>
+          <Select
+            disabled={allDisabled}
+            mode="multiple"
+            allowClear
+            placeholder="Tipo de Producto..."
+            // El valor viene de tu estado global de filtros
+            value={filters.typeSelect.value}
+            // Al cambiar, mandamos el array completo de strings
+            onChange={(selectedValues) =>
+              handleSelectChange('typeSelect', selectedValues)
+            }
+            // Opciones (esto podría venir de un searchFilterCollapse.tags)
+            options={productTypes.map((productType: ProductTypeModel) => ({
+              label: productType.type,
+              value: productType.id,
+            }))}
+            // Para que al buscar no importe mayúsculas/minúsculas
+            filterOption={(input, option) =>
+              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+            }
+          />
+        </div>
 
-        <Select
-          disabled={allDisabled}
-          mode="multiple"
-          allowClear
-          placeholder="Seleccionar Tipo de Producto..."
-          // El valor viene de tu estado global de filtros
-          value={filters.typeSelect.value}
-          // Al cambiar, mandamos el array completo de strings
-          onChange={(selectedValues) =>
-            handleSelectChange('typeSelect', selectedValues)
-          }
-          // Opciones (esto podría venir de un searchFilterCollapse.tags)
-          options={productTypes.map((productType: ProductTypeModel) => ({
-            label: productType.type,
-            value: productType.id,
-          }))}
-          // Para que al buscar no importe mayúsculas/minúsculas
-          filterOption={(input, option) =>
-            (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-          }
-        />
-      </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <span
+            style={{
+              fontWeight: 500,
+              fontSize: '12px',
+              marginLeft: '4px',
+            }}
+          >
+            Fecha de Compra
+          </span>
+          <RangePicker
+            id={{
+              start: 'startFechaCompraInput',
+              end: 'endFechaCompraInput',
+            }}
+            onFocus={(_, info) => {
+              console.log('Focus:', info.range);
+            }}
+            onBlur={(_, info) => {
+              console.log('Blur:', info.range);
+            }}
+          />
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <span
+            style={{
+              fontWeight: 500,
+              fontSize: '12px',
+              marginLeft: '4px',
+            }}
+          >
+            Fecha de Venta
+          </span>
+          <RangePicker
+            id={{
+              start: 'startFechaVentaInput',
+              end: 'endFechaVentaInput',
+            }}
+            onFocus={(_, info) => {
+              console.log('Focus:', info.range);
+            }}
+            onBlur={(_, info) => {
+              console.log('Blur:', info.range);
+            }}
+          />
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <span
+            style={{
+              fontWeight: 500,
+              fontSize: '12px',
+              marginLeft: '4px',
+            }}
+          >
+            Precio de Compra
+          </span>
+          <Space.Compact>
+            <InputNumber
+              placeholder="Mínimo"
+              // value={min}
+              // onChange={handleMinChange}
+              formatter={(value) =>
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+              }
+              // parser={(value) => value.replace(/\./g, '')}
+              style={{ width: 120 }}
+              min={0}
+              addonAfter="€"
+            />
+            <div
+              style={{
+                width: 40,
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: '#f5f5f5',
+                borderTop: '1px solid #d9d9d9',
+                borderBottom: '1px solid #d9d9d9',
+              }}
+            >
+              <SwapRightOutlined style={{ color: 'rgba(0, 0, 0, 0.45)' }} />
+            </div>
+            <InputNumber
+              placeholder="Máximo"
+              // value={max}
+              // onChange={handleMaxChange}
+              formatter={(value) =>
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+              }
+              parser={(value) => value.replace(/\./g, '')}
+              style={{ width: 120 }}
+              // min={min || 0} // Crítica constructiva: No permitas que el máximo sea menor al mínimo
+              addonAfter="€"
+            />
+          </Space.Compact>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <span
+            style={{
+              fontWeight: 500,
+              fontSize: '12px',
+              marginLeft: '4px',
+            }}
+          >
+            Precio de Venta
+          </span>
+          <Space.Compact>
+            <InputNumber
+              placeholder="Mínimo"
+              // value={min}
+              // onChange={handleMinChange}
+              formatter={(value) =>
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+              }
+              // parser={(value) => value.replace(/\./g, '')}
+              style={{ width: 120 }}
+              min={0}
+              addonAfter="€"
+            />
+            <div
+              style={{
+                width: 40,
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: '#f5f5f5',
+                borderTop: '1px solid #d9d9d9',
+                borderBottom: '1px solid #d9d9d9',
+              }}
+            >
+              <SwapRightOutlined style={{ color: 'rgba(0, 0, 0, 0.45)' }} />
+            </div>
+            <InputNumber
+              placeholder="Máximo"
+              // value={max}
+              // onChange={handleMaxChange}
+              formatter={(value) =>
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+              }
+              parser={(value) => value.replace(/\./g, '')}
+              style={{ width: 120 }}
+              // min={min || 0} // Crítica constructiva: No permitas que el máximo sea menor al mínimo
+              addonAfter="€"
+            />
+          </Space.Compact>
+        </div>
+      </Space>
 
       <Divider />
     </div>

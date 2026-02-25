@@ -23,7 +23,7 @@ import dayjs from 'dayjs';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import React, { useRef } from 'react';
-import AdminLayout from '../layouts/AdminLayout';
+import AdminLayout from '../../layouts/AdminLayout';
 
 const { Text, Title } = Typography;
 
@@ -305,11 +305,10 @@ const PresupuestoGeneratorPage: React.FC = () => {
               <Col xs={24} sm={10}>
                 <div
                   style={{
-                    background: '#1d3557',
+                    background: '#2877e6',
                     color: '#fff',
                     padding: '24px',
                     borderRadius: '12px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                   }}
                 >
                   <Form.Item
@@ -361,7 +360,7 @@ const PresupuestoGeneratorPage: React.FC = () => {
                             </Text>
                             <Title
                               level={2}
-                              style={{ margin: 0, color: '#a8dadc' }}
+                              style={{ margin: 0, color: '#ffffff' }}
                             >
                               {total.toFixed(2)} €
                             </Title>
