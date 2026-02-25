@@ -17,7 +17,6 @@ import {
   Row,
   Select,
   Space,
-  Tooltip,
   Typography,
 } from 'antd';
 import dayjs from 'dayjs';
@@ -281,8 +280,8 @@ const PresupuestoGeneratorPage: React.FC = () => {
                           </Form.Item>
                         </Col>
                         <Col
-                          xs={8}
-                          sm={3}
+                          xs={7}
+                          sm={2}
                           style={{ paddingLeft: '20px', textAlign: 'left' }}
                         >
                           <Form.Item shouldUpdate noStyle>
@@ -303,13 +302,13 @@ const PresupuestoGeneratorPage: React.FC = () => {
                             title="¿Desea eliminar esta fila?"
                             onConfirm={() => remove(name)}
                           >
-                            <Tooltip title="Eliminar fila">
-                              <Button
-                                type="text"
-                                danger
-                                icon={<DeleteOutlined />}
-                              />
-                            </Tooltip>
+                            <Button
+                              color="red"
+                              variant="filled"
+                              icon={<DeleteOutlined />}
+                            >
+                              Eliminar
+                            </Button>
                           </Popconfirm>
                         </Col>
                       </Row>
