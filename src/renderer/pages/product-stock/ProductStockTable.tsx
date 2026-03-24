@@ -111,6 +111,7 @@ const ProductStockTable: React.FC<Props> = ({
           a.type.localeCompare(b.type),
         onCell: (record: ProductModel) => ({
           dataIndex: 'typeId',
+          required: true,
           type: 'select',
           record,
           editingProduct,
@@ -124,6 +125,7 @@ const ProductStockTable: React.FC<Props> = ({
           a.referencia.localeCompare(b.referencia),
         onCell: (record: ProductModel) => ({
           dataIndex: 'referencia',
+          required: true,
           record,
           editingProduct,
         }),
@@ -201,6 +203,7 @@ const ProductStockTable: React.FC<Props> = ({
         dataIndex: 'cantidad',
         onCell: (record: ProductModel) => ({
           dataIndex: 'cantidad',
+          required: true,
           type: 'number',
           record,
           editingProduct,

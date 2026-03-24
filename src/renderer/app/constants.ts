@@ -11,6 +11,8 @@ export const ROUTES = {
   PRESUPUESTO_GENERATOR: '/presupuesto-generator',
 };
 
+export const NEW_PRODUCT_ID_PREFIX = 'temp_';
+
 export const PRODUCT_FIELD_NAMES = {
   id: 'ID',
   proveedor: 'Proveedor',

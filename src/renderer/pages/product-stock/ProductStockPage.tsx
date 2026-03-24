@@ -4,6 +4,7 @@ import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useState } from 'react';
 import ProductModel from '../../../main/models/product.model';
 import ProductTypeModel from '../../../main/models/productType.model';
+import { NEW_PRODUCT_ID_PREFIX } from '../../app/constants';
 import AdminLayout from '../../layouts/AdminLayout';
 import util from '../../utils/util';
 import ProductStockFilters from './ProductStockFilters';
@@ -24,31 +25,13 @@ const ProductStockPage: React.FC = () => {
   const [api, contextHolder] = notification.useNotification();
   const [form] = Form.useForm();
 
-  const NEW_PRODUCT_ID_PREFIX = 'temp_';
-
   const generateNewProductTableRow = () => {
-    const newGeneratedId = NEW_PRODUCT_ID_PREFIX + Date.now();
-    const newProduct: ProductModel = {
-      id: newGeneratedId,
-      proveedor: '',
-      firma: '',
-      referencia: '',
-      modeloColor: '',
-      typeId: 0,
-      type: '',
-      calibrePuente: '',
-      precioCompra: null,
-      precioVenta: null,
-      cantidad: 1,
-      fechaCompra: null,
-      fechaVenta: null,
-      notes: null,
-      createdAt: null,
-      updatedAt: null,
-    };
+    const newProduct: ProductModel = new ProductModel();
 
     // Limpiamos cualquier residuo de ediciones anteriores
     form.resetFields();
+    form.setFieldsValue(newProduct);
+
     setTableDataSource([newProduct, ...tableDataSource]);
     setEditingProduct(newProduct);
   };

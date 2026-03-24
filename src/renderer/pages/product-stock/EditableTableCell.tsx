@@ -4,6 +4,7 @@ import ProductModel from '../../../main/models/product.model';
 
 const EditableTableCell = ({
   dataIndex,
+  required = false,
   type = 'text',
   record,
   editingProduct,
@@ -12,6 +13,7 @@ const EditableTableCell = ({
   ...restProps
 }: {
   dataIndex: keyof ProductModel;
+  required: boolean;
   type?: 'text' | 'number' | 'date' | 'money' | 'select';
   record: ProductModel;
   editingProduct: ProductModel | null;
@@ -57,7 +59,7 @@ const EditableTableCell = ({
         style={{ margin: 0 }}
         rules={[
           {
-            required: true,
+            required,
             message: `Por favor, introduce este campo obligatorio.`,
           },
         ]}

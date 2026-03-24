@@ -33,18 +33,18 @@ export const registerMysqlIPCHandlers = () => {
   ipcMain.handle('mysql-create-product', async (_event, product: ProductModel) => {
     try {
       const params = [
-        product.proveedor,
-        product.firma,
+        product.proveedor ?? null,
+        product.firma ?? null,
         product.typeId,
         product.referencia,
-        product.modeloColor,
-        product.calibrePuente,
+        product.modeloColor ?? null,
+        product.calibrePuente ?? null,
         product.cantidad ?? 1,
-        product.fechaCompra || null,
+        product.fechaCompra ?? null,
         product.precioCompra ?? null,
-        product.fechaVenta || null,
+        product.fechaVenta ?? null,
         product.precioVenta ?? null,
-        product.notes || null,
+        product.notes ?? null,
       ];
       const [result] = await query(`INSERT INTO PRODUCT
         (PROVEEDOR, FIRMA, ID_PRODUCT_TYPE, REFERENCIA, MODELO_COLOR, CALIBRE_PUENTE,
@@ -63,12 +63,12 @@ export const registerMysqlIPCHandlers = () => {
     try {
       const [rows] = await query(`UPDATE PRODUCT
         SET
-          PROVEEDOR = '${product.proveedor}',
-          FIRMA = '${product.firma}',
+          PROVEEDOR = ${product.proveedor ? `'${product.proveedor}'` : 'NULL'},
+          FIRMA = ${product.firma ? `'${product.firma}'` : 'NULL'},
           ID_PRODUCT_TYPE = ${product.typeId},
           REFERENCIA = '${product.referencia}',
-          MODELO_COLOR = '${product.modeloColor}',
-          CALIBRE_PUENTE = '${product.calibrePuente}',
+          MODELO_COLOR = ${product.modeloColor ? `'${product.modeloColor}'` : 'NULL'},
+          CALIBRE_PUENTE = ${product.calibrePuente ? `'${product.calibrePuente}'` : 'NULL'},
           CANTIDAD = ${product.cantidad ?? 0},
           FECHA_COMPRA = ${product.fechaCompra ? `'${product.fechaCompra}'` : 'NULL'},
           PRECIO_COMPRA = ${product.precioCompra ? `'${product.precioCompra}'` : 'NULL'},
