@@ -2,6 +2,7 @@
 import {
   DeleteOutlined,
   FilePdfOutlined,
+  LoadingOutlined,
   PlusOutlined,
 } from '@ant-design/icons';
 import {
@@ -17,7 +18,8 @@ import {
   Row,
   Select,
   Space,
-  Typography,
+  Spin,
+  Typography
 } from 'antd';
 import dayjs from 'dayjs';
 import html2canvas from 'html2canvas';
@@ -32,6 +34,7 @@ const PresupuestoGeneratorPage: React.FC = () => {
   const [api, contextHolder] = notification.useNotification();
   const [form] = Form.useForm();
   const componentRef = useRef<HTMLDivElement>(null);
+  const [generatingPDF, setGeneratingPDF] = React.useState(false);
 
   const defaultConceptFormValues = { cantidad: 1, precio: 0, iva: 0.21 };
   const defaultFormValues = {
@@ -53,6 +56,7 @@ const PresupuestoGeneratorPage: React.FC = () => {
     const container = divPrintElement.parentElement!;
 
     try {
+      setGeneratingPDF(true);
       // 1. Validamos campos
       await form.validateFields();
 
@@ -63,7 +67,7 @@ const PresupuestoGeneratorPage: React.FC = () => {
       container.style.position = 'absolute';
 
       // 3. PEQUEÑA ESPERA (Crucial para que React renderice los múltiples conceptos)
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const canvas = await html2canvas(divPrintElement, {
         scale: 2,
@@ -75,6 +79,7 @@ const PresupuestoGeneratorPage: React.FC = () => {
       });
 
       const imgData = canvas.toDataURL('image/png');
+      // eslint-disable-next-line new-cap
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const imgProps = pdf.getImageProperties(imgData);
@@ -91,12 +96,32 @@ const PresupuestoGeneratorPage: React.FC = () => {
       // 4. Volvemos a ocultar
       container.style.visibility = 'hidden';
       container.style.height = '0';
+      setGeneratingPDF(false);
     }
   };
 
   return (
     <AdminLayout>
       {contextHolder}
+      {generatingPDF ? (
+        <Spin
+          indicator={<LoadingOutlined spin />}
+          size="large"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(255, 255, 255, 0.7)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 9999,
+          }}
+        />
+      ) : null}
       <div style={{ margin: '0 auto', padding: '30px' }}>
         <Card
           variant="borderless"
