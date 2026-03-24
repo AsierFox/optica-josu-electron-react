@@ -53,15 +53,25 @@ const PresupuestoGeneratorPage: React.FC = () => {
     const container = divPrintElement.parentElement!;
 
     try {
+      // 1. Validamos campos
       await form.validateFields();
+
+      // 2. Hacemos el contenedor visible pero manteniéndolo fuera de la vista del usuario
+      // Esto es vital para que html2canvas pueda medir dimensiones correctamente
       container.style.visibility = 'visible';
       container.style.height = 'auto';
+      container.style.position = 'absolute';
+
+      // 3. PEQUEÑA ESPERA (Crucial para que React renderice los múltiples conceptos)
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
       const canvas = await html2canvas(divPrintElement, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
+        windowWidth: divPrintElement.scrollWidth, // Forzamos ancho
+        windowHeight: divPrintElement.scrollHeight, // Forzamos alto
       });
 
       const imgData = canvas.toDataURL('image/png');
@@ -72,11 +82,13 @@ const PresupuestoGeneratorPage: React.FC = () => {
 
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       pdf.save(
-        `Presupuesto_${form.getFieldValue('cliente')}_${dayjs().format('YYYY_MM_DD')}.pdf`,
+        `Presupuesto_${form.getFieldValue('cliente') || 'SinNombre'}_${dayjs().format('YYYY_MM_DD')}.pdf`,
       );
     } catch (error) {
+      console.error(error);
       api.error({ message: '¡Error generando el PDF!' });
     } finally {
+      // 4. Volvemos a ocultar
       container.style.visibility = 'hidden';
       container.style.height = '0';
     }
@@ -106,14 +118,21 @@ const PresupuestoGeneratorPage: React.FC = () => {
           }
         >
           <Form form={form} layout="vertical" initialValues={defaultFormValues}>
-            <Row gutter={24}>
-              <Col xs={24} sm={16}>
+            <Row gutter={[16, 16]}>
+              <Col xs={24} sm={12}>
                 <Form.Item
                   name="cliente"
-                  label={<Text strong>Cliente</Text>}
-                  rules={[{ required: true }]}
+                  label={<Text strong>Cliente / Razón Social</Text>}
+                  rules={[
+                    { required: true, message: 'El nombre es obligatorio' },
+                  ]}
                 >
-                  <Input placeholder="Nombre o Razón Social" size="large" />
+                  <Input placeholder="Nombre completo" size="large" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={4}>
+                <Form.Item name="dni" label={<Text strong>DNI / CIF</Text>}>
+                  <Input placeholder="12345678X" size="large" />
                 </Form.Item>
               </Col>
               <Col xs={24} sm={8}>
@@ -123,6 +142,24 @@ const PresupuestoGeneratorPage: React.FC = () => {
                     size="large"
                     style={{ textAlign: 'center' }}
                   />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12}>
+                <Form.Item
+                  name="direccion"
+                  label={<Text strong>Dirección</Text>}
+                >
+                  <Input placeholder="Calle, número, piso..." size="large" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={8}>
+                <Form.Item name="ciudad" label={<Text strong>Ciudad</Text>}>
+                  <Input placeholder="Población" size="large" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={4}>
+                <Form.Item name="codigoPostal" label={<Text strong>C.P.</Text>}>
+                  <Input placeholder="48001" size="large" />
                 </Form.Item>
               </Col>
             </Row>
@@ -359,71 +396,176 @@ const PresupuestoGeneratorPage: React.FC = () => {
         </Card>
       </div>
 
-      {/* --- ESTRUCTURA PDF (Reflejando deducción) --- */}
-      <div
-        style={{ position: 'absolute', left: '-9999px', visibility: 'hidden' }}
-      >
+      {/* --- ESTRUCTURA PDF (Renderizado optimizado para jsPDF) --- */}
+      {/* --- ESTRUCTURA PDF (Renderizado optimizado) --- */}
+      <div style={{ position: 'absolute', top: '-10000px', left: '-10000px' }}>
         <div
           ref={componentRef}
-          style={{ padding: '40px', background: '#fff', width: '210mm' }}
+          style={{
+            padding: '40px',
+            background: '#fff',
+            width: '210mm',
+            minHeight: '297mm',
+            fontFamily: 'Arial, sans-serif',
+            color: '#333',
+          }}
         >
-          <Title level={2}>PRESUPUESTO</Title>
-          <Text strong>Óptica Josu</Text>
-          <Divider />
+          {/* Cabecera */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              marginBottom: '30px',
+            }}
+          >
+            <div>
+              <h1 style={{ color: '#2877e6', margin: 0, fontSize: '28px' }}>
+                PRESUPUESTO
+              </h1>
+              <p
+                style={{
+                  fontWeight: 'bold',
+                  fontSize: '18px',
+                  margin: '5px 0',
+                }}
+              >
+                Óptica Josu
+              </p>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <p style={{ margin: 0 }}>
+                <strong>Fecha:</strong> {form.getFieldValue('fecha')}
+              </p>
+            </div>
+          </div>
+
+          <div
+            style={{ borderTop: '2px solid #2877e6', marginBottom: '30px' }}
+          />
+
+          {/* Datos del Cliente - Usamos Form.Item para forzar el re-render */}
           <Form.Item shouldUpdate noStyle>
             {() => {
-              const data = form.getFieldsValue();
-              const items = data.items || [];
-              let sumBase = 0;
-              let sumIva = 0;
+              const values = form.getFieldsValue();
+              return (
+                <div style={{ marginBottom: '40px', display: 'flex' }}>
+                  <div
+                    style={{
+                      flex: 1,
+                      background: '#f9fafb',
+                      padding: '20px',
+                      borderRadius: '8px',
+                      border: '1px solid #eee',
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: '10px',
+                        color: '#999',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      Cliente
+                    </span>
+                    <div
+                      style={{
+                        fontWeight: 'bold',
+                        fontSize: '16px',
+                        marginTop: '5px',
+                      }}
+                    >
+                      {values.cliente || '___________________________'}
+                    </div>
+                    {values.dni && (
+                      <div style={{ fontSize: '13px' }}>
+                        DNI/NIF: {values.dni}
+                      </div>
+                    )}
+                    <div style={{ marginTop: '10px', fontSize: '13px' }}>
+                      {values.direccion && <div>{values.direccion}</div>}
+                      {(values.codigoPostal || values.ciudad) && (
+                        <div>
+                          {values.codigoPostal} {values.ciudad}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            }}
+          </Form.Item>
+
+          {/* Tabla de Conceptos */}
+          <Form.Item shouldUpdate noStyle>
+            {() => {
+              const items = form.getFieldValue('items') || [];
+              let subtotal = 0;
+              let totalIva = 0;
 
               return (
                 <>
-                  <p>Cliente: {data.cliente}</p>
-                  <table
-                    style={{
-                      width: '100%',
-                      borderCollapse: 'collapse',
-                      marginTop: 20,
-                    }}
-                  >
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
-                      <tr style={{ borderBottom: '2px solid #000' }}>
-                        <th style={{ textAlign: 'left' }}>Descripción</th>
-                        <th>Cant.</th>
-                        <th>Base Unit. (Ded.)</th>
-                        <th>IVA</th>
-                        <th style={{ textAlign: 'right' }}>Total</th>
+                      <tr style={{ backgroundColor: '#2877e6', color: '#fff' }}>
+                        <th style={{ padding: '12px', textAlign: 'left' }}>
+                          Descripción
+                        </th>
+                        <th style={{ padding: '12px', textAlign: 'center' }}>
+                          Cant.
+                        </th>
+                        <th style={{ padding: '12px', textAlign: 'right' }}>
+                          Base Unit.
+                        </th>
+                        <th style={{ padding: '12px', textAlign: 'center' }}>
+                          IVA
+                        </th>
+                        <th style={{ padding: '12px', textAlign: 'right' }}>
+                          Total
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       {items.map((it: any, i: number) => {
-                        const totalLinea =
-                          (it.precio || 0) * (it.cantidad || 0);
+                        const cant = it.cantidad || 0;
+                        const precioConIva = it.precio || 0;
                         const tasaIva = it.iva || 0;
-                        const baseLinea = totalLinea / (1 + tasaIva);
-                        const ivaLinea = totalLinea - baseLinea;
-                        const baseUnitarioDeducido = it.precio / (1 + tasaIva);
 
-                        sumBase += baseLinea;
-                        sumIva += ivaLinea;
+                        const totalLinea = precioConIva * cant;
+                        const baseUnit = precioConIva / (1 + tasaIva);
+                        const baseTotalLinea = totalLinea / (1 + tasaIva);
+                        const ivaLinea = totalLinea - baseTotalLinea;
+
+                        subtotal += baseTotalLinea;
+                        totalIva += ivaLinea;
 
                         return (
                           <tr
                             key={i}
                             style={{ borderBottom: '1px solid #eee' }}
                           >
-                            <td>{it.descripcion}</td>
-                            <td style={{ textAlign: 'center' }}>
-                              {it.cantidad}
+                            <td style={{ padding: '12px' }}>
+                              {it.descripcion || '---'}
                             </td>
-                            <td style={{ textAlign: 'center' }}>
-                              {baseUnitarioDeducido.toFixed(2)}€
+                            <td
+                              style={{ padding: '12px', textAlign: 'center' }}
+                            >
+                              {cant}
                             </td>
-                            <td style={{ textAlign: 'center' }}>
+                            <td style={{ padding: '12px', textAlign: 'right' }}>
+                              {baseUnit.toFixed(2)}€
+                            </td>
+                            <td
+                              style={{ padding: '12px', textAlign: 'center' }}
+                            >
                               {tasaIva * 100}%
                             </td>
-                            <td style={{ textAlign: 'right' }}>
+                            <td
+                              style={{
+                                padding: '12px',
+                                textAlign: 'right',
+                                fontWeight: 'bold',
+                              }}
+                            >
                               {totalLinea.toFixed(2)}€
                             </td>
                           </tr>
@@ -431,17 +573,74 @@ const PresupuestoGeneratorPage: React.FC = () => {
                       })}
                     </tbody>
                   </table>
-                  <div style={{ textAlign: 'right', marginTop: 30 }}>
-                    <p>Base Imponible: {sumBase.toFixed(2)} €</p>
-                    <p>IVA: {sumIva.toFixed(2)} €</p>
-                    <Text strong style={{ fontSize: 22 }}>
-                      TOTAL: {(sumBase + sumIva).toFixed(2)} €
-                    </Text>
+
+                  {/* Totales */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'flex-end',
+                      marginTop: '30px',
+                    }}
+                  >
+                    <div style={{ width: '250px' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          marginBottom: '5px',
+                        }}
+                      >
+                        <span>Base Imponible:</span>
+                        <span>{subtotal.toFixed(2)} €</span>
+                      </div>
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          marginBottom: '10px',
+                        }}
+                      >
+                        <span>IVA:</span>
+                        <span>{totalIva.toFixed(2)} €</span>
+                      </div>
+                      <div
+                        style={{
+                          background: '#2877e6',
+                          color: '#fff',
+                          padding: '15px',
+                          borderRadius: '5px',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <span style={{ fontWeight: 'bold' }}>TOTAL:</span>
+                        <span style={{ fontSize: '22px', fontWeight: 'bold' }}>
+                          {(subtotal + totalIva).toFixed(2)} €
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </>
               );
             }}
           </Form.Item>
+
+          {/* Pie de página fijo */}
+          <div
+            style={{
+              marginTop: '60px',
+              textAlign: 'center',
+              fontSize: '10px',
+              color: '#aaa',
+              borderTop: '1px solid #eee',
+              paddingTop: '10px',
+            }}
+          >
+            Óptica Josu | Calle Principal 123, Bilbao | Tel: 944 000 000 |
+            info@opticajosu.com
+          </div>
         </div>
       </div>
     </AdminLayout>
