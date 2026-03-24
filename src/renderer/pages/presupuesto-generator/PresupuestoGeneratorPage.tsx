@@ -33,7 +33,7 @@ const PresupuestoGeneratorPage: React.FC = () => {
   const [form] = Form.useForm();
   const componentRef = useRef<HTMLDivElement>(null);
 
-  const defaultConceptFormValues = { cantidad: '1', precio: 0, iva: 0.21 };
+  const defaultConceptFormValues = { cantidad: 1, precio: 0, iva: 0.21 };
   const defaultFormValues = {
     items: [defaultConceptFormValues],
     fecha: dayjs().format('DD/MM/YYYY'),
@@ -48,14 +48,12 @@ const PresupuestoGeneratorPage: React.FC = () => {
 
   const handleGeneratePDF = async () => {
     const divPrintElement = componentRef.current;
-    if (!divPrintElement) {
-      return;
-    }
+    if (!divPrintElement) return;
+
     const container = divPrintElement.parentElement!;
 
     try {
       await form.validateFields();
-
       container.style.visibility = 'visible';
       container.style.height = 'auto';
 
@@ -77,18 +75,7 @@ const PresupuestoGeneratorPage: React.FC = () => {
         `Presupuesto_${form.getFieldValue('cliente')}_${dayjs().format('YYYY_MM_DD')}.pdf`,
       );
     } catch (error) {
-      if (error && error.errorFields) {
-        api.warning({
-          placement: 'top',
-          message: '¡Revisa los campos obligatorios!',
-        });
-        return;
-      }
-      api.error({
-        placement: 'top',
-        type: 'error',
-        message: '¡Error generando el PDF!',
-      });
+      api.error({ message: '¡Error generando el PDF!' });
     } finally {
       container.style.visibility = 'hidden';
       container.style.height = '0';
@@ -104,7 +91,7 @@ const PresupuestoGeneratorPage: React.FC = () => {
           className="shadow-sm"
           title={
             <Title level={4} style={{ margin: 0 }}>
-              Generador de Presupuestos
+              Generador (IVA Incluido en Precio)
             </Title>
           }
           extra={
@@ -123,22 +110,14 @@ const PresupuestoGeneratorPage: React.FC = () => {
               <Col xs={24} sm={16}>
                 <Form.Item
                   name="cliente"
-                  label={<Text strong>Información del Cliente</Text>}
-                  rules={[
-                    { required: true, message: 'El nombre es obligatorio' },
-                  ]}
+                  label={<Text strong>Cliente</Text>}
+                  rules={[{ required: true }]}
                 >
-                  <Input
-                    placeholder="Nombre completo o Razón Social"
-                    size="large"
-                  />
+                  <Input placeholder="Nombre o Razón Social" size="large" />
                 </Form.Item>
               </Col>
               <Col xs={24} sm={8}>
-                <Form.Item
-                  name="fecha"
-                  label={<Text strong>Fecha de Emisión</Text>}
-                >
+                <Form.Item name="fecha" label={<Text strong>Fecha</Text>}>
                   <Input
                     disabled
                     size="large"
@@ -148,47 +127,9 @@ const PresupuestoGeneratorPage: React.FC = () => {
               </Col>
             </Row>
 
-            <Divider orientation="left">
-              <Text type="secondary">CONCEPTOS</Text>
-            </Divider>
-
-            {/* LIST OF ITEMS */}
             <Form.List name="items">
               {(fields, { add, remove }) => (
                 <>
-                  <Row
-                    gutter={16}
-                    style={{ marginBottom: 8, padding: '0 8px' }}
-                    className="hidden-xs"
-                  >
-                    <Col span={8}>
-                      <Text type="secondary" strong>
-                        Descripción del Servicio o Producto
-                      </Text>
-                    </Col>
-                    <Col span={3}>
-                      <Text type="secondary" strong>
-                        Cant.
-                      </Text>
-                    </Col>
-                    <Col span={4}>
-                      <Text type="secondary" strong>
-                        Precio Unidad
-                      </Text>
-                    </Col>
-                    <Col span={4}>
-                      <Text type="secondary" strong>
-                        IVA
-                      </Text>
-                    </Col>
-                    <Col span={3}>
-                      <Text type="secondary" strong>
-                        Subtotal
-                      </Text>
-                    </Col>
-                    <Col span={2} />
-                  </Row>
-
                   {fields.map(({ key, name, ...restField }) => (
                     <div
                       key={key}
@@ -201,76 +142,52 @@ const PresupuestoGeneratorPage: React.FC = () => {
                       }}
                     >
                       <Row gutter={16} align="middle">
-                        <Col xs={24} sm={8}>
+                        <Col xs={24} sm={7}>
                           <Form.Item
                             {...restField}
                             name={[name, 'descripcion']}
-                            rules={[
-                              {
-                                required: true,
-                                message: '¡Este campo es obligatorio!',
-                              },
-                            ]}
+                            rules={[{ required: true, message: 'Obligatorio' }]}
                             style={{ marginBottom: 0 }}
                           >
                             <Input
                               placeholder="Concepto..."
-                              variant="borderless"
                               style={{ background: '#fff' }}
                             />
                           </Form.Item>
                         </Col>
-                        <Col xs={8} sm={3}>
+                        <Col xs={6} sm={2}>
                           <Form.Item
                             {...restField}
                             name={[name, 'cantidad']}
-                            rules={[
-                              {
-                                required: true,
-                                message: '¡Este campo es obligatorio!',
-                              },
-                            ]}
+                            rules={[{ required: true }]}
                             style={{ marginBottom: 0 }}
                           >
-                            <InputNumber
-                              min={1}
-                              style={{ width: '100%', background: '#fff' }}
-                              variant="borderless"
-                            />
+                            <InputNumber min={1} style={{ width: '100%' }} />
                           </Form.Item>
                         </Col>
-                        <Col xs={16} sm={4}>
+                        <Col xs={10} sm={4}>
                           <Form.Item
                             {...restField}
                             name={[name, 'precio']}
-                            rules={[
-                              {
-                                required: true,
-                                message: '¡Este campo es obligatorio!',
-                              },
-                            ]}
+                            rules={[{ required: true }]}
                             style={{ marginBottom: 0 }}
                           >
                             <InputNumber
                               min={0}
                               step={0.01}
                               addonAfter="€"
-                              style={{ background: '#fff', width: '100%' }}
-                              variant="borderless"
+                              style={{ width: '100%' }}
                             />
                           </Form.Item>
                         </Col>
-                        <Col xs={12} sm={4}>
+                        <Col xs={8} sm={3}>
                           <Form.Item
                             {...restField}
                             name={[name, 'iva']}
                             rules={[{ required: true }]}
                             style={{ marginBottom: 0 }}
                           >
-                            <Select
-                              style={{ width: '100%', background: '#fff' }}
-                              variant="borderless"
-                            >
+                            <Select style={{ width: '100%' }}>
                               {ivaOptions.map((opt) => (
                                 <Option key={opt.value} value={opt.value}>
                                   {opt.label}
@@ -279,61 +196,85 @@ const PresupuestoGeneratorPage: React.FC = () => {
                             </Select>
                           </Form.Item>
                         </Col>
-                        <Col
-                          xs={7}
-                          sm={2}
-                          style={{ paddingLeft: '20px', textAlign: 'left' }}
-                        >
+
+                        {/* NUEVA COLUMNA: INFO DE BASE UNITARIA Y TOTAL LÍNEA */}
+                        <Col xs={24} sm={6}>
                           <Form.Item shouldUpdate noStyle>
                             {() => {
                               const item = form.getFieldValue(['items', name]);
-                              const subtotal =
-                                (item?.precio || 0) * (item?.cantidad || 0);
+                              const precioConIva = item?.precio || 0;
+                              const tasaIva = item?.iva || 0;
+                              const cantidad = item?.cantidad || 0;
+
+                              // Cálculos
+                              const baseUnitario = precioConIva / (1 + tasaIva);
+                              const totalLinea = precioConIva * cantidad;
+
                               return (
-                                <Text strong style={{ fontSize: '15px' }}>
-                                  {subtotal.toFixed(2)}€
-                                </Text>
+                                <Row gutter={8} style={{ textAlign: 'right' }}>
+                                  <Col span={12}>
+                                    <Text
+                                      type="secondary"
+                                      style={{ fontSize: '11px' }}
+                                    >
+                                      Base Unit:
+                                    </Text>
+                                    <br />
+                                    <Text style={{ fontSize: '13px' }}>
+                                      {baseUnitario.toFixed(2)}€
+                                    </Text>
+                                  </Col>
+                                  <Col span={12}>
+                                    <Text
+                                      type="secondary"
+                                      style={{ fontSize: '11px' }}
+                                    >
+                                      Subtotal:
+                                    </Text>
+                                    <br />
+                                    <Text
+                                      strong
+                                      style={{
+                                        fontSize: '15px',
+                                        color: '#1890ff',
+                                      }}
+                                    >
+                                      {totalLinea.toFixed(2)}€
+                                    </Text>
+                                  </Col>
+                                </Row>
                               );
                             }}
                           </Form.Item>
                         </Col>
-                        <Col xs={4} sm={2} style={{ textAlign: 'center' }}>
+
+                        <Col xs={4} sm={2} style={{ textAlign: 'right' }}>
                           <Popconfirm
-                            title="¿Desea eliminar esta fila?"
+                            title="¿Eliminar?"
                             onConfirm={() => remove(name)}
                           >
                             <Button
-                              color="red"
-                              variant="filled"
+                              type="text"
+                              danger
                               icon={<DeleteOutlined />}
-                            >
-                              Eliminar
-                            </Button>
+                            />
                           </Popconfirm>
                         </Col>
                       </Row>
                     </div>
                   ))}
-
                   <Button
                     type="dashed"
                     onClick={() => add(defaultConceptFormValues)}
                     block
                     icon={<PlusOutlined />}
-                    style={{
-                      height: '45px',
-                      marginTop: '8px',
-                      color: '#1890ff',
-                      borderColor: '#1890ff',
-                    }}
                   >
-                    Añadir concepto nuevo
+                    Añadir concepto
                   </Button>
                 </>
               )}
             </Form.List>
 
-            {/* TOTALES */}
             <Row justify="end" style={{ marginTop: 40 }}>
               <Col xs={24} sm={10}>
                 <div
@@ -347,16 +288,25 @@ const PresupuestoGeneratorPage: React.FC = () => {
                   <Form.Item shouldUpdate noStyle>
                     {() => {
                       const items = form.getFieldValue('items') || [];
-                      const base = items.reduce(
-                        (acc: number, cur: any) =>
-                          acc + (cur?.precio || 0) * (cur?.cantidad || 0),
-                        0,
+
+                      // CÁLCULOS INVERSOS
+                      const totales = items.reduce(
+                        (acc: any, cur: any) => {
+                          const totalLinea =
+                            (cur?.precio || 0) * (cur?.cantidad || 0);
+                          const tasaIva = cur?.iva || 0;
+
+                          // Fórmula: Base = Total / (1 + IVA)
+                          const baseLinea = totalLinea / (1 + tasaIva);
+                          const ivaLinea = totalLinea - baseLinea;
+
+                          acc.base += baseLinea;
+                          acc.iva += ivaLinea;
+                          acc.total += totalLinea;
+                          return acc;
+                        },
+                        { base: 0, iva: 0, total: 0 },
                       );
-                      const totalIva = items.reduce((acc: number, cur: any) => {
-                        const lineBase =
-                          (cur?.precio || 0) * (cur?.cantidad || 0);
-                        return acc + lineBase * (cur?.iva || 0);
-                      }, 0);
 
                       return (
                         <Space
@@ -366,22 +316,22 @@ const PresupuestoGeneratorPage: React.FC = () => {
                         >
                           <Row justify="space-between">
                             <Text style={{ color: '#fff' }}>
-                              Base Imponible:
+                              Base Imponible (Deducida):
                             </Text>
                             <Text style={{ color: '#fff' }}>
-                              {base.toFixed(2)} €
+                              {totales.base.toFixed(2)} €
                             </Text>
                           </Row>
                           <Row justify="space-between">
-                            <Text style={{ color: '#fff' }}>Total IVA:</Text>
+                            <Text style={{ color: '#fff' }}>Cuota IVA:</Text>
                             <Text style={{ color: '#fff' }}>
-                              {totalIva.toFixed(2)} €
+                              {totales.iva.toFixed(2)} €
                             </Text>
                           </Row>
                           <Divider
                             style={{
                               margin: '8px 0',
-                              borderColor: 'rgba(255,255,255,0.1)',
+                              borderColor: 'rgba(255,255,255,0.2)',
                             }}
                           />
                           <Row justify="space-between" align="middle">
@@ -395,7 +345,7 @@ const PresupuestoGeneratorPage: React.FC = () => {
                               level={2}
                               style={{ margin: 0, color: '#ffffff' }}
                             >
-                              {(base + totalIva).toFixed(2)} €
+                              {totales.total.toFixed(2)} €
                             </Title>
                           </Row>
                         </Space>
@@ -409,16 +359,9 @@ const PresupuestoGeneratorPage: React.FC = () => {
         </Card>
       </div>
 
-      {/* --- ESTRUCTURA PDF --- */}
+      {/* --- ESTRUCTURA PDF (Reflejando deducción) --- */}
       <div
-        style={{
-          position: 'absolute',
-          left: '-9999px',
-          top: 0,
-          visibility: 'hidden',
-          height: 0,
-          overflow: 'hidden',
-        }}
+        style={{ position: 'absolute', left: '-9999px', visibility: 'hidden' }}
       >
         <div
           ref={componentRef}
@@ -431,8 +374,8 @@ const PresupuestoGeneratorPage: React.FC = () => {
             {() => {
               const data = form.getFieldsValue();
               const items = data.items || [];
-              let totalBase = 0;
-              let totalIvaCalc = 0;
+              let sumBase = 0;
+              let sumIva = 0;
 
               return (
                 <>
@@ -448,17 +391,23 @@ const PresupuestoGeneratorPage: React.FC = () => {
                       <tr style={{ borderBottom: '2px solid #000' }}>
                         <th style={{ textAlign: 'left' }}>Descripción</th>
                         <th>Cant.</th>
-                        <th>P. Unit</th>
+                        <th>Base Unit. (Ded.)</th>
                         <th>IVA</th>
-                        <th style={{ textAlign: 'right' }}>Subtotal</th>
+                        <th style={{ textAlign: 'right' }}>Total</th>
                       </tr>
                     </thead>
                     <tbody>
                       {items.map((it: any, i: number) => {
-                        const lineBase = (it.precio || 0) * (it.cantidad || 0);
-                        const lineIva = lineBase * (it.iva || 0);
-                        totalBase += lineBase;
-                        totalIvaCalc += lineIva;
+                        const totalLinea =
+                          (it.precio || 0) * (it.cantidad || 0);
+                        const tasaIva = it.iva || 0;
+                        const baseLinea = totalLinea / (1 + tasaIva);
+                        const ivaLinea = totalLinea - baseLinea;
+                        const baseUnitarioDeducido = it.precio / (1 + tasaIva);
+
+                        sumBase += baseLinea;
+                        sumIva += ivaLinea;
+
                         return (
                           <tr
                             key={i}
@@ -469,13 +418,13 @@ const PresupuestoGeneratorPage: React.FC = () => {
                               {it.cantidad}
                             </td>
                             <td style={{ textAlign: 'center' }}>
-                              {(it.precio || 0).toFixed(2)}€
+                              {baseUnitarioDeducido.toFixed(2)}€
                             </td>
                             <td style={{ textAlign: 'center' }}>
-                              {(it.iva || 0) * 100}%
+                              {tasaIva * 100}%
                             </td>
                             <td style={{ textAlign: 'right' }}>
-                              {lineBase.toFixed(2)}€
+                              {totalLinea.toFixed(2)}€
                             </td>
                           </tr>
                         );
@@ -483,10 +432,10 @@ const PresupuestoGeneratorPage: React.FC = () => {
                     </tbody>
                   </table>
                   <div style={{ textAlign: 'right', marginTop: 30 }}>
-                    <p>Base: {totalBase.toFixed(2)} €</p>
-                    <p>IVA: {totalIvaCalc.toFixed(2)} €</p>
+                    <p>Base Imponible: {sumBase.toFixed(2)} €</p>
+                    <p>IVA: {sumIva.toFixed(2)} €</p>
                     <Text strong style={{ fontSize: 22 }}>
-                      TOTAL: {(totalBase + totalIvaCalc).toFixed(2)} €
+                      TOTAL: {(sumBase + sumIva).toFixed(2)} €
                     </Text>
                   </div>
                 </>
