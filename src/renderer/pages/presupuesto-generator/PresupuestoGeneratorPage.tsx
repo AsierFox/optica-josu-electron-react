@@ -135,7 +135,12 @@ const PresupuestoGeneratorPage: React.FC = () => {
                   <Input placeholder="12345678X" size="large" />
                 </Form.Item>
               </Col>
-              <Col xs={24} sm={8}>
+              <Col xs={24} sm={4}>
+                <Form.Item name="telefono" label={<Text strong>Teléfono</Text>}>
+                  <Input placeholder="600 000 000" size="large" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={4}>
                 <Form.Item name="fecha" label={<Text strong>Fecha</Text>}>
                   <Input
                     disabled
@@ -234,7 +239,6 @@ const PresupuestoGeneratorPage: React.FC = () => {
                           </Form.Item>
                         </Col>
 
-                        {/* NUEVA COLUMNA: INFO DE BASE UNITARIA Y TOTAL LÍNEA */}
                         <Col xs={24} sm={6}>
                           <Form.Item shouldUpdate noStyle>
                             {() => {
@@ -243,7 +247,6 @@ const PresupuestoGeneratorPage: React.FC = () => {
                               const tasaIva = item?.iva || 0;
                               const cantidad = item?.cantidad || 0;
 
-                              // Cálculos
                               const baseUnitario = precioConIva / (1 + tasaIva);
                               const totalLinea = precioConIva * cantidad;
 
@@ -397,7 +400,6 @@ const PresupuestoGeneratorPage: React.FC = () => {
       </div>
 
       {/* --- ESTRUCTURA PDF (Renderizado optimizado para jsPDF) --- */}
-      {/* --- ESTRUCTURA PDF (Renderizado optimizado) --- */}
       <div style={{ position: 'absolute', top: '-10000px', left: '-10000px' }}>
         <div
           ref={componentRef}
@@ -479,6 +481,11 @@ const PresupuestoGeneratorPage: React.FC = () => {
                     {values.dni && (
                       <div style={{ fontSize: '13px' }}>
                         DNI/NIF: {values.dni}
+                      </div>
+                    )}
+                    {values.telefono && (
+                      <div style={{ fontSize: '13px' }}>
+                        Teléfono: {values.telefono}
                       </div>
                     )}
                     <div style={{ marginTop: '10px', fontSize: '13px' }}>
