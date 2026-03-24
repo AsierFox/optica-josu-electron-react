@@ -103,7 +103,7 @@ const PresupuestoGeneratorPage: React.FC = () => {
           className="shadow-sm"
           title={
             <Title level={4} style={{ margin: 0 }}>
-              Generador (IVA Incluido en Precio)
+              Generador de Presupuesto
             </Title>
           }
           extra={
@@ -131,12 +131,24 @@ const PresupuestoGeneratorPage: React.FC = () => {
                 </Form.Item>
               </Col>
               <Col xs={24} sm={4}>
-                <Form.Item name="dni" label={<Text strong>DNI / CIF</Text>}>
+                <Form.Item
+                  name="dni"
+                  label={<Text strong>DNI / CIF</Text>}
+                  rules={[
+                    { required: true, message: 'El DNI / CIF es obligatorio' },
+                  ]}
+                >
                   <Input placeholder="12345678X" size="large" />
                 </Form.Item>
               </Col>
               <Col xs={24} sm={4}>
-                <Form.Item name="telefono" label={<Text strong>Teléfono</Text>}>
+                <Form.Item
+                  name="telefono"
+                  label={<Text strong>Teléfono</Text>}
+                  rules={[
+                    { required: true, message: 'El teléfono es obligatorio' },
+                  ]}
+                >
                   <Input placeholder="600 000 000" size="large" />
                 </Form.Item>
               </Col>
@@ -153,17 +165,35 @@ const PresupuestoGeneratorPage: React.FC = () => {
                 <Form.Item
                   name="direccion"
                   label={<Text strong>Dirección</Text>}
+                  rules={[
+                    { required: true, message: 'La dirección es obligatoria' },
+                  ]}
                 >
                   <Input placeholder="Calle, número, piso..." size="large" />
                 </Form.Item>
               </Col>
               <Col xs={24} sm={8}>
-                <Form.Item name="ciudad" label={<Text strong>Ciudad</Text>}>
+                <Form.Item
+                  name="ciudad"
+                  label={<Text strong>Ciudad</Text>}
+                  rules={[
+                    { required: true, message: 'La ciudad es obligatoria' },
+                  ]}
+                >
                   <Input placeholder="Población" size="large" />
                 </Form.Item>
               </Col>
               <Col xs={24} sm={4}>
-                <Form.Item name="codigoPostal" label={<Text strong>C.P.</Text>}>
+                <Form.Item
+                  name="codigoPostal"
+                  label={<Text strong>Código Postal</Text>}
+                  rules={[
+                    {
+                      required: true,
+                      message: 'El código postal es obligatorio',
+                    },
+                  ]}
+                >
                   <Input placeholder="48001" size="large" />
                 </Form.Item>
               </Col>
@@ -188,7 +218,13 @@ const PresupuestoGeneratorPage: React.FC = () => {
                           <Form.Item
                             {...restField}
                             name={[name, 'descripcion']}
-                            rules={[{ required: true, message: 'Obligatorio' }]}
+                            rules={[
+                              {
+                                required: true,
+                                message:
+                                  '¡Tiene que haber al menos un concepto!',
+                              },
+                            ]}
                             style={{ marginBottom: 0 }}
                           >
                             <Input
@@ -257,7 +293,7 @@ const PresupuestoGeneratorPage: React.FC = () => {
                                       type="secondary"
                                       style={{ fontSize: '11px' }}
                                     >
-                                      Base Unit:
+                                      Base Imponible (Uni.)
                                     </Text>
                                     <br />
                                     <Text style={{ fontSize: '13px' }}>
@@ -269,7 +305,7 @@ const PresupuestoGeneratorPage: React.FC = () => {
                                       type="secondary"
                                       style={{ fontSize: '11px' }}
                                     >
-                                      Subtotal:
+                                      Subtotal
                                     </Text>
                                     <br />
                                     <Text
@@ -297,6 +333,7 @@ const PresupuestoGeneratorPage: React.FC = () => {
                               type="text"
                               danger
                               icon={<DeleteOutlined />}
+                              disabled={fields.length <= 1}
                             />
                           </Popconfirm>
                         </Col>
@@ -356,7 +393,7 @@ const PresupuestoGeneratorPage: React.FC = () => {
                         >
                           <Row justify="space-between">
                             <Text style={{ color: '#fff' }}>
-                              Base Imponible (Deducida):
+                              Base Imponible:
                             </Text>
                             <Text style={{ color: '#fff' }}>
                               {totales.base.toFixed(2)} €
@@ -417,27 +454,36 @@ const PresupuestoGeneratorPage: React.FC = () => {
             style={{
               display: 'flex',
               justifyContent: 'space-between',
-              marginBottom: '30px',
+              alignItems: 'center',
+              marginBottom: 30,
             }}
           >
-            <div>
-              <h1 style={{ color: '#2877e6', margin: 0, fontSize: '28px' }}>
-                PRESUPUESTO
-              </h1>
-              <p
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div
                 style={{
+                  width: 50,
+                  height: 50,
+                  borderRadius: '50%',
+                  background: '#2877e6',
+                  color: '#fff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   fontWeight: 'bold',
-                  fontSize: '18px',
-                  margin: '5px 0',
                 }}
               >
-                Óptica Josu
-              </p>
+                OJ
+              </div>
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 600 }}>Óptica Josu</div>
+                <div style={{ fontSize: 12, color: '#666' }}>CALLE</div>
+              </div>
             </div>
+
             <div style={{ textAlign: 'right' }}>
-              <p style={{ margin: 0 }}>
-                <strong>Fecha:</strong> {form.getFieldValue('fecha')}
-              </p>
+              <div style={{ fontSize: 20, fontWeight: 600 }}>
+                Presupuesto Fecha: {form.getFieldValue('fecha')}
+              </div>
             </div>
           </div>
 
@@ -450,51 +496,26 @@ const PresupuestoGeneratorPage: React.FC = () => {
             {() => {
               const values = form.getFieldsValue();
               return (
-                <div style={{ marginBottom: '40px', display: 'flex' }}>
+                <div style={{ marginBottom: 30 }}>
+                  <div style={{ fontSize: 11, color: '#888', marginBottom: 5 }}>
+                    DATOS DEL CLIENTE
+                  </div>
                   <div
                     style={{
-                      flex: 1,
-                      background: '#f9fafb',
-                      padding: '20px',
-                      borderRadius: '8px',
-                      border: '1px solid #eee',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: 6,
+                      padding: 15,
                     }}
                   >
-                    <span
-                      style={{
-                        fontSize: '10px',
-                        color: '#999',
-                        textTransform: 'uppercase',
-                      }}
-                    >
-                      Cliente
-                    </span>
-                    <div
-                      style={{
-                        fontWeight: 'bold',
-                        fontSize: '16px',
-                        marginTop: '5px',
-                      }}
-                    >
-                      {values.cliente || '___________________________'}
+                    <div style={{ fontWeight: 600, fontSize: 15 }}>
+                      {values.cliente || '---'}
                     </div>
-                    {values.dni && (
-                      <div style={{ fontSize: '13px' }}>
-                        DNI/NIF: {values.dni}
-                      </div>
-                    )}
-                    {values.telefono && (
-                      <div style={{ fontSize: '13px' }}>
-                        Teléfono: {values.telefono}
-                      </div>
-                    )}
-                    <div style={{ marginTop: '10px', fontSize: '13px' }}>
-                      {values.direccion && <div>{values.direccion}</div>}
-                      {(values.codigoPostal || values.ciudad) && (
-                        <div>
-                          {values.codigoPostal} {values.ciudad}
-                        </div>
-                      )}
+                    <div style={{ fontSize: 13, color: '#555' }}>
+                      {values.dni && <>DNI: {values.dni} · </>}
+                      {values.telefono && <>Tel: {values.telefono}</>}
+                    </div>
+                    <div style={{ fontSize: 13, color: '#555', marginTop: 5 }}>
+                      {values.direccion} {values.codigoPostal} {values.ciudad}
                     </div>
                   </div>
                 </div>
@@ -513,21 +534,51 @@ const PresupuestoGeneratorPage: React.FC = () => {
                 <>
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
-                      <tr style={{ backgroundColor: '#2877e6', color: '#fff' }}>
-                        <th style={{ padding: '12px', textAlign: 'left' }}>
+                      <tr style={{ borderBottom: '2px solid #111' }}>
+                        <th
+                          style={{
+                            padding: '10px 8px',
+                            textAlign: 'left',
+                            fontSize: 12,
+                          }}
+                        >
                           Descripción
                         </th>
-                        <th style={{ padding: '12px', textAlign: 'center' }}>
+                        <th
+                          style={{
+                            padding: '10px 8px',
+                            textAlign: 'center',
+                            fontSize: 12,
+                          }}
+                        >
                           Cant.
                         </th>
-                        <th style={{ padding: '12px', textAlign: 'right' }}>
-                          Base Unit.
+                        <th
+                          style={{
+                            padding: '10px 8px',
+                            textAlign: 'right',
+                            fontSize: 12,
+                          }}
+                        >
+                          P. Unit
                         </th>
-                        <th style={{ padding: '12px', textAlign: 'center' }}>
+                        <th
+                          style={{
+                            padding: '10px 8px',
+                            textAlign: 'center',
+                            fontSize: 12,
+                          }}
+                        >
                           IVA
                         </th>
-                        <th style={{ padding: '12px', textAlign: 'right' }}>
-                          Total
+                        <th
+                          style={{
+                            padding: '10px 8px',
+                            textAlign: 'right',
+                            fontSize: 12,
+                          }}
+                        >
+                          Importe
                         </th>
                       </tr>
                     </thead>
@@ -583,50 +634,41 @@ const PresupuestoGeneratorPage: React.FC = () => {
 
                   {/* Totales */}
                   <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'flex-end',
-                      marginTop: '30px',
-                    }}
+                    style={{ width: 280, marginTop: 30, marginLeft: 'auto' }}
                   >
-                    <div style={{ width: '250px' }}>
-                      <div
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          marginBottom: '5px',
-                        }}
-                      >
-                        <span>Base Imponible:</span>
-                        <span>{subtotal.toFixed(2)} €</span>
-                      </div>
-                      <div
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          marginBottom: '10px',
-                        }}
-                      >
-                        <span>IVA:</span>
-                        <span>{totalIva.toFixed(2)} €</span>
-                      </div>
-                      <div
-                        style={{
-                          background: '#2877e6',
-                          color: '#fff',
-                          padding: '15px',
-                          borderRadius: '5px',
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                        }}
-                      >
-                        <span style={{ fontWeight: 'bold' }}>TOTAL:</span>
-                        <span style={{ fontSize: '22px', fontWeight: 'bold' }}>
-                          {(subtotal + totalIva).toFixed(2)} €
-                        </span>
-                      </div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        marginBottom: 6,
+                      }}
+                    >
+                      <span>Base imponible</span>
+                      <span>{subtotal.toFixed(2)} €</span>
+                    </div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        marginBottom: 10,
+                      }}
+                    >
+                      <span>IVA</span>
+                      <span>{totalIva.toFixed(2)} €</span>
+                    </div>
+
+                    <div
+                      style={{
+                        borderTop: '2px solid #111',
+                        paddingTop: 10,
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                      }}
+                    >
+                      <strong>Total</strong>
+                      <strong style={{ fontSize: 18 }}>
+                        {(subtotal + totalIva).toFixed(2)} €
+                      </strong>
                     </div>
                   </div>
                 </>
@@ -635,18 +677,34 @@ const PresupuestoGeneratorPage: React.FC = () => {
           </Form.Item>
 
           {/* Pie de página fijo */}
+          {() => {
+            const values = form.getFieldsValue();
+            return values.observaciones ? (
+              <div style={{ marginTop: 40 }}>
+                <div style={{ fontSize: 11, color: '#888', marginBottom: 5 }}>
+                  OBSERVACIONES
+                </div>
+                <div style={{ fontSize: 13, color: '#444' }}>
+                  {values.observaciones || '---'}
+                </div>
+              </div>
+            ) : null;
+          }}
+
           <div
             style={{
-              marginTop: '60px',
-              textAlign: 'center',
-              fontSize: '10px',
-              color: '#aaa',
-              borderTop: '1px solid #eee',
-              paddingTop: '10px',
+              marginTop: 60,
+              borderTop: '1px solid #e5e7eb',
+              paddingTop: 10,
+              fontSize: 10,
+              color: '#777',
+              display: 'flex',
+              justifyContent: 'space-between',
             }}
           >
-            Óptica Josu | Calle Principal 123, Bilbao | Tel: 944 000 000 |
-            info@opticajosu.com
+            <div>Óptica Josu</div>
+            <div>Bilbao · 944 000 000</div>
+            <div>info@opticajosu.com</div>
           </div>
         </div>
       </div>
