@@ -55,27 +55,41 @@ const ProductStockPage: React.FC = () => {
       const filteredData = products.filter((item) => {
         return Object.values(filters).every(
           (filter: ProductStockFilterValue) => {
+            const itemValue = item[filter.targetKey];
+
             switch (filter.type) {
               case 'SINGLE':
                 if (!filter.value) {
                   return true;
                 }
                 return util.includesStrings(
-                  item[filter.targetKey],
+                  itemValue,
                   filter.value,
                 );
-              // Casuistica para busqueda por array
               case 'MULTIPLE':
                 if (filter.value.length <= 0) {
                   return true;
                 }
-                const itemValue = item[filter.targetKey];
                 // Formateamos el valor en caso de que llegue a ser un number
                 const searchValue = isNaN(itemValue)
                   ? itemValue.toUpperCase()
                   : itemValue;
 
                 return filter.value.includes(searchValue);
+              case 'RANGE_NUMBER':
+                const min = filter.value.min ? Number(filter.value.min) : null;
+                const max = filter.value.max ? Number(filter.value.max) : null;
+
+                if (min != null && max != null) {
+                  return Number(itemValue) >= min && Number(itemValue) <= max;
+                }
+                if (min != null) {
+                  return Number(itemValue) >= min;
+                }
+                if (max != null) {
+                  return Number(itemValue) <= max;
+                }
+                return true;
               default:
                 return true;
             }

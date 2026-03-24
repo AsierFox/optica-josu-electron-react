@@ -1,23 +1,22 @@
 import {
   AlertOutlined,
-  ShopOutlined,
-  SwapRightOutlined,
+  ShopOutlined
 } from '@ant-design/icons';
 import {
   Collapse,
   DatePicker,
   Divider,
   Input,
-  InputNumber,
   Select,
   Space,
-  Typography,
+  Typography
 } from 'antd';
 import CheckableTag from 'antd/es/tag/CheckableTag';
 import React, { useEffect, useMemo, useState } from 'react';
 import ProductModel from '../../../main/models/product.model';
 import ProductTypeModel from '../../../main/models/productType.model';
 import { PRODUCT_FIELD_NAMES } from '../../app/constants';
+import PriceRangeSelector from '../../components/PriceRangeSelector';
 import { ProductStockFilterValue } from './ProductStockFilterValue';
 
 const { Text } = Typography;
@@ -81,6 +80,16 @@ const ProductStockFilters: React.FC<Props> = ({
       targetKey: 'typeId',
       value: [],
     },
+    precioCompraRange: {
+      type: 'RANGE_NUMBER',
+      targetKey: 'precioCompra',
+      value: { min: null, max: null },
+    },
+    precioVentaRange: {
+      type: 'RANGE_NUMBER',
+      targetKey: 'precioVenta',
+      value: { min: null, max: null },
+    },
   });
 
   const proveedoresUnicos = useMemo(
@@ -96,14 +105,6 @@ const ProductStockFilters: React.FC<Props> = ({
       Array.from(new Set(products.map((p) => p.firma.toUpperCase()))).sort(),
     [products],
   );
-
-  const searchFilterInputs: string[] = [
-    'proveedorInput',
-    'firmaInput',
-    'referenciaInput',
-    'modeloColorInput',
-    'calibrePuenteInput',
-  ];
 
   const searchFilterCollapses: { name: string; tags: string[] }[] = [
     {
@@ -121,7 +122,7 @@ const ProductStockFilters: React.FC<Props> = ({
     onFilterChange(filters);
   }, [filters, onFilterChange]);
 
-  const handleInputChange = (filterKey: string, newValue: string) => {
+  const handleInputChange = (filterKey: string, newValue: string | null) => {
     setFilters((prev) => {
       const prevFilter = prev[filterKey];
       return {
@@ -160,6 +161,22 @@ const ProductStockFilters: React.FC<Props> = ({
     });
   };
 
+  const handleRangeNumberChange = (
+    key: string,
+    values: { min: number | null; max: number | null },
+  ) => {
+    setFilters({
+      ...filters,
+      [key]: {
+        ...filters[key],
+        value: {
+          min: values.min ? String(values.min) : null,
+          max: values.max ? String(values.max) : null,
+        },
+      },
+    });
+  };
+
   return (
     <div
       style={{
@@ -173,34 +190,39 @@ const ProductStockFilters: React.FC<Props> = ({
       <Divider />
 
       <Space size="middle">
-        {searchFilterInputs.map((searchFilterInput: string) => (
-          <div
-            key={`input_${searchFilterInput}`}
-            style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}
-          >
-            <span
-              style={{
-                fontWeight: 500,
-                fontSize: '12px',
-                marginLeft: '4px',
-              }}
-            >
-              {PRODUCT_FIELD_NAMES[filters[searchFilterInput].targetKey]}
-            </span>
+        {Object.entries(filters)
+          .filter(([, filter]) => filter.type === 'SINGLE')
+          .map(
+            ([filterKey, searchFilterInput]: [
+              string,
+              ProductStockFilterValue,
+            ]) => (
+              <div
+                key={`input_${filterKey}`}
+                style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}
+              >
+                <span
+                  style={{
+                    fontWeight: 500,
+                    fontSize: '12px',
+                    marginLeft: '4px',
+                  }}
+                >
+                  {PRODUCT_FIELD_NAMES[searchFilterInput.targetKey]}
+                </span>
 
-            <Input
-              disabled={allDisabled}
-              placeholder={`Buscar ${PRODUCT_FIELD_NAMES[filters[searchFilterInput].targetKey]}...`}
-              prefix={<ShopOutlined style={{ color: '#bfbfbf' }} />}
-              value={filters[searchFilterInput].value}
-              onChange={(e) =>
-                handleInputChange(searchFilterInput, e.target.value)
-              }
-              style={{ width: 220, borderRadius: '8px' }}
-              allowClear
-            />
-          </div>
-        ))}
+                <Input
+                  disabled={allDisabled}
+                  placeholder={`Buscar ${PRODUCT_FIELD_NAMES[searchFilterInput.targetKey]}...`}
+                  prefix={<ShopOutlined style={{ color: '#bfbfbf' }} />}
+                  value={searchFilterInput.value}
+                  onChange={(e) => handleInputChange(filterKey, e.target.value)}
+                  style={{ width: 220, borderRadius: '8px' }}
+                  allowClear
+                />
+              </div>
+            ),
+          )}
       </Space>
 
       <Divider />
@@ -368,107 +390,32 @@ const ProductStockFilters: React.FC<Props> = ({
           />
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <span
-            style={{
-              fontWeight: 500,
-              fontSize: '12px',
-              marginLeft: '4px',
-            }}
-          >
-            Precio de Compra
-          </span>
-          <Space.Compact>
-            <InputNumber
-              placeholder="Mínimo"
-              // value={min}
-              // onChange={handleMinChange}
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-              }
-              // parser={(value) => value.replace(/\./g, '')}
-              style={{ width: 120 }}
-              min={0}
-              addonAfter="€"
-            />
+        {Object.entries(filters)
+          .filter(([, filter]) => filter.type === 'RANGE_NUMBER')
+          .map(([key, filter]) => (
             <div
-              style={{
-                width: 40,
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: '#f5f5f5',
-                borderTop: '1px solid #d9d9d9',
-                borderBottom: '1px solid #d9d9d9',
-              }}
+              style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}
             >
-              <SwapRightOutlined style={{ color: 'rgba(0, 0, 0, 0.45)' }} />
+              <PriceRangeSelector
+                key={`price_range_${key}`}
+                label={PRODUCT_FIELD_NAMES[filter.targetKey]}
+                minPrice={filter.value.min}
+                maxPrice={filter.value.max}
+                onMinChange={(value) =>
+                  handleRangeNumberChange(key, {
+                    min: value,
+                    max: filter.value.max,
+                  })
+                }
+                onMaxChange={(value) =>
+                  handleRangeNumberChange(key, {
+                    min: filter.value.min,
+                    max: value,
+                  })
+                }
+              />
             </div>
-            <InputNumber
-              placeholder="Máximo"
-              // value={max}
-              // onChange={handleMaxChange}
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-              }
-              parser={(value) => value.replace(/\./g, '')}
-              style={{ width: 120 }}
-              // min={min || 0} // Crítica constructiva: No permitas que el máximo sea menor al mínimo
-              addonAfter="€"
-            />
-          </Space.Compact>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <span
-            style={{
-              fontWeight: 500,
-              fontSize: '12px',
-              marginLeft: '4px',
-            }}
-          >
-            Precio de Venta
-          </span>
-          <Space.Compact>
-            <InputNumber
-              placeholder="Mínimo"
-              // value={min}
-              // onChange={handleMinChange}
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-              }
-              // parser={(value) => value.replace(/\./g, '')}
-              style={{ width: 120 }}
-              min={0}
-              addonAfter="€"
-            />
-            <div
-              style={{
-                width: 40,
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: '#f5f5f5',
-                borderTop: '1px solid #d9d9d9',
-                borderBottom: '1px solid #d9d9d9',
-              }}
-            >
-              <SwapRightOutlined style={{ color: 'rgba(0, 0, 0, 0.45)' }} />
-            </div>
-            <InputNumber
-              placeholder="Máximo"
-              // value={max}
-              // onChange={handleMaxChange}
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-              }
-              parser={(value) => value.replace(/\./g, '')}
-              style={{ width: 120 }}
-              // min={min || 0} // Crítica constructiva: No permitas que el máximo sea menor al mínimo
-              addonAfter="€"
-            />
-          </Space.Compact>
-        </div>
+          ))}
       </Space>
 
       <Divider />
