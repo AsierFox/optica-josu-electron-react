@@ -175,7 +175,7 @@ const ProductStockTable: React.FC<Props> = ({
         }),
       },
       {
-        title: PRODUCT_FIELD_NAMES.fechaCompra,
+        title: PRODUCT_FIELD_NAMES.fechaVenta,
         dataIndex: 'fechaVenta',
         onCell: (record: ProductModel) => ({
           dataIndex: 'fechaVenta',
@@ -202,6 +202,15 @@ const ProductStockTable: React.FC<Props> = ({
         onCell: (record: ProductModel) => ({
           dataIndex: 'cantidad',
           type: 'number',
+          record,
+          editingProduct,
+        }),
+      },
+      {
+        title: PRODUCT_FIELD_NAMES.notes,
+        dataIndex: 'notes',
+        onCell: (record: ProductModel) => ({
+          dataIndex: 'notes',
           record,
           editingProduct,
         }),

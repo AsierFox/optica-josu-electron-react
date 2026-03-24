@@ -42,6 +42,7 @@ const ProductStockPage: React.FC = () => {
       cantidad: 1,
       fechaCompra: null,
       fechaVenta: null,
+      notes: null,
       createdAt: null,
       updatedAt: null,
     };

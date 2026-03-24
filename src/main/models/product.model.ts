@@ -14,6 +14,7 @@ export default class ProductModel {
   cantidad: number;
   fechaCompra: string | null;
   fechaVenta: string | null;
+  notes: string | null;
   createdAt: string | null;
   updatedAt: string | null;
 
@@ -32,6 +33,8 @@ export default class ProductModel {
 
     this.fechaCompra = util.formatDateToYYYYMMDD(row.FECHA_COMPRA);
     this.fechaVenta = util.formatDateToYYYYMMDD(row.FECHA_VENTA);
+
+    this.notes = row.NOTES;
 
     this.createdAt = row.CREATED_AT;
     this.updatedAt = row.UDPATED_AT;

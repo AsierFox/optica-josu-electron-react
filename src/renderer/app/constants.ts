@@ -24,4 +24,5 @@ export const PRODUCT_FIELD_NAMES = {
   cantidad: 'Cantidad',
   fechaCompra: 'Fecha de Compra',
   fechaVenta: 'Fecha de Venta',
+  notes: 'Observaciones',
 }

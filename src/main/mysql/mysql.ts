@@ -43,12 +43,13 @@ export const registerMysqlIPCHandlers = () => {
         product.fechaCompra || null,
         product.precioCompra ?? null,
         product.fechaVenta || null,
-        product.precioVenta ?? null
+        product.precioVenta ?? null,
+        product.notes || null,
       ];
       const [result] = await query(`INSERT INTO PRODUCT
         (PROVEEDOR, FIRMA, ID_PRODUCT_TYPE, REFERENCIA, MODELO_COLOR, CALIBRE_PUENTE,
-        CANTIDAD, FECHA_COMPRA, PRECIO_COMPRA, FECHA_VENTA, PRECIO_VENTA)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, params);
+        CANTIDAD, FECHA_COMPRA, PRECIO_COMPRA, FECHA_VENTA, PRECIO_VENTA, NOTES)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, params);
       // @ts-ignore - MySQL insert result contains insertId
       console.log(result.insertId)
       return result.insertId;
@@ -72,7 +73,8 @@ export const registerMysqlIPCHandlers = () => {
           FECHA_COMPRA = ${product.fechaCompra ? `'${product.fechaCompra}'` : 'NULL'},
           PRECIO_COMPRA = ${product.precioCompra ? `'${product.precioCompra}'` : 'NULL'},
           FECHA_VENTA = ${product.fechaVenta ? `'${product.fechaVenta}'` : 'NULL'},
-          PRECIO_VENTA = ${product.precioVenta ? `'${product.precioVenta}'` : 'NULL'}
+          PRECIO_VENTA = ${product.precioVenta ? `'${product.precioVenta}'` : 'NULL'},
+          NOTES = ${product.notes ? `'${product.notes}'` : 'NULL'}
         WHERE ID = ${product.id}
       `);
       // @ts-ignore - MySQL insert result contains insertId
