@@ -62,10 +62,7 @@ const ProductStockPage: React.FC = () => {
                 if (!filter.value) {
                   return true;
                 }
-                return util.includesStrings(
-                  itemValue,
-                  filter.value,
-                );
+                return util.includesStrings(itemValue, filter.value);
               case 'MULTIPLE':
                 if (filter.value.length <= 0) {
                   return true;
@@ -108,6 +105,8 @@ const ProductStockPage: React.FC = () => {
       return;
     }
     try {
+      setLoading(true);
+
       const newValues = await form.validateFields();
       const finalProduct: ProductModel = { ...editingProduct, ...newValues };
 
@@ -126,10 +125,11 @@ const ProductStockPage: React.FC = () => {
         );
       }
 
-      // Buscamos y actualizamos en el array de la tabla el registro en concreto,
-      // para actualizar tabla sin recargar
-      const newDataSource: ProductModel[] = tableDataSource.map(
-        (product: ProductModel) =>
+      // Buscamos el registro nuevo o editado para actualizar en el array de la tabla y el listado de la BBDD original,
+      // sin tener que actualizar recargando la tabla entera.
+      // @ts-ignore
+      setTableDataSource((prevTableDataSource: ProductModel[]) =>
+        prevTableDataSource.map((product: ProductModel) =>
           product.id === editingProduct.id
             ? {
                 ...finalProduct,
@@ -140,15 +140,34 @@ const ProductStockPage: React.FC = () => {
                 fechaCompra: finalProduct.fechaCompra
                   ? util.formatDateToYYYYMMDD(dayjs(finalProduct.fechaCompra))
                   : null,
-                fechaVenta: finalProduct.fechaCompra
-                  ? util.formatDateToYYYYMMDD(dayjs(finalProduct.fechaCompra))
+                fechaVenta: finalProduct.fechaVenta
+                  ? util.formatDateToYYYYMMDD(dayjs(finalProduct.fechaVenta))
                   : null,
               }
             : product,
+        ),
       );
 
-      setTableDataSource(newDataSource);
-      setProducts(newDataSource);
+      // @ts-ignore
+      setProducts((prevTableDataSource: ProductModel[]) =>
+        prevTableDataSource.map((product: ProductModel) =>
+          product.id === editingProduct.id
+            ? {
+                ...finalProduct,
+                type: productTypes.find(
+                  (productType: ProductTypeModel) =>
+                    productType.id === finalProduct.typeId,
+                )?.type,
+                fechaCompra: finalProduct.fechaCompra
+                  ? util.formatDateToYYYYMMDD(dayjs(finalProduct.fechaCompra))
+                  : null,
+                fechaVenta: finalProduct.fechaVenta
+                  ? util.formatDateToYYYYMMDD(dayjs(finalProduct.fechaVenta))
+                  : null,
+              }
+            : product,
+        ),
+      );
       setEditingProduct(null);
 
       api.success({
@@ -163,6 +182,8 @@ const ProductStockPage: React.FC = () => {
       setErrorMessage(
         `Error de conexión con base de datos: ${error.message || error}`,
       );
+    } finally {
+      setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingProduct, form, api]);
