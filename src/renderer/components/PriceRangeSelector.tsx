@@ -1,6 +1,7 @@
 import { SwapRightOutlined } from '@ant-design/icons';
 import { InputNumber, Space } from 'antd';
 import React from 'react';
+import utils from '../utils/util';
 
 interface PriceRangeSelectorProps {
   label: string;
@@ -17,12 +18,6 @@ const PriceRangeSelector: React.FC<PriceRangeSelectorProps> = ({
   onMinChange,
   onMaxChange,
 }) => {
-  // Formateador común para moneda con puntos de miles
-  const priceFormatter = (value: any) =>
-    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-
-  const priceParser = (value: any) => value!.replace(/\./g, '');
-
   return (
     <>
       <span style={{ fontWeight: 500, fontSize: '12px', marginLeft: '4px' }}>
@@ -33,11 +28,12 @@ const PriceRangeSelector: React.FC<PriceRangeSelectorProps> = ({
           placeholder="Mínimo"
           value={minPrice}
           onChange={onMinChange}
-          formatter={priceFormatter}
-          parser={priceParser}
-          style={{ width: 105 }}
+          formatter={utils.priceInputFormatter}
+          parser={utils.priceInputParser}
+          style={{ width: 150 }}
           min={0}
           addonAfter="€"
+          stringMode // Recomendado para manejar decimales con precisión
         />
         <div
           style={{
@@ -56,12 +52,13 @@ const PriceRangeSelector: React.FC<PriceRangeSelectorProps> = ({
           placeholder="Máximo"
           value={maxPrice}
           onChange={onMaxChange}
-          formatter={priceFormatter}
-          parser={priceParser}
-          style={{ width: 105 }}
+          formatter={utils.priceInputFormatter}
+          parser={utils.priceInputParser}
+          style={{ width: 150 }}
           // Bloqueo físico para que el máximo nunca sea menor al mínimo
           min={minPrice ?? 0}
           addonAfter="€"
+          stringMode // Recomendado para manejar decimales con precisión
         />
       </Space.Compact>
     </>

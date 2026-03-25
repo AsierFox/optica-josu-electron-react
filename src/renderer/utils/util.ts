@@ -11,12 +11,26 @@ const includesStrings = (a: string, b: string) => a?.toUpperCase().includes(b?.t
 
 const formatDateToYYYYMMDD = (date: Dayjs) : string | null => date ? dayjs(date).format(DATE_FORMATS.YYYY_MM_DD) : null;
 
+const priceInputFormatter = (value: any) => {
+  if (!value) return '';
+  const parts = `${value}`.split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return parts.join(',');
+};
+
+const priceInputParser = (value: any) => {
+  if (!value) return '';
+  return value.replace(/\./g, '').replace(',', '.');
+};
+
 const util = {
   uniq,
   sortAlphabetically,
   equalsStrings,
   includesStrings,
   formatDateToYYYYMMDD,
+  priceInputFormatter,
+  priceInputParser,
 };
 
 export default util;

@@ -1,7 +1,4 @@
-import {
-  AlertOutlined,
-  ShopOutlined
-} from '@ant-design/icons';
+import { AlertOutlined, ShopOutlined } from '@ant-design/icons';
 import {
   Collapse,
   DatePicker,
@@ -9,7 +6,7 @@ import {
   Input,
   Select,
   Space,
-  Typography
+  Typography,
 } from 'antd';
 import CheckableTag from 'antd/es/tag/CheckableTag';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -223,6 +220,47 @@ const ProductStockFilters: React.FC<Props> = ({
               </div>
             ),
           )}
+
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '4px',
+            minWidth: '150px',
+            flex: 1,
+          }}
+        >
+          <span
+            style={{
+              fontWeight: 500,
+              fontSize: '12px',
+              marginLeft: '4px',
+            }}
+          >
+            Tipo de Producto
+          </span>
+          <Select
+            disabled={allDisabled}
+            mode="multiple"
+            allowClear
+            placeholder="Tipo de Producto..."
+            // El valor viene de tu estado global de filtros
+            value={filters.typeSelect.value}
+            // Al cambiar, mandamos el array completo de strings
+            onChange={(selectedValues) =>
+              handleSelectChange('typeSelect', selectedValues)
+            }
+            // Opciones (esto podría venir de un searchFilterCollapse.tags)
+            options={productTypes.map((productType: ProductTypeModel) => ({
+              label: productType.type,
+              value: productType.id,
+            }))}
+            // Para que al buscar no importe mayúsculas/minúsculas
+            filterOption={(input, option) =>
+              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+            }
+          />
+        </div>
       </Space>
 
       <Divider />
@@ -301,47 +339,6 @@ const ProductStockFilters: React.FC<Props> = ({
       <Divider />
 
       <Space style={{ width: '100%' }} wrap size={[16, 16]}>
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '4px',
-            minWidth: '150px',
-            flex: 1,
-          }}
-        >
-          <span
-            style={{
-              fontWeight: 500,
-              fontSize: '12px',
-              marginLeft: '4px',
-            }}
-          >
-            Tipo de Producto
-          </span>
-          <Select
-            disabled={allDisabled}
-            mode="multiple"
-            allowClear
-            placeholder="Tipo de Producto..."
-            // El valor viene de tu estado global de filtros
-            value={filters.typeSelect.value}
-            // Al cambiar, mandamos el array completo de strings
-            onChange={(selectedValues) =>
-              handleSelectChange('typeSelect', selectedValues)
-            }
-            // Opciones (esto podría venir de un searchFilterCollapse.tags)
-            options={productTypes.map((productType: ProductTypeModel) => ({
-              label: productType.type,
-              value: productType.id,
-            }))}
-            // Para que al buscar no importe mayúsculas/minúsculas
-            filterOption={(input, option) =>
-              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-            }
-          />
-        </div>
-
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <span
             style={{

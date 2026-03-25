@@ -1,6 +1,7 @@
 import { DatePicker, Form, Input, InputNumber, Select } from 'antd';
 import React from 'react';
 import ProductModel from '../../../main/models/product.model';
+import utils from '../../utils/util';
 
 const EditableTableCell = ({
   dataIndex,
@@ -35,7 +36,16 @@ const EditableTableCell = ({
       inputNode = <DatePicker format="YYYY-MM-DD" />;
       break;
     case 'money':
-      inputNode = <InputNumber min={0} step={0.01} addonAfter="€" />;
+      inputNode = (
+        <InputNumber
+          min={0}
+          step={0.01}
+          addonAfter="€"
+          stringMode
+          formatter={utils.priceInputFormatter}
+          parser={utils.priceInputParser}
+        />
+      );
       break;
     case 'select':
       inputNode = (
