@@ -168,7 +168,9 @@ const ProductStockTable: React.FC<Props> = ({
         title: PRODUCT_FIELD_NAMES.precioCompra,
         dataIndex: 'precioCompra',
         render: (_: any, record: ProductModel) =>
-          record.precioCompra ? `${record.precioCompra} €` : null,
+          record.precioCompra
+            ? `${utils.priceInputFormatter(record.precioCompra)} €`
+            : null,
         onCell: (record: ProductModel) => ({
           dataIndex: 'precioCompra',
           type: 'money',
@@ -190,7 +192,9 @@ const ProductStockTable: React.FC<Props> = ({
         title: PRODUCT_FIELD_NAMES.precioVenta,
         dataIndex: 'precioVenta',
         render: (_: any, record: ProductModel) =>
-          record.precioVenta ? `${record.precioVenta} €` : null,
+          record.precioVenta
+            ? `${utils.priceInputFormatter(record.precioVenta)} €`
+            : null,
         onCell: (record: ProductModel) => ({
           dataIndex: 'precioVenta',
           type: 'money',
