@@ -40,14 +40,14 @@ const ProductStockTable: React.FC<Props> = ({
     const proveedorFilters = utils
       .uniq(
         products.map((product: ProductModel) =>
-          product.proveedor.toUpperCase(),
+          product.proveedor?.toUpperCase(),
         ),
       )
       .map((filter: string) => ({ text: filter, value: filter }));
 
     const firmaFilters = utils
       .uniq(
-        products.map((product: ProductModel) => product.firma.toUpperCase()),
+        products.map((product: ProductModel) => product.firma?.toUpperCase()),
       )
       .map((filter: string) => ({ text: filter, value: filter }));
 

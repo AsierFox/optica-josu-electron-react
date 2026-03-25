@@ -92,14 +92,14 @@ const ProductStockFilters: React.FC<Props> = ({
   const proveedoresUnicos = useMemo(
     () =>
       Array.from(
-        new Set(products.map((p) => p.proveedor.toUpperCase())),
+        new Set(products.map((p) => p.proveedor?.toUpperCase())),
       ).sort(),
     [products],
   );
 
   const firmasUnicas = useMemo(
     () =>
-      Array.from(new Set(products.map((p) => p.firma.toUpperCase()))).sort(),
+      Array.from(new Set(products.map((p) => p.firma?.toUpperCase()))).sort(),
     [products],
   );
 
@@ -294,7 +294,7 @@ const ProductStockFilters: React.FC<Props> = ({
                   {searchFilterCollapse.tags.map((tag) => {
                     const isActive = filters[
                       searchFilterCollapse.name
-                    ].value.includes(tag.toUpperCase());
+                    ].value.includes(tag?.toUpperCase());
                     return (
                       <CheckableTag
                         key={`tag_${tag}`}
