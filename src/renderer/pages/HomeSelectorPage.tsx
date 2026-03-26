@@ -22,32 +22,18 @@ const HomeSelectorPage: React.FC = () => {
             marginBottom: '40px',
           }}
         >
-          <Text
-            strong
-            style={{
-              marginBottom: '12px',
-              fontSize: '14px',
-              letterSpacing: '3px',
-              textTransform: 'uppercase',
-              color: '#8c8c8c',
-            }}
-          >
-            Óptica <span style={{ color: '#1890ff' }}>Josu</span>
-          </Text>
           <img
             src={logoOptica}
             alt="Logo Óptica Josu"
             style={{
-              width: '100px',
+              width: '400px',
               height: 'auto',
               filter: 'drop-shadow(0px 4px 8px rgba(0,0,0,0.1))',
             }}
           />
         </div>
 
-        <Divider style={{ margin: '0 0 40px 0' }} />
-
-        <header style={{ textAlign: 'center', marginBottom: '60px' }}>
+        <header style={{ textAlign: 'center', marginBottom: '30px' }}>
           <Title level={1} className="main-title">
             Panel de Control
           </Title>

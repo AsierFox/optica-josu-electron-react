@@ -1,6 +1,7 @@
 import { CloseOutlined, PlusOutlined } from '@ant-design/icons';
 import { Alert, Button, Form, notification, Popconfirm, Space } from 'antd';
 import dayjs from 'dayjs';
+import isBetween from 'dayjs/plugin/isBetween';
 import React, { useCallback, useEffect, useState } from 'react';
 import ProductModel from '../../../main/models/product.model';
 import ProductTypeModel from '../../../main/models/productType.model';
@@ -11,6 +12,8 @@ import ProductStockFilters from './ProductStockFilters';
 import { ProductStockFilterValue } from './ProductStockFilterValue';
 import ProductStockStats from './ProductStockStats';
 import ProductStockTable from './ProductStockTable';
+
+dayjs.extend(isBetween);
 
 const ProductStockPage: React.FC = () => {
   const [isLoading, setLoading] = useState<boolean>(true);
@@ -63,6 +66,7 @@ const ProductStockPage: React.FC = () => {
                   return true;
                 }
                 return util.includesStrings(itemValue, filter.value);
+
               case 'MULTIPLE':
                 if (filter.value.length <= 0) {
                   return true;
@@ -73,6 +77,7 @@ const ProductStockPage: React.FC = () => {
                   : itemValue;
 
                 return filter.value.includes(searchValue);
+
               case 'RANGE_NUMBER':
                 const min = filter.value.min ? Number(filter.value.min) : null;
                 const max = filter.value.max ? Number(filter.value.max) : null;
@@ -87,6 +92,22 @@ const ProductStockPage: React.FC = () => {
                   return Number(itemValue) <= max;
                 }
                 return true;
+
+              case 'RANGE_DATE':
+                if (!filter.value.min || !filter.value.max) {
+                  return true;
+                }
+                // Si no hay valor en el campo del registro, y el filtro de fecha busca un rango, lo filtramos
+                if (!itemValue) {
+                  return false;
+                }
+
+                return dayjs(itemValue).isBetween(
+                  dayjs(filter.value.min),
+                  dayjs(filter.value.max),
+                  'day',
+                  '[]',
+                );
               default:
                 return true;
             }
@@ -175,7 +196,7 @@ const ProductStockPage: React.FC = () => {
         message: `¡Producto ${isNewProduct ? 'creado' : 'editado'} satisfactoriamente!`,
       });
     } catch (error) {
-      if (error && error.errorFields) {
+      if (error && error?.errorFields) {
         setErrorMessage('Por favor, revisa los campos marcados en rojo.');
         return;
       }

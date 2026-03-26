@@ -87,6 +87,16 @@ const ProductStockFilters: React.FC<Props> = ({
       targetKey: 'precioVenta',
       value: { min: null, max: null },
     },
+    fechaCompraRange: {
+      type: 'RANGE_DATE',
+      targetKey: 'fechaCompra',
+      value: { min: null, max: null },
+    },
+    fechaVentaRange: {
+      type: 'RANGE_DATE',
+      targetKey: 'fechaVenta',
+      value: { min: null, max: null },
+    },
   });
 
   const proveedoresUnicos = useMemo(
@@ -162,6 +172,22 @@ const ProductStockFilters: React.FC<Props> = ({
       [key]: {
         ...filters[key],
         value: values,
+      },
+    });
+  };
+
+  const handleRangeDateChange = (
+    key: string,
+    dateStrings: [string | null, string | null],
+  ) => {
+    setFilters({
+      ...filters,
+      [key]: {
+        ...filters[key],
+        value: {
+          min: dateStrings[0],
+          max: dateStrings[1],
+        },
       },
     });
   };
@@ -347,55 +373,33 @@ const ProductStockFilters: React.FC<Props> = ({
       <Divider />
 
       <Space style={{ width: '100%' }} wrap size={[16, 16]}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <span
-            style={{
-              fontWeight: 500,
-              fontSize: '12px',
-              marginLeft: '4px',
-            }}
-          >
-            Fecha de Compra
-          </span>
-          <RangePicker
-            id={{
-              start: 'startFechaCompraInput',
-              end: 'endFechaCompraInput',
-            }}
-            disabled={allDisabled}
-            onFocus={(_, info) => {
-              console.log('Focus:', info.range);
-            }}
-            onBlur={(_, info) => {
-              console.log('Blur:', info.range);
-            }}
-          />
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <span
-            style={{
-              fontWeight: 500,
-              fontSize: '12px',
-              marginLeft: '4px',
-            }}
-          >
-            Fecha de Venta
-          </span>
-          <RangePicker
-            id={{
-              start: 'startFechaVentaInput',
-              end: 'endFechaVentaInput',
-            }}
-            disabled={allDisabled}
-            onFocus={(_, info) => {
-              console.log('Focus:', info.range);
-            }}
-            onBlur={(_, info) => {
-              console.log('Blur:', info.range);
-            }}
-          />
-        </div>
+        {Object.entries(filters)
+          .filter(([, filter]) => filter.type === 'RANGE_DATE')
+          .map(([key, filter]) => (
+            <div
+              style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}
+            >
+              <span
+                style={{
+                  fontWeight: 500,
+                  fontSize: '12px',
+                  marginLeft: '4px',
+                }}
+              >
+                {PRODUCT_FIELD_NAMES[filter.targetKey]}
+              </span>
+              <RangePicker
+                id={{
+                  start: `start_date_range_${key}`,
+                  end: `end_date_range_${key}`,
+                }}
+                disabled={allDisabled}
+                onChange={(_, dateStrings) =>
+                  handleRangeDateChange(key, dateStrings)
+                }
+              />
+            </div>
+          ))}
 
         {Object.entries(filters)
           .filter(([, filter]) => filter.type === 'RANGE_NUMBER')
