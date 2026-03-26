@@ -354,6 +354,7 @@ const ProductStockFilters: React.FC<Props> = ({
               start: 'startFechaCompraInput',
               end: 'endFechaCompraInput',
             }}
+            disabled={allDisabled}
             onFocus={(_, info) => {
               console.log('Focus:', info.range);
             }}
@@ -378,6 +379,7 @@ const ProductStockFilters: React.FC<Props> = ({
               start: 'startFechaVentaInput',
               end: 'endFechaVentaInput',
             }}
+            disabled={allDisabled}
             onFocus={(_, info) => {
               console.log('Focus:', info.range);
             }}
@@ -396,6 +398,7 @@ const ProductStockFilters: React.FC<Props> = ({
               <PriceRangeSelector
                 key={`price_range_${key}`}
                 label={PRODUCT_FIELD_NAMES[filter.targetKey]}
+                disabled={allDisabled}
                 minPrice={filter.value.min}
                 maxPrice={filter.value.max}
                 onMinChange={(value) =>

@@ -73,12 +73,14 @@ const ProductStockTable: React.FC<Props> = ({
       {
         title: PRODUCT_FIELD_NAMES.proveedor,
         dataIndex: 'proveedor',
-        filters: proveedorFilters,
+        filters: !editingProduct ? proveedorFilters : false,
         filterSearch: true,
         onFilter: (value: string, record: ProductModel) =>
           utils.equalsStrings(record.proveedor, value),
-        sorter: (a: ProductModel, b: ProductModel) =>
-          a.proveedor.localeCompare(b.proveedor),
+        sorter: !editingProduct
+          ? (a: ProductModel, b: ProductModel) =>
+              a.proveedor?.localeCompare(b?.proveedor)
+          : false,
         onCell: (record: ProductModel) => ({
           dataIndex: 'proveedor',
           record,
@@ -88,12 +90,14 @@ const ProductStockTable: React.FC<Props> = ({
       {
         title: PRODUCT_FIELD_NAMES.firma,
         dataIndex: 'firma',
-        filters: firmaFilters,
+        filters: !editingProduct ? firmaFilters : false,
         filterSearch: true,
         onFilter: (value: string, record: ProductModel) =>
           utils.equalsStrings(record.firma, value),
-        sorter: (a: ProductModel, b: ProductModel) =>
-          a.firma.localeCompare(b.firma),
+        sorter: !editingProduct
+          ? (a: ProductModel, b: ProductModel) =>
+              a.firma?.localeCompare(b?.firma)
+          : false,
         onCell: (record: ProductModel) => ({
           dataIndex: 'firma',
           record,
@@ -103,12 +107,13 @@ const ProductStockTable: React.FC<Props> = ({
       {
         title: PRODUCT_FIELD_NAMES.type,
         dataIndex: 'type',
-        filters: productTypeFilters,
+        filters: !editingProduct ? productTypeFilters : false,
         filterSearch: true,
         onFilter: (value: string, record: ProductModel) =>
           utils.equalsStrings(record.type, value),
-        sorter: (a: ProductModel, b: ProductModel) =>
-          a.type.localeCompare(b.type),
+        sorter: !editingProduct
+          ? (a: ProductModel, b: ProductModel) => a.type?.localeCompare(b?.type)
+          : false,
         onCell: (record: ProductModel) => ({
           dataIndex: 'typeId',
           required: true,
@@ -121,8 +126,10 @@ const ProductStockTable: React.FC<Props> = ({
       {
         title: PRODUCT_FIELD_NAMES.referencia,
         dataIndex: 'referencia',
-        sorter: (a: ProductModel, b: ProductModel) =>
-          a.referencia.localeCompare(b.referencia),
+        sorter: !editingProduct
+          ? (a: ProductModel, b: ProductModel) =>
+              a.referencia?.localeCompare(b?.referencia)
+          : false,
         onCell: (record: ProductModel) => ({
           dataIndex: 'referencia',
           required: true,
@@ -133,8 +140,10 @@ const ProductStockTable: React.FC<Props> = ({
       {
         title: PRODUCT_FIELD_NAMES.modeloColor,
         dataIndex: 'modeloColor',
-        sorter: (a: ProductModel, b: ProductModel) =>
-          a.modeloColor.localeCompare(b.modeloColor),
+        sorter: !editingProduct
+          ? (a: ProductModel, b: ProductModel) =>
+              a.modeloColor?.localeCompare(b?.modeloColor)
+          : false,
         onCell: (record: ProductModel) => ({
           dataIndex: 'modeloColor',
           record,
@@ -144,8 +153,10 @@ const ProductStockTable: React.FC<Props> = ({
       {
         title: PRODUCT_FIELD_NAMES.calibrePuente,
         dataIndex: 'calibrePuente',
-        sorter: (a: ProductModel, b: ProductModel) =>
-          a.calibrePuente.localeCompare(b.calibrePuente),
+        sorter: !editingProduct
+          ? (a: ProductModel, b: ProductModel) =>
+              a.calibrePuente?.localeCompare(b?.calibrePuente)
+          : false,
         onCell: (record: ProductModel) => ({
           dataIndex: 'calibrePuente',
           record,
@@ -155,8 +166,10 @@ const ProductStockTable: React.FC<Props> = ({
       {
         title: PRODUCT_FIELD_NAMES.fechaCompra,
         dataIndex: 'fechaCompra',
-        sorter: (a: ProductModel, b: ProductModel) =>
-          dayjs(a.fechaCompra).unix() - dayjs(b.fechaCompra).unix(),
+        sorter: !editingProduct
+          ? (a: ProductModel, b: ProductModel) =>
+              dayjs(a.fechaCompra).unix() - dayjs(b.fechaCompra).unix()
+          : false,
         onCell: (record: ProductModel) => ({
           dataIndex: 'fechaCompra',
           type: 'date',

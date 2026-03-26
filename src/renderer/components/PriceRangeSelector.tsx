@@ -5,6 +5,7 @@ import utils from '../utils/util';
 
 interface PriceRangeSelectorProps {
   label: string;
+  disabled?: boolean;
   minPrice: number | null;
   maxPrice: number | null;
   onMinChange: (val: number | null) => void;
@@ -13,6 +14,7 @@ interface PriceRangeSelectorProps {
 
 const PriceRangeSelector: React.FC<PriceRangeSelectorProps> = ({
   label,
+  disabled = false,
   minPrice,
   maxPrice,
   onMinChange,
@@ -26,6 +28,7 @@ const PriceRangeSelector: React.FC<PriceRangeSelectorProps> = ({
       <Space.Compact>
         <InputNumber
           placeholder="Mínimo"
+          disabled={disabled}
           value={minPrice}
           onChange={onMinChange}
           formatter={utils.priceInputFormatter}
@@ -50,6 +53,7 @@ const PriceRangeSelector: React.FC<PriceRangeSelectorProps> = ({
         </div>
         <InputNumber
           placeholder="Máximo"
+          disabled={disabled}
           value={maxPrice}
           onChange={onMaxChange}
           formatter={utils.priceInputFormatter}
