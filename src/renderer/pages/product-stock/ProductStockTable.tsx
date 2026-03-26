@@ -39,15 +39,17 @@ const ProductStockTable: React.FC<Props> = ({
   const columns: any = useMemo(() => {
     const proveedorFilters = utils
       .uniq(
-        products.map((product: ProductModel) =>
-          product.proveedor?.toUpperCase(),
-        ),
+        products
+          .filter((p) => p.proveedor)
+          .map((product: ProductModel) => product.proveedor?.toUpperCase()),
       )
       .map((filter: string) => ({ text: filter, value: filter }));
 
     const firmaFilters = utils
       .uniq(
-        products.map((product: ProductModel) => product.firma?.toUpperCase()),
+        products
+          .filter((p) => p.firma)
+          .map((product: ProductModel) => product.firma?.toUpperCase()),
       )
       .map((filter: string) => ({ text: filter, value: filter }));
 

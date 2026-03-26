@@ -92,14 +92,22 @@ const ProductStockFilters: React.FC<Props> = ({
   const proveedoresUnicos = useMemo(
     () =>
       Array.from(
-        new Set(products.map((p) => p.proveedor?.toUpperCase())),
+        new Set(
+          products
+            .filter((p) => p.proveedor)
+            .map((p) => p.proveedor?.toUpperCase()),
+        ),
       ).sort(),
     [products],
   );
 
   const firmasUnicas = useMemo(
     () =>
-      Array.from(new Set(products.map((p) => p.firma?.toUpperCase()))).sort(),
+      Array.from(
+        new Set(
+          products.filter((p) => p.firma).map((p) => p.firma?.toUpperCase()),
+        ),
+      ).sort(),
     [products],
   );
 
