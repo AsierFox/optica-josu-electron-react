@@ -169,6 +169,8 @@ const ProductStockPage: React.FC = () => {
         ),
       );
 
+      // Actualizamos el listado de la tabla original con el nuevo producto editado o creado,
+      // para evitar recargar la tabla entera a traves de la BBDD.
       // @ts-ignore
       setProducts((prevTableDataSource: ProductModel[]) =>
         prevTableDataSource.map((product: ProductModel) =>
@@ -253,6 +255,7 @@ const ProductStockPage: React.FC = () => {
       const productsFetched = await window.electron.ipcMysql.getProducts();
       const productsTypesFetched =
         await window.electron.ipcMysql.getProductTypes();
+
       setProducts(productsFetched);
       setTableDataSource(productsFetched);
       setProductTypes(productsTypesFetched);

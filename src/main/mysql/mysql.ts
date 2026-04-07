@@ -41,6 +41,20 @@ export const registerMysqlIPCHandlers = () => {
     }
   });
 
+  ipcMain.handle('mysql-get-client-by-id', async (_event, clientId: number) => {
+    try {
+      const [rows] = await query(`
+        SELECT * FROM CLIENTS WHERE ID = ?`, [clientId]);
+      if (rows.length <= 0) {
+        return null;
+      }
+      return ModelParserService.parseClientModels(rows as any [])[0];
+    } catch (error) {
+      console.error('Database query error:', error);
+      throw new Error('Database query failed');
+    }
+  });
+
   ipcMain.handle('mysql-create-product', async (_event, product: ProductModel) => {
     try {
       const params = [
@@ -61,8 +75,6 @@ export const registerMysqlIPCHandlers = () => {
         (PROVEEDOR, FIRMA, ID_PRODUCT_TYPE, REFERENCIA, MODELO_COLOR, CALIBRE_PUENTE,
         CANTIDAD, FECHA_COMPRA, PRECIO_COMPRA, FECHA_VENTA, PRECIO_VENTA, NOTES)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, params);
-      // @ts-ignore - MySQL insert result contains insertId
-      console.log(result.insertId)
       return result.insertId;
     } catch (error) {
       console.error('Database query error:', error);

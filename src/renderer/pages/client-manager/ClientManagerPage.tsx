@@ -3,13 +3,12 @@ import { Alert, Button, Form, notification, Space } from 'antd';
 import dayjs from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ClientModel from '../../../main/models/client.model';
 import ProductTypeModel from '../../../main/models/productType.model';
+import { ROUTES } from '../../app/constants';
 import AdminLayout from '../../layouts/AdminLayout';
 import ClientManagerTable from './ClientManagerTable';
-import ClientManagerForm from './ClientManagerFormPage';
-import { useNavigate } from 'react-router-dom';
-import { ROUTES } from '../../app/constants';
 
 dayjs.extend(isBetween);
 
@@ -96,7 +95,7 @@ const ClientManagerPage: React.FC = () => {
   };
 
   const handleEdit = (record: ClientModel) => {
-    navigate(ROUTES.CLIENT_MANAGER_FORM.replace(':id', record.id));
+    navigate(ROUTES.CLIENT_MANAGER_FORM.replace(':client_id', record.id));
   };
 
   const handleDelete = (record: ClientModel) => {};

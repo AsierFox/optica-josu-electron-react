@@ -2,6 +2,7 @@
 /* eslint no-unused-vars: off */
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 import ProductModel from './models/product.model';
+import { get } from 'http';
 
 export type Channels = 'ipc-example';
 
@@ -10,6 +11,8 @@ const electronHandler = {
     getClients: () => ipcRenderer.invoke('mysql-get-clients'),
     getProducts: () => ipcRenderer.invoke('mysql-get-products'),
     getProductTypes: () => ipcRenderer.invoke('mysql-get-product-types'),
+
+    getClientById: (clientId: number) => ipcRenderer.invoke('mysql-get-client-by-id', clientId),
 
     createProduct: (product: ProductModel) => ipcRenderer.invoke('mysql-create-product', product),
 

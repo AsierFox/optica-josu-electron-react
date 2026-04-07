@@ -18,19 +18,24 @@ import {
   InputNumber,
   notification,
   Row,
-  Space,
 } from 'antd';
+import dayjs from 'dayjs';
 import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import ClientModel from '../../../main/models/client.model';
+import { ROUTES } from '../../app/constants';
 import AdminLayout from '../../layouts/AdminLayout';
 import ExaminationsForm from './ExaminationsForm';
 
-interface ClientEditFormProps {
-  clientId?: number;
-}
+const ClientManagerFormPage: React.FC = () => {
+  const [client, setClient] = useState<ClientModel | null>(null);
 
-const ClientManagerFormPage: React.FC<ClientEditFormProps> = ({ clientId }) => {
+  // eslint-disable-next-line camelcase
+  const { client_id } = useParams<{ client_id: string }>();
+
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const navigate = useNavigate();
   const [form] = Form.useForm();
   const [api, contextHolder] = notification.useNotification();
 
@@ -50,6 +55,42 @@ const ClientManagerFormPage: React.FC<ClientEditFormProps> = ({ clientId }) => {
     // onSave(formattedValues);
   };
 
+  useEffect(() => {
+    const getClientById = async (clientId: number) => {
+      try {
+        const clientDDBB =
+          await window.electron.ipcMysql.getClientById(clientId);
+
+        if (!clientDDBB) {
+          setErrorMessage(
+            '¡Ha habido un error buscando el cliente seleccionado!',
+          );
+        }
+
+        setClient(clientDDBB);
+
+        form.setFieldsValue({
+          ...clientDDBB,
+          // Convertimos la fecha al formato que entiende el DatePicker (dayjs),
+          // porque si no le pasamos un timestamp/number, el DatePicker no lo muestra.
+          fechaNacimiento: clientDDBB.fechaNacimiento
+            ? dayjs(clientDDBB.fechaNacimiento)
+            : null,
+        });
+      } catch {
+        setErrorMessage('¡No se pudo cargar el cliente!');
+      }
+    };
+    form.resetFields();
+    // @ts-ignore
+    // eslint-disable-next-line no-restricted-globals, camelcase
+    if (!isNaN(client_id) && client_id) {
+      const clientId = parseInt(client_id, 10);
+      getClientById(clientId);
+    }
+    // eslint-disable-next-line camelcase, react-hooks/exhaustive-deps
+  }, [client_id, form]);
+
   return (
     <AdminLayout>
       {contextHolder}
@@ -63,13 +104,16 @@ const ClientManagerFormPage: React.FC<ClientEditFormProps> = ({ clientId }) => {
         />
       ) : null}
 
-      <Card bordered={false} className="edit-card">
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-          autoComplete="off"
+      <Card>
+        <Button
+          icon={<ArrowLeftOutlined />}
+          style={{ marginBottom: '20px' }}
+          onClick={() => navigate(ROUTES.CLIENT_MANAGER)}
         >
+          Volver al listado de clientes
+        </Button>
+
+        <Form form={form} layout="vertical" onFinish={handleSubmit}>
           {/* SECCIÓN 1: DATOS PERSONALES */}
           <Divider orientation="left">
             <UserOutlined /> Datos Personales
@@ -143,21 +187,17 @@ const ClientManagerFormPage: React.FC<ClientEditFormProps> = ({ clientId }) => {
             </Col>
           </Row>
 
-          <Divider />
-
           <Row justify="end">
-            <Space>
-              <Button icon={<ArrowLeftOutlined />}>Cancelar</Button>
-              <Button
-                type="primary"
-                htmlType="submit"
-                icon={<SaveOutlined />}
-                style={{ backgroundColor: '#13c2c2', borderColor: '#13c2c2' }} // Tu color cyan
-              >
-                Guardar Cliente
-              </Button>
-            </Space>
+            <Button
+              type="primary"
+              htmlType="submit"
+              icon={<SaveOutlined />}
+              style={{ backgroundColor: '#13c2c2', borderColor: '#13c2c2' }}
+            >
+              Guardar Cliente
+            </Button>
           </Row>
+
           <ExaminationsForm />
         </Form>
       </Card>
