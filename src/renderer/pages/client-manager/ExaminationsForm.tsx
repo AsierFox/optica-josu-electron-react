@@ -10,17 +10,17 @@ const ExaminationForm: React.FC = () => {
       <Divider orientation="left">
         <EyeOutlined /> RX
       </Divider>
+
       <Card
         title={<span>{new Date().toLocaleDateString()} - Oftanmologo</span>}
         style={{ marginTop: 24, border: '1px solid #d9d9d9' }}
       >
         {/* CABECERA DE OJOS */}
         <Row gutter={24} style={{ marginBottom: 16, textAlign: 'center' }}>
-          <Col span={11}>
+          <Col span={12}>
             <Title level={5}>OJO DERECHO (OD)</Title>
           </Col>
-          <Col span={2}></Col>
-          <Col span={11}>
+          <Col span={12}>
             <Title level={5}>OJO IZQUIERDO (OI)</Title>
           </Col>
         </Row>
@@ -29,7 +29,7 @@ const ExaminationForm: React.FC = () => {
         <Row gutter={24}>
           {/* COLUMNA OD */}
           <Col span={11}>
-            <Space direction="vertical" style={{ width: '100%' }} size="small">
+            <Space direction="vertical" style={{ width: '100%' }}>
               <Row gutter={8}>
                 <Col span={6}>
                   <Text strong>Esfera</Text>
@@ -50,22 +50,20 @@ const ExaminationForm: React.FC = () => {
               </Row>
               <Row gutter={8}>
                 <Col span={8}>
-                  <Text size="small">AV</Text>
-                  <Input size="small" />
+                  <Text>AV</Text>
+                  <Input />
                 </Col>
                 <Col span={8}>
-                  <Text size="small">VP</Text>
-                  <Input size="small" />
+                  <Text>VP</Text>
+                  <Input />
                 </Col>
                 <Col span={8}>
-                  <Text size="small">VL</Text>
-                  <Input size="small" />
+                  <Text>VL</Text>
+                  <Input />
                 </Col>
               </Row>
-              <Text type="secondary" size="small">
-                Queratomatría
-              </Text>
-              <Input.TextArea rows={2} placeholder="K1, K2..." />
+              <Text>Queratomatría</Text>
+              <Input placeholder="K1, K2..." />
             </Space>
           </Col>
 
@@ -83,7 +81,7 @@ const ExaminationForm: React.FC = () => {
 
           {/* COLUMNA OI */}
           <Col span={11}>
-            <Space direction="vertical" style={{ width: '100%' }} size="small">
+            <Space direction="vertical" style={{ width: '100%' }}>
               <Row gutter={8}>
                 <Col span={6}>
                   <Text strong>Esfera</Text>
@@ -104,22 +102,20 @@ const ExaminationForm: React.FC = () => {
               </Row>
               <Row gutter={8}>
                 <Col span={8}>
-                  <Text size="small">AV</Text>
-                  <Input size="small" />
+                  <Text>AV</Text>
+                  <Input />
                 </Col>
                 <Col span={8}>
-                  <Text size="small">VP</Text>
-                  <Input size="small" />
+                  <Text>VP</Text>
+                  <Input />
                 </Col>
                 <Col span={8}>
-                  <Text size="small">VL</Text>
-                  <Input size="small" />
+                  <Text>VL</Text>
+                  <Input />
                 </Col>
               </Row>
-              <Text type="secondary" size="small">
-                Queratomatría
-              </Text>
-              <Input.TextArea rows={2} placeholder="K1, K2..." />
+              <Text>Queratomatría</Text>
+              <Input placeholder="K1, K2..." />
             </Space>
           </Col>
         </Row>

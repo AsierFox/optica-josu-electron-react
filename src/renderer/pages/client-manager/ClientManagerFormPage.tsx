@@ -77,38 +77,17 @@ const ClientManagerFormPage: React.FC<ClientEditFormProps> = ({ clientId }) => {
 
           <Row gutter={16}>
             <Col xs={24} sm={12}>
-              <Form.Item
-                name="nombre"
-                label="Nombre"
-                rules={[
-                  { required: true, message: 'El nombre es obligatorio' },
-                ]}
-              >
+              <Form.Item name="nombre" label="Nombre">
                 <Input placeholder="Nombre del cliente" />
               </Form.Item>
             </Col>
             <Col xs={24} sm={12}>
-              <Form.Item
-                name="apellidos"
-                label="Apellidos"
-                rules={[
-                  { required: true, message: 'Los apellidos son obligatorios' },
-                ]}
-              >
+              <Form.Item name="apellidos" label="Apellidos">
                 <Input placeholder="Apellidos del cliente" />
               </Form.Item>
             </Col>
             <Col xs={24} sm={12}>
-              <Form.Item
-                name="DNI"
-                label="DNI / NIE / Pasaporte"
-                rules={[
-                  {
-                    required: true,
-                    message: 'Documento necesario para facturación',
-                  },
-                ]}
-              >
+              <Form.Item name="DNI" label="DNI / NIE / Pasaporte">
                 <Input prefix={<IdcardOutlined />} placeholder="12345678Z" />
               </Form.Item>
             </Col>
