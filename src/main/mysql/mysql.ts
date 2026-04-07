@@ -17,12 +17,23 @@ async function query(sql: string, params: any[] = []) {
 
 export const registerMysqlIPCHandlers = () => {
 
+  ipcMain.handle('mysql-get-clients', async (_event, params: any[] = []) => {
+    try {
+      const [rows] = await query(`
+        SELECT * FROM CLIENTS`, params);
+      return ModelParserService.parseClientModels(rows as any []);
+    } catch (error) {
+      console.error('Database query error:', error);
+      throw new Error('Database query failed');
+    }
+  });
+
   ipcMain.handle('mysql-get-products', async (_event, params: any[] = []) => {
     try {
       const [rows] = await query(`
-        SELECT PRODUCT.*, PRODUCT_TYPE.TYPE FROM PRODUCT
-        INNER JOIN PRODUCT_TYPE ON
-          (PRODUCT.ID_PRODUCT_TYPE = PRODUCT_TYPE.ID)`, params);
+        SELECT PRODUCTS.*, PRODUCT_TYPES.TYPE FROM PRODUCTS
+        INNER JOIN PRODUCT_TYPES ON
+          (PRODUCTS.ID_PRODUCT_TYPE = PRODUCT_TYPES.ID)`, params);
       return ModelParserService.parseProductModels(rows as any []);
     } catch (error) {
       console.error('Database query error:', error);
@@ -46,7 +57,7 @@ export const registerMysqlIPCHandlers = () => {
         product.precioVenta ?? null,
         product.notes ?? null,
       ];
-      const [result] = await query(`INSERT INTO PRODUCT
+      const [result] = await query(`INSERT INTO PRODUCTS
         (PROVEEDOR, FIRMA, ID_PRODUCT_TYPE, REFERENCIA, MODELO_COLOR, CALIBRE_PUENTE,
         CANTIDAD, FECHA_COMPRA, PRECIO_COMPRA, FECHA_VENTA, PRECIO_VENTA, NOTES)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, params);
@@ -87,7 +98,7 @@ export const registerMysqlIPCHandlers = () => {
 
   ipcMain.handle('mysql-delete-product', async (_event, productId: number) => {
     try {
-      const [rows] = await query(`DELETE FROM PRODUCT WHERE ID = ${productId}`);
+      const [rows] = await query(`DELETE FROM PRODUCTS WHERE ID = ${productId}`);
       return rows;
     } catch (error) {
       console.error('Database query error:', error);
@@ -97,7 +108,7 @@ export const registerMysqlIPCHandlers = () => {
 
   ipcMain.handle('mysql-get-product-types', async () => {
     try {
-      const [rows] = await query(`SELECT * FROM PRODUCT_TYPE`);
+      const [rows] = await query(`SELECT * FROM PRODUCT_TYPES`);
       return ModelParserService.parseProductTypes(rows as any []);
     } catch (error) {
       console.error('Database query error:', error);

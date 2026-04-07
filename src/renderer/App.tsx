@@ -11,6 +11,8 @@ import {
 import './App.css';
 import { ROUTES } from './app/constants';
 import { store } from './app/store';
+import ClientManagerFormPage from './pages/client-manager/ClientManagerFormPage';
+import ClientManagerPage from './pages/client-manager/ClientManagerPage';
 import HomeSelector from './pages/HomeSelectorPage';
 import PresupuestoGenerator from './pages/presupuesto-generator/PresupuestoGeneratorPage';
 import ProductStockPage from './pages/product-stock/ProductStockPage';
@@ -35,6 +37,14 @@ export default function App() {
               <Route
                 path={ROUTES.PRESUPUESTO_GENERATOR}
                 element={<PresupuestoGenerator />}
+              />
+              <Route
+                path={ROUTES.CLIENT_MANAGER}
+                element={<ClientManagerPage />}
+              />
+              <Route
+                path={ROUTES.CLIENT_MANAGER_FORM}
+                element={<ClientManagerFormPage />}
               />
               <Route path="*" element={<Navigate to={ROUTES.HOME} />} />
             </Routes>

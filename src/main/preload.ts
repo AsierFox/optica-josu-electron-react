@@ -7,11 +7,15 @@ export type Channels = 'ipc-example';
 
 const electronHandler = {
   ipcMysql: {
+    getClients: () => ipcRenderer.invoke('mysql-get-clients'),
     getProducts: () => ipcRenderer.invoke('mysql-get-products'),
-    createProduct: (product: ProductModel) => ipcRenderer.invoke('mysql-create-product', product),
-    updateProduct: (product: ProductModel) => ipcRenderer.invoke('mysql-update-product', product),
-    deleteProduct: (productId: number) => ipcRenderer.invoke('mysql-delete-product', productId),
     getProductTypes: () => ipcRenderer.invoke('mysql-get-product-types'),
+
+    createProduct: (product: ProductModel) => ipcRenderer.invoke('mysql-create-product', product),
+
+    updateProduct: (product: ProductModel) => ipcRenderer.invoke('mysql-update-product', product),
+
+    deleteProduct: (productId: number) => ipcRenderer.invoke('mysql-delete-product', productId),
   },
   ipcRenderer: {
     sendMessage(channel: Channels, ...args: unknown[]) {

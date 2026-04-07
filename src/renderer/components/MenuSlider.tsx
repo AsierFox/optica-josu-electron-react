@@ -25,12 +25,16 @@ const MenuSlider: React.FC = () => {
       key: '1',
       label: 'Herramientas',
     },
-    [ROUTES.PRODUCT_STOCK]: {
+    [ROUTES.CLIENT_MANAGER]: {
       key: '2',
+      label: 'Gestión de Clientes y Graduaciones',
+    },
+    [ROUTES.PRODUCT_STOCK]: {
+      key: '3',
       label: 'Inventario de Productos',
     },
     [ROUTES.PRESUPUESTO_GENERATOR]: {
-      key: '3',
+      key: '4',
       label: 'Generador de Presupuestos',
     },
   };
@@ -89,6 +93,14 @@ const MenuSlider: React.FC = () => {
             label: menuOptions[ROUTES.HOME].label,
             onClick: () => {
               navigate(ROUTES.HOME);
+            },
+          },
+          {
+            key: menuOptions[ROUTES.CLIENT_MANAGER].key,
+            icon: <FileTextOutlined />,
+            label: menuOptions[ROUTES.CLIENT_MANAGER].label,
+            onClick: () => {
+              navigate(ROUTES.CLIENT_MANAGER);
             },
           },
           {

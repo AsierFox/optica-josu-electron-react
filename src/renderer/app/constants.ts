@@ -9,9 +9,24 @@ export const ROUTES = {
   HOME: '/',
   PRODUCT_STOCK: '/product-stock',
   PRESUPUESTO_GENERATOR: '/presupuesto-generator',
+  CLIENT_MANAGER: '/client-manager',
+  CLIENT_MANAGER_FORM: '/client-manager/:client_id?',
 };
 
 export const NEW_PRODUCT_ID_PREFIX = 'temp_';
+
+export const CLIENT_FIELD_NAMES = {
+  id: 'ID',
+  nombre: 'Nombre',
+  apellidos: 'Apellidos',
+  direccion: 'Dirección',
+  ciudad: 'Ciudad',
+  codigoPostal: 'Código Postal',
+  telefono: 'Teléfono',
+  DNI: 'DNI',
+  fechaNacimiento: 'Fecha de Nacimiento',
+  notes: 'Observaciones',
+}
 
 export const PRODUCT_FIELD_NAMES = {
   id: 'ID',

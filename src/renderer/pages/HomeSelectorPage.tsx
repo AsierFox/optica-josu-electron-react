@@ -43,35 +43,63 @@ const HomeSelectorPage: React.FC = () => {
         </header>
 
         <Row gutter={[24, 24]} justify="center">
-          <Col xs={24} sm={12}>
+          {/* SECCIÓN CLIENTES - Azul Profesional */}
+          <Col xs={24} sm={12} lg={8}>
             <Card
               className="card-wrapper custom-hover-card"
               hoverable
               style={{
-                background: 'linear-gradient(135deg, #1890ff 0%, #0050b3 100%)',
+                background: 'linear-gradient(135deg, #096dd9 0%, #003a8c 100%)',
+                borderRadius: '12px',
               }}
-              onClick={() => navigate(ROUTES.PRODUCT_STOCK)}
+              onClick={() => navigate(ROUTES.CLIENT_MANAGER)}
             >
               <Space direction="vertical" size="middle">
                 <LineChartOutlined
                   style={{ fontSize: '40px', color: '#fff' }}
                 />
                 <Title level={4} style={{ color: '#fff', margin: 0 }}>
-                  Inventario
+                  Clientes y Graduaciones
                 </Title>
-                <Text className="card-wrapper-text">
-                  Control de stock y productos
+                <Text style={{ color: 'rgba(255,255,255,0.85)' }}>
+                  Control de fichas y salud visual
                 </Text>
               </Space>
             </Card>
           </Col>
 
-          <Col xs={24} sm={12}>
+          {/* SECCIÓN INVENTARIO - Verde Esmeralda / Teal (Más amable que el rojo) */}
+          <Col xs={24} sm={12} lg={8}>
+            <Card
+              className="card-wrapper custom-hover-card"
+              hoverable
+              style={{
+                background: 'linear-gradient(135deg, #13c2c2 0%, #006d75 100%)',
+                borderRadius: '12px',
+              }}
+              onClick={() => navigate(ROUTES.PRODUCT_STOCK)}
+            >
+              <Space direction="vertical" size="middle">
+                {/* Cambiado a icono de reporte/stock para no repetir el de arriba */}
+                <FileTextOutlined style={{ fontSize: '40px', color: '#fff' }} />
+                <Title level={4} style={{ color: '#fff', margin: 0 }}>
+                  Inventario
+                </Title>
+                <Text style={{ color: 'rgba(255,255,255,0.85)' }}>
+                  Stock de monturas y lentes
+                </Text>
+              </Space>
+            </Card>
+          </Col>
+
+          {/* SECCIÓN PRESUPUESTOS - Violeta Tecnológico */}
+          <Col xs={24} sm={12} lg={8}>
             <Card
               className="card-wrapper custom-hover-card"
               hoverable
               style={{
                 background: 'linear-gradient(135deg, #722ed1 0%, #391085 100%)',
+                borderRadius: '12px',
               }}
               onClick={() => navigate(ROUTES.PRESUPUESTO_GENERATOR)}
             >
@@ -80,8 +108,8 @@ const HomeSelectorPage: React.FC = () => {
                 <Title level={4} style={{ color: '#fff', margin: 0 }}>
                   Presupuestos
                 </Title>
-                <Text className="card-wrapper-text">
-                  Generador de presupuestos
+                <Text style={{ color: 'rgba(255,255,255,0.85)' }}>
+                  Generador de presupuestos rápido
                 </Text>
               </Space>
             </Card>
