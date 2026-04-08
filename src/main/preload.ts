@@ -1,8 +1,8 @@
 // Disable no-unused-vars, broken for spread args
 /* eslint no-unused-vars: off */
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
+import ClientModel from './models/client.model';
 import ProductModel from './models/product.model';
-import { get } from 'http';
 
 export type Channels = 'ipc-example';
 
@@ -17,6 +17,7 @@ const electronHandler = {
 
     createProduct: (product: ProductModel) => ipcRenderer.invoke('mysql-create-product', product),
 
+    updateClient: (client: ClientModel) => ipcRenderer.invoke('mysql-update-client', client),
     updateProduct: (product: ProductModel) => ipcRenderer.invoke('mysql-update-product', product),
 
     deleteProduct: (productId: number) => ipcRenderer.invoke('mysql-delete-product', productId),

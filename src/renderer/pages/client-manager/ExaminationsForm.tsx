@@ -22,13 +22,13 @@ const { Title, Text } = Typography;
 
 interface Props {
   examination: ExaminationModel;
-  examinationTime: 'NEW' | 'LAST' | 'OLD';
+  isLastExamination: boolean;
   handleCancelNewExamination: () => void;
 }
 
 const ExaminationForm: React.FC<Props> = ({
   examination,
-  examinationTime,
+  isLastExamination,
   handleCancelNewExamination,
 }) => {
   const DEFAULT_CARD_COLOR = '#8fe2c5';
@@ -37,26 +37,25 @@ const ExaminationForm: React.FC<Props> = ({
   const [form] = Form.useForm();
 
   const getExaminationCardColor = () => {
-    switch (examinationTime) {
-      case 'NEW':
-        return '#7f1f5c';
-      case 'LAST':
-        return '#13c2c2';
-      default:
-        return DEFAULT_CARD_COLOR;
+    if (examination.id.toString().startsWith(NEW_ROW_ID_PREFIX)) {
+      return '#7f1f5c';
     }
+    if (isLastExamination) {
+      return '#13c2c2';
+    }
+    return DEFAULT_CARD_COLOR;
   };
 
   const getExaminationBadgeText = () => {
-    switch (examinationTime) {
-      case 'NEW':
-        return 'Nueva';
-      case 'LAST':
-        return 'Actual';
-      default:
-        return 'Previa';
+    if (examination.id.toString().startsWith(NEW_ROW_ID_PREFIX)) {
+      return 'Nueva';
     }
+    if (isLastExamination) {
+      return 'Actual';
+    }
+    return 'Previa';
   };
+
   useEffect(() => {
     setCardColor(getExaminationCardColor());
     form.setFieldsValue(examination);
@@ -68,7 +67,6 @@ const ExaminationForm: React.FC<Props> = ({
       {/* GRADUACIÓN ACTUAL - DESTACADA */}
       <Badge.Ribbon text={getExaminationBadgeText()} color={cardColor}>
         <Card
-          className="current-exam-card"
           title={
             <Space>
               <EyeOutlined color={cardColor} />

@@ -20,6 +20,7 @@ import {
   InputNumber,
   notification,
   Row,
+  Spin,
   Typography,
 } from 'antd';
 import dayjs from 'dayjs';
@@ -34,6 +35,7 @@ import ExaminationsForm from './ExaminationsForm';
 const { Title } = Typography;
 
 const ClientManagerFormPage: React.FC = () => {
+  const [loading, setLoading] = useState<boolean>(true);
   const [client, setClient] = useState<ClientModel | null>(null);
   const [examinations, setExaminations] = useState<ExaminationModel[]>([]);
 
@@ -46,18 +48,38 @@ const ClientManagerFormPage: React.FC = () => {
   const [form] = Form.useForm();
   const [api, contextHolder] = notification.useNotification();
 
-  const handleClientSubmit = (values: any) => {
-    // const formattedValues = {
-    //   ...values,
-    //   fechaNacimiento: values.fechaNacimiento ? values.fechaNacimiento.valueOf() : null,
-    // };
-    // onSave(formattedValues);
+  const handleClientSubmit = async (values: any) => {
+    setLoading(true);
+
+    try {
+      const updatedClient: ClientModel = {
+        ...client,
+        ...values,
+        fechaNacimiento: values.fechaNacimiento?.format('YYYY-MM-DD'),
+      } as ClientModel;
+
+      await window.electron.ipcMysql.updateClient(updatedClient);
+      setClient(updatedClient);
+
+      api.success({
+        message: 'Éxito',
+        description: '¡Cliente actualizado correctamente!',
+      });
+    } catch {
+      api.error({
+        message: 'Error',
+        description: '¡No se pudo guardar el cliente!',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCancelNewExamination = () => {
     setExaminations((prevExaminations) =>
       prevExaminations.filter(
-        (examination) => !examination.id.toString().startsWith(NEW_ROW_ID_PREFIX),
+        (examination) =>
+          !examination.id.toString().startsWith(NEW_ROW_ID_PREFIX),
       ),
     );
   };
@@ -107,8 +129,11 @@ const ClientManagerFormPage: React.FC = () => {
         });
       } catch {
         setErrorMessage('¡No se pudo cargar el cliente!');
+      } finally {
+        setLoading(false);
       }
     };
+
     form.resetFields();
     // @ts-ignore
     // eslint-disable-next-line no-restricted-globals, camelcase
@@ -132,125 +157,127 @@ const ClientManagerFormPage: React.FC = () => {
         />
       ) : null}
 
-      <Card>
-        <Button
-          icon={<ArrowLeftOutlined />}
-          style={{ marginBottom: '20px' }}
-          onClick={() => navigate(ROUTES.CLIENT_MANAGER)}
-        >
-          Volver al listado de clientes
-        </Button>
-
-        <Form form={form} layout="vertical" onFinish={handleClientSubmit}>
-          {/* DATOS PERSONALES */}
-          <Divider orientation="left">
-            <UserOutlined /> Datos Personales
-          </Divider>
-
-          <Row gutter={16}>
-            <Col xs={24} sm={12}>
-              <Form.Item name="nombre" label="Nombre">
-                <Input placeholder="Nombre del cliente" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12}>
-              <Form.Item name="apellidos" label="Apellidos">
-                <Input placeholder="Apellidos del cliente" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12}>
-              <Form.Item name="DNI" label="DNI / NIE / Pasaporte">
-                <Input prefix={<IdcardOutlined />} placeholder="12345678Z" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12}>
-              <Form.Item name="fechaNacimiento" label="Fecha de Nacimiento">
-                <DatePicker
-                  style={{ width: '100%' }}
-                  format="DD/MM/YYYY"
-                  placeholder="Seleccionar fecha"
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          {/* CONTACTO Y DIRECCIÓN */}
-          <Divider orientation="left">
-            <HomeOutlined /> Contacto y Ubicación
-          </Divider>
-
-          <Row gutter={16}>
-            <Col xs={24} sm={8}>
-              <Form.Item name="telefono" label="Teléfono">
-                <Input prefix={<PhoneOutlined />} placeholder="600 000 000" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={16}>
-              <Form.Item name="direccion" label="Dirección">
-                <Input placeholder="Calle, número, piso..." />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={16}>
-              <Form.Item name="ciudad" label="Ciudad">
-                <Input placeholder="Vitoria-Gasteiz" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={8}>
-              <Form.Item name="codigoPostal" label="Código Postal">
-                <InputNumber style={{ width: '100%' }} placeholder="01001" />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          {/* OBSERVACIONES */}
-          <Divider orientation="left">Notas Adicionales</Divider>
-          <Row gutter={16}>
-            <Col span={24}>
-              <Form.Item name="notes" label="Notas internas">
-                <Input.TextArea
-                  rows={4}
-                  placeholder="Alergias, preferencias de montura, etc."
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row justify="end">
-            <Button
-              type="primary"
-              htmlType="submit"
-              icon={<SaveOutlined />}
-              style={{ backgroundColor: '#13c2c2', borderColor: '#13c2c2' }}
-            >
-              Guardar Cliente
-            </Button>
-          </Row>
-        </Form>
-
-        {/* EXAMINATIOS */}
-        <div style={{ marginBottom: '20px' }}>
-          <Title level={3} style={{ marginBottom: '15px' }}>
-            <HistoryOutlined /> Historial de Graduaciones
-          </Title>
-
+      <Spin spinning={loading} size="large">
+        <Card>
           <Button
-            type="dashed"
-            icon={<PlusOutlined />}
-            style={{ borderColor: '#13c2c2', color: '#13c2c2' }}
-            onClick={createNewExamination}
+            icon={<ArrowLeftOutlined />}
+            style={{ marginBottom: '20px' }}
+            onClick={() => navigate(ROUTES.CLIENT_MANAGER)}
           >
-            Nueva Graduación
+            Volver al listado de clientes
           </Button>
-        </div>
 
-        {examinations.map((examination, i) => (
-          <ExaminationsForm
-            examination={examination}
-            examinationTime={i === 0 ? 'LAST' : 'OLD'}
-            handleCancelNewExamination={handleCancelNewExamination}
-          />
-        ))}
-      </Card>
+          <Form form={form} layout="vertical" onFinish={handleClientSubmit}>
+            {/* DATOS PERSONALES */}
+            <Divider orientation="left">
+              <UserOutlined /> Datos Personales
+            </Divider>
+
+            <Row gutter={16}>
+              <Col xs={24} sm={12}>
+                <Form.Item name="nombre" label="Nombre">
+                  <Input placeholder="Nombre del cliente" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12}>
+                <Form.Item name="apellidos" label="Apellidos">
+                  <Input placeholder="Apellidos del cliente" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12}>
+                <Form.Item name="DNI" label="DNI / NIE / Pasaporte">
+                  <Input prefix={<IdcardOutlined />} placeholder="12345678Z" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12}>
+                <Form.Item name="fechaNacimiento" label="Fecha de Nacimiento">
+                  <DatePicker
+                    style={{ width: '100%' }}
+                    format="DD/MM/YYYY"
+                    placeholder="Seleccionar fecha"
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            {/* CONTACTO Y DIRECCIÓN */}
+            <Divider orientation="left">
+              <HomeOutlined /> Contacto y Ubicación
+            </Divider>
+
+            <Row gutter={16}>
+              <Col xs={24} sm={8}>
+                <Form.Item name="telefono" label="Teléfono">
+                  <Input prefix={<PhoneOutlined />} placeholder="600 000 000" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={16}>
+                <Form.Item name="direccion" label="Dirección">
+                  <Input placeholder="Calle, número, piso..." />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={16}>
+                <Form.Item name="ciudad" label="Ciudad">
+                  <Input placeholder="Vitoria-Gasteiz" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={8}>
+                <Form.Item name="codigoPostal" label="Código Postal">
+                  <InputNumber style={{ width: '100%' }} placeholder="01001" />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            {/* OBSERVACIONES */}
+            <Divider orientation="left">Notas Adicionales</Divider>
+            <Row gutter={16}>
+              <Col span={24}>
+                <Form.Item name="notes" label="Notas internas">
+                  <Input.TextArea
+                    rows={4}
+                    placeholder="Alergias, preferencias de montura, etc."
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Row justify="end">
+              <Button
+                type="primary"
+                htmlType="submit"
+                icon={<SaveOutlined />}
+                style={{ backgroundColor: '#13c2c2', borderColor: '#13c2c2' }}
+              >
+                Guardar Cliente
+              </Button>
+            </Row>
+          </Form>
+
+          {/* EXAMINATIOS */}
+          <div style={{ marginBottom: '20px' }}>
+            <Title level={3} style={{ marginBottom: '15px' }}>
+              <HistoryOutlined /> Historial de Graduaciones
+            </Title>
+
+            <Button
+              type="dashed"
+              icon={<PlusOutlined />}
+              style={{ borderColor: '#13c2c2', color: '#13c2c2' }}
+              onClick={createNewExamination}
+            >
+              Nueva Graduación
+            </Button>
+          </div>
+
+          {examinations.map((examination, i) => (
+            <ExaminationsForm
+              examination={examination}
+              isLastExamination={i === 0}
+              handleCancelNewExamination={handleCancelNewExamination}
+            />
+          ))}
+        </Card>
+      </Spin>
     </AdminLayout>
   );
 };

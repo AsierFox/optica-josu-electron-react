@@ -2,6 +2,7 @@ import { ipcMain } from 'electron';
 import mysql from 'mysql2/promise';
 import ModelParserService from '../models/modelParser.service';
 import ProductModel from '../models/product.model';
+import ClientModel from '../models/client.model';
 
 async function query(sql: string, params: any[] = []) {
   const connection = await mysql.createConnection({
@@ -87,6 +88,29 @@ export const registerMysqlIPCHandlers = () => {
         CANTIDAD, FECHA_COMPRA, PRECIO_COMPRA, FECHA_VENTA, PRECIO_VENTA, NOTES)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, params);
       return result.insertId;
+    } catch (error) {
+      console.error('Database query error:', error);
+      throw new Error('Database query failed');
+    }
+  });
+
+  ipcMain.handle('mysql-update-client', async (_event, client: ClientModel) => {
+    try {
+      const [rows] = await query(`UPDATE CLIENTS
+        SET
+          NOMBRE = ${client.nombre ? `'${client.nombre}'` : 'NULL'},
+          APELLIDOS = ${client.apellidos ? `'${client.apellidos}'` : 'NULL'},
+          DNI = ${client.DNI ? `'${client.DNI}'` : 'NULL'},
+          FECHA_NACIMIENTO = ${client.fechaNacimiento ? `'${client.fechaNacimiento}'` : 'NULL'},
+          TELEFONO = ${client.telefono ? `'${client.telefono}'` : 'NULL'},
+          DIRECCION = ${client.direccion ? `'${client.direccion}'` : 'NULL'},
+          CIUDAD = ${client.ciudad ? `'${client.ciudad}'` : 'NULL'},
+          CODIGO_POSTAL = ${client.codigoPostal ? `'${client.codigoPostal}'` : 'NULL'},
+          NOTES = ${client.notes ? `'${client.notes}'` : 'NULL'}
+        WHERE ID = ${client.id}
+      `);
+      // @ts-ignore - MySQL insert result contains insertId
+      return rows;
     } catch (error) {
       console.error('Database query error:', error);
       throw new Error('Database query failed');
