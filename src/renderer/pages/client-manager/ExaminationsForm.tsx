@@ -1,55 +1,86 @@
-import {
-  EyeOutlined,
-  HistoryOutlined,
-  PlusOutlined,
-  SaveOutlined,
-} from '@ant-design/icons';
+import { EyeOutlined, SaveOutlined } from '@ant-design/icons';
 import {
   Badge,
   Button,
   Card,
   Col,
   Divider,
+  Form,
   Input,
   InputNumber,
+  Popconfirm,
   Row,
   Space,
   Typography,
 } from 'antd';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import ExaminationModel from '../../../main/models/examination.mode';
+import { NEW_ROW_ID_PREFIX } from '../../app/constants';
+import utils from '../../utils/util';
 
 const { Title, Text } = Typography;
 
-const ExaminationForm: React.FC = () => {
+interface Props {
+  examination: ExaminationModel;
+  examinationTime: 'NEW' | 'LAST' | 'OLD';
+  handleCancelNewExamination: () => void;
+}
+
+const ExaminationForm: React.FC<Props> = ({
+  examination,
+  examinationTime,
+  handleCancelNewExamination,
+}) => {
+  const DEFAULT_CARD_COLOR = '#8fe2c5';
+  const [cardColor, setCardColor] = useState<string>(DEFAULT_CARD_COLOR);
+
+  const [form] = Form.useForm();
+
+  const getExaminationCardColor = () => {
+    switch (examinationTime) {
+      case 'NEW':
+        return '#7f1f5c';
+      case 'LAST':
+        return '#13c2c2';
+      default:
+        return DEFAULT_CARD_COLOR;
+    }
+  };
+
+  const getExaminationBadgeText = () => {
+    switch (examinationTime) {
+      case 'NEW':
+        return 'Nueva';
+      case 'LAST':
+        return 'Actual';
+      default:
+        return 'Previa';
+    }
+  };
+  useEffect(() => {
+    setCardColor(getExaminationCardColor());
+    form.setFieldsValue(examination);
+    // TODO Revisar esto de incluir el form
+  }, [form, examination]);
+
   return (
-    <div style={{ marginTop: 30 }}>
-      <div style={{ marginBottom: '20px' }}>
-        <Title level={3} style={{ marginBottom: '15px' }}>
-          <HistoryOutlined /> Historial de Graduaciones
-        </Title>
-
-        <Button
-          type="dashed"
-          icon={<PlusOutlined />}
-          style={{ borderColor: '#13c2c2', color: '#13c2c2' }}
-        >
-          Nueva Graduación
-        </Button>
-      </div>
-
+    <Form form={form} style={{ marginTop: 30 }}>
       {/* GRADUACIÓN ACTUAL - DESTACADA */}
-      <Badge.Ribbon text="Actual" color="#13c2c2">
+      <Badge.Ribbon text={getExaminationBadgeText()} color={cardColor}>
         <Card
           className="current-exam-card"
           title={
             <Space>
-              <EyeOutlined style={{ color: '#13c2c2' }} />
-              <span>{new Date().toLocaleDateString()} - Examen Principal</span>
+              <EyeOutlined color={cardColor} />
+              <span>
+                {utils.formatDateToYYYYMMDD(examination.updatedAt)} -{' '}
+                {examination.idTypeExamination}
+              </span>
             </Space>
           }
           style={{
             boxShadow: '0 4px 12px rgba(19, 194, 194, 0.15)',
-            border: '1px solid #13c2c2',
+            border: `1px solid ${cardColor}`,
             borderRadius: '8px',
           }}
         >
@@ -93,19 +124,27 @@ const ExaminationForm: React.FC = () => {
                 <Row gutter={[12, 12]}>
                   <Col span={6}>
                     <Text strong>Esfera</Text>
-                    <Input placeholder="0.00" />
+                    <Form.Item name="odEsfera">
+                      <Input placeholder="0.00" />
+                    </Form.Item>
                   </Col>
                   <Col span={6}>
                     <Text strong>Cilindro</Text>
-                    <Input placeholder="0.00" />
+                    <Form.Item name="odCilindro">
+                      <Input placeholder="0.00" />
+                    </Form.Item>
                   </Col>
                   <Col span={6}>
                     <Text strong>Eje</Text>
-                    <Input placeholder="0°" />
+                    <Form.Item name="odEje">
+                      <Input placeholder="0°" />
+                    </Form.Item>
                   </Col>
                   <Col span={6}>
                     <Text strong>Add</Text>
-                    <Input placeholder="0.00" />
+                    <Form.Item name="odADD">
+                      <Input placeholder="0.00" />
+                    </Form.Item>
                   </Col>
                 </Row>
                 <div
@@ -118,20 +157,28 @@ const ExaminationForm: React.FC = () => {
                   <Row gutter={12}>
                     <Col span={8}>
                       <Text type="secondary">AV</Text>
-                      <Input size="small" />
+                      <Form.Item name="odAV">
+                        <Input size="small" />
+                      </Form.Item>
                     </Col>
                     <Col span={8}>
                       <Text type="secondary">VP</Text>
-                      <Input size="small" />
+                      <Form.Item name="odVP">
+                        <Input size="small" />
+                      </Form.Item>
                     </Col>
                     <Col span={8}>
                       <Text type="secondary">VL</Text>
-                      <Input size="small" />
+                      <Form.Item name="odVL">
+                        <Input size="small" />
+                      </Form.Item>
                     </Col>
                   </Row>
                 </div>
                 <Text strong>Queratomatría</Text>
-                <Input placeholder="K1, K2..." />
+                <Form.Item name="odQueratometria">
+                  <Input placeholder="K1, K2..." />
+                </Form.Item>
               </Space>
             </Col>
 
@@ -152,19 +199,28 @@ const ExaminationForm: React.FC = () => {
                 <Row gutter={[12, 12]}>
                   <Col span={6}>
                     <Text strong>Esfera</Text>
-                    <Input placeholder="0.00" />
+
+                    <Form.Item name="oiEsfera">
+                      <Input placeholder="0.00" />
+                    </Form.Item>
                   </Col>
                   <Col span={6}>
                     <Text strong>Cilindro</Text>
-                    <Input placeholder="0.00" />
+                    <Form.Item name="oiCilindro">
+                      <Input placeholder="0.00" />
+                    </Form.Item>
                   </Col>
                   <Col span={6}>
                     <Text strong>Eje</Text>
-                    <Input placeholder="0°" />
+                    <Form.Item name="oiEje">
+                      <Input placeholder="0°" />
+                    </Form.Item>
                   </Col>
                   <Col span={6}>
                     <Text strong>Add</Text>
-                    <Input placeholder="0.00" />
+                    <Form.Item name="oiADD">
+                      <Input placeholder="0.00" />
+                    </Form.Item>
                   </Col>
                 </Row>
                 <div
@@ -177,20 +233,28 @@ const ExaminationForm: React.FC = () => {
                   <Row gutter={12}>
                     <Col span={8}>
                       <Text type="secondary">AV</Text>
-                      <Input size="small" />
+                      <Form.Item name="oiAV">
+                        <Input size="small" />
+                      </Form.Item>
                     </Col>
                     <Col span={8}>
                       <Text type="secondary">VP</Text>
-                      <Input size="small" />
+                      <Form.Item name="oiVP">
+                        <Input size="small" />
+                      </Form.Item>
                     </Col>
                     <Col span={8}>
                       <Text type="secondary">VL</Text>
-                      <Input size="small" />
+                      <Form.Item name="oiVL">
+                        <Input size="small" />
+                      </Form.Item>
                     </Col>
                   </Row>
                 </div>
                 <Text strong>Queratomatría</Text>
-                <Input placeholder="K1, K2..." />
+                <Form.Item name="oiQueratometria">
+                  <Input placeholder="K1, K2..." />
+                </Form.Item>
               </Space>
             </Col>
           </Row>
@@ -201,29 +265,49 @@ const ExaminationForm: React.FC = () => {
               <Text strong style={{ display: 'block', marginBottom: 8 }}>
                 Distancia Interpupilar (DIP)
               </Text>
-              <InputNumber
-                suffix="mm"
-                placeholder="64"
-                style={{ width: '120px' }}
-              />
+              <Form.Item name="dip">
+                <InputNumber
+                  suffix="mm"
+                  placeholder="64"
+                  style={{ width: '120px' }}
+                />
+              </Form.Item>
             </Col>
           </Row>
           <Row justify="center">
-            <Button
-              type="primary"
-              icon={<SaveOutlined />}
-              style={{
-                backgroundColor: '#13c2c2',
-                borderColor: '#13c2c2',
-                marginTop: 20,
-              }}
-            >
-              Actualizar Graduación
-            </Button>
+            <Space size="large">
+              <Button
+                type="primary"
+                icon={<SaveOutlined />}
+                style={{
+                  backgroundColor: cardColor,
+                  borderColor: cardColor,
+                  marginTop: 20,
+                }}
+              >
+                Actualizar Graduación
+              </Button>
+              {examination.id.toString().startsWith(NEW_ROW_ID_PREFIX) && (
+                <Popconfirm
+                  title="¿Quieres cancelar esta nueva graduación?"
+                  onConfirm={handleCancelNewExamination}
+                >
+                  <Button
+                    type="default"
+                    color="danger"
+                    style={{
+                      marginTop: 20,
+                    }}
+                  >
+                    Cancelar Nueva Graduación
+                  </Button>
+                </Popconfirm>
+              )}
+            </Space>
           </Row>
         </Card>
       </Badge.Ribbon>
-    </div>
+    </Form>
   );
 };
 

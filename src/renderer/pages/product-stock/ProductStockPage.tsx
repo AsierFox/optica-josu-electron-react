@@ -5,7 +5,7 @@ import isBetween from 'dayjs/plugin/isBetween';
 import React, { useCallback, useEffect, useState } from 'react';
 import ProductModel from '../../../main/models/product.model';
 import ProductTypeModel from '../../../main/models/productType.model';
-import { NEW_PRODUCT_ID_PREFIX } from '../../app/constants';
+import { NEW_ROW_ID_PREFIX } from '../../app/constants';
 import AdminLayout from '../../layouts/AdminLayout';
 import util from '../../utils/util';
 import ProductStockFilters from './ProductStockFilters';
@@ -133,7 +133,7 @@ const ProductStockPage: React.FC = () => {
 
       const isNewProduct = editingProduct.id
         .toString()
-        .startsWith(NEW_PRODUCT_ID_PREFIX);
+        .startsWith(NEW_ROW_ID_PREFIX);
 
       if (isNewProduct) {
         const newProductId = await window.electron.ipcMysql.createProduct(
@@ -221,7 +221,7 @@ const ProductStockPage: React.FC = () => {
   );
 
   const handleCancel = useCallback(() => {
-    if (editingProduct?.id.toString().startsWith(NEW_PRODUCT_ID_PREFIX)) {
+    if (editingProduct?.id.toString().startsWith(NEW_ROW_ID_PREFIX)) {
       setTableDataSource(
         tableDataSource.filter((item) => item.id !== editingProduct.id),
       );

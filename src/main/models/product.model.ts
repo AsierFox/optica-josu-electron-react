@@ -1,4 +1,4 @@
-import { NEW_PRODUCT_ID_PREFIX } from '../../renderer/app/constants';
+import { NEW_ROW_ID_PREFIX } from '../../renderer/app/constants';
 import util from '../../renderer/utils/util';
 
 export default class ProductModel {
@@ -27,7 +27,7 @@ export default class ProductModel {
   }
 
   createNewProduct() {
-    const newGeneratedId = NEW_PRODUCT_ID_PREFIX + Date.now();
+    const newGeneratedId = NEW_ROW_ID_PREFIX + Date.now();
 
     this.id = newGeneratedId;
     this.proveedor = null;

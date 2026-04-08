@@ -13,7 +13,7 @@ export const ROUTES = {
   CLIENT_MANAGER_FORM: '/client-manager/:client_id?',
 };
 
-export const NEW_PRODUCT_ID_PREFIX = 'temp_';
+export const NEW_ROW_ID_PREFIX = 'temp_';
 
 export const CLIENT_FIELD_NAMES = {
   id: 'ID',

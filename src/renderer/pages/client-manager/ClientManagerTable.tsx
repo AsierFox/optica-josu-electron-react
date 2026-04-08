@@ -94,14 +94,6 @@ const ClientManagerTable: React.FC<Props> = ({
             >
               Editar
             </Button>
-            <Popconfirm
-              title="¿Desea borrar producto?"
-              onConfirm={() => onDelete(record)}
-            >
-              <Button danger size="small" icon={<DeleteOutlined />}>
-                Eliminar
-              </Button>
-            </Popconfirm>
           </Space>
         ),
       },

@@ -43,7 +43,7 @@ const HomeSelectorPage: React.FC = () => {
         </header>
 
         <Row gutter={[24, 24]} justify="center">
-          {/* SECCIÓN CLIENTES - Azul Profesional */}
+          {/* SECCIÓN CLIENTES */}
           <Col xs={24} sm={12} lg={8}>
             <Card
               className="card-wrapper custom-hover-card"
@@ -68,7 +68,7 @@ const HomeSelectorPage: React.FC = () => {
             </Card>
           </Col>
 
-          {/* SECCIÓN INVENTARIO - Verde Esmeralda / Teal (Más amable que el rojo) */}
+          {/* SECCIÓN INVENTARIO */}
           <Col xs={24} sm={12} lg={8}>
             <Card
               className="card-wrapper custom-hover-card"
@@ -92,7 +92,7 @@ const HomeSelectorPage: React.FC = () => {
             </Card>
           </Col>
 
-          {/* SECCIÓN PRESUPUESTOS - Violeta Tecnológico */}
+          {/* SECCIÓN PRESUPUESTOS */}
           <Col xs={24} sm={12} lg={8}>
             <Card
               className="card-wrapper custom-hover-card"
@@ -110,6 +110,29 @@ const HomeSelectorPage: React.FC = () => {
                 </Title>
                 <Text style={{ color: 'rgba(255,255,255,0.85)' }}>
                   Generador de presupuestos rápido
+                </Text>
+              </Space>
+            </Card>
+          </Col>
+
+          {/* SECCIÓN EXCEL */}
+          <Col xs={24} sm={12} lg={8}>
+            <Card
+              className="card-wrapper custom-hover-card"
+              hoverable
+              style={{
+                background: 'linear-gradient(135deg, #209b7e 0%, #085644 100%)',
+                borderRadius: '12px',
+              }}
+              // onClick={() => navigate(ROUTES.PRESUPUESTO_GENERATOR)}
+            >
+              <Space direction="vertical" size="middle">
+                <FileTextOutlined style={{ fontSize: '40px', color: '#fff' }} />
+                <Title level={4} style={{ color: '#fff', margin: 0 }}>
+                  Herramientas Excel
+                </Title>
+                <Text style={{ color: 'rgba(255,255,255,0.85)' }}>
+                  Exportador e Importador de Excel
                 </Text>
               </Space>
             </Card>

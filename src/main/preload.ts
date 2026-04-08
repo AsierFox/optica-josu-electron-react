@@ -13,6 +13,7 @@ const electronHandler = {
     getProductTypes: () => ipcRenderer.invoke('mysql-get-product-types'),
 
     getClientById: (clientId: number) => ipcRenderer.invoke('mysql-get-client-by-id', clientId),
+    getExaminatiosClientById: (clientId: number) => ipcRenderer.invoke('mysql-get-client-examinatios-by-id', clientId),
 
     createProduct: (product: ProductModel) => ipcRenderer.invoke('mysql-create-product', product),
 

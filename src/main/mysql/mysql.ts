@@ -55,6 +55,17 @@ export const registerMysqlIPCHandlers = () => {
     }
   });
 
+  ipcMain.handle('mysql-get-client-examinatios-by-id', async (_event, clientId: number) => {
+    try {
+      const [rows] = await query(`
+        SELECT * FROM EXAMINATIONS WHERE ID_CLIENT = ? ORDER BY UPDATED_AT DESC`, [clientId]);
+      return ModelParserService.parseExaminationModels(rows as any []);
+    } catch (error) {
+      console.error('Database query error:', error);
+      throw new Error('Database query failed');
+    }
+  });
+
   ipcMain.handle('mysql-create-product', async (_event, product: ProductModel) => {
     try {
       const params = [
