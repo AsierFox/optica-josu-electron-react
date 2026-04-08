@@ -13,7 +13,6 @@ interface Props {
   clients: ClientModel[]; // Para los filtros
   productTypes: ProductTypeModel[];
   onEdit: (record: ClientModel) => void;
-  onDelete: (record: ClientModel) => void;
 }
 
 const ClientManagerTable: React.FC<Props> = ({
@@ -22,7 +21,6 @@ const ClientManagerTable: React.FC<Props> = ({
   clients,
   productTypes,
   onEdit,
-  onDelete,
 }) => {
   const columns: any = useMemo(() => {
     const proveedorFilters = utils
@@ -99,7 +97,7 @@ const ClientManagerTable: React.FC<Props> = ({
       },
     ];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clients, productTypes, onEdit, onDelete]);
+  }, [clients, productTypes, onEdit]);
 
   return (
     <Table

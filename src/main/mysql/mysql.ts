@@ -1,8 +1,9 @@
 import { ipcMain } from 'electron';
 import mysql from 'mysql2/promise';
+import ClientModel from '../models/client.model';
+import ExaminationModel from '../models/examination.model';
 import ModelParserService from '../models/modelParser.service';
 import ProductModel from '../models/product.model';
-import ClientModel from '../models/client.model';
 
 async function query(sql: string, params: any[] = []) {
   const connection = await mysql.createConnection({
@@ -42,6 +43,26 @@ export const registerMysqlIPCHandlers = () => {
     }
   });
 
+  ipcMain.handle('mysql-get-product-types', async () => {
+    try {
+      const [rows] = await query(`SELECT * FROM PRODUCT_TYPES`);
+      return ModelParserService.parseProductTypes(rows as any []);
+    } catch (error) {
+      console.error('Database query error:', error);
+      throw new Error('Database query failed');
+    }
+  });
+
+  ipcMain.handle('mysql-get-examination-types', async () => {
+    try {
+      const [rows] = await query(`SELECT * FROM EXAMINATION_TYPES`);
+      return ModelParserService.parseProductTypes(rows as any []);
+    } catch (error) {
+      console.error('Database query error:', error);
+      throw new Error('Database query failed');
+    }
+  });
+
   ipcMain.handle('mysql-get-client-by-id', async (_event, clientId: number) => {
     try {
       const [rows] = await query(`
@@ -61,6 +82,42 @@ export const registerMysqlIPCHandlers = () => {
       const [rows] = await query(`
         SELECT * FROM EXAMINATIONS WHERE ID_CLIENT = ? ORDER BY UPDATED_AT DESC`, [clientId]);
       return ModelParserService.parseExaminationModels(rows as any []);
+    } catch (error) {
+      console.error('Database query error:', error);
+      throw new Error('Database query failed');
+    }
+  });
+
+  ipcMain.handle('mysql-create-examination', async (_event, examination: ExaminationModel) => {
+    try {
+      const params = [
+        examination.idClient,
+        examination.idExaminationType,
+        examination.odEsfera ?? null,
+        examination.odCilindro ?? null,
+        examination.odEje ?? null,
+        examination.odADD ?? null,
+        examination.odAV ?? null,
+        examination.odVP ?? null,
+        examination.odVL ?? null,
+        examination.odQueratometria ?? null,
+        examination.oiEsfera ?? null,
+        examination.oiCilindro ?? null,
+        examination.oiEje ?? null,
+        examination.oiADD ?? null,
+        examination.oiAV ?? null,
+        examination.oiVP ?? null,
+        examination.oiVL ?? null,
+        examination.oiQueratometria ?? null,
+        examination.dip ?? null,
+        examination.createdAt ?? null,
+        examination.updatedAt ?? null,
+      ];
+      const [result] = await query(`INSERT INTO EXAMINATIONS
+        (ID_CLIENT, ID_EXAMINATION_TYPE, OD_ESFERA, OD_CILINDRO, OD_EJE, OD_ADD, OD_AV, OD_VP, OD_VL, OD_QUERATOMETRIA,
+        OI_ESFERA, OI_CILINDRO, OI_EJE, OI_ADD, OI_AV, OI_VP, OI_VL, OI_QUERATOMETRIA, DIP, CREATED_AT, UPDATED_AT)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, params);
+      return result.insertId;
     } catch (error) {
       console.error('Database query error:', error);
       throw new Error('Database query failed');
@@ -153,13 +210,4 @@ export const registerMysqlIPCHandlers = () => {
     }
   });
 
-  ipcMain.handle('mysql-get-product-types', async () => {
-    try {
-      const [rows] = await query(`SELECT * FROM PRODUCT_TYPES`);
-      return ModelParserService.parseProductTypes(rows as any []);
-    } catch (error) {
-      console.error('Database query error:', error);
-      throw new Error('Database query failed');
-    }
-  });
 }

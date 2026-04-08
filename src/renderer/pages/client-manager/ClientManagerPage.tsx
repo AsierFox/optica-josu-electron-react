@@ -98,8 +98,6 @@ const ClientManagerPage: React.FC = () => {
     navigate(ROUTES.CLIENT_MANAGER_FORM.replace(':client_id', record.id));
   };
 
-  const handleDelete = (record: ClientModel) => {};
-
   useEffect(() => {
     const getProductsWithTypes = async () => {
       const clientsFetched = await window.electron.ipcMysql.getClients();
@@ -145,7 +143,6 @@ const ClientManagerPage: React.FC = () => {
           clients={clients}
           productTypes={productTypes}
           onEdit={handleEdit}
-          onDelete={handleDelete}
         />
       </Form>
     </AdminLayout>

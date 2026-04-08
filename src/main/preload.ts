@@ -3,6 +3,7 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 import ClientModel from './models/client.model';
 import ProductModel from './models/product.model';
+import ExaminationModel from './models/examination.model';
 
 export type Channels = 'ipc-example';
 
@@ -11,10 +12,12 @@ const electronHandler = {
     getClients: () => ipcRenderer.invoke('mysql-get-clients'),
     getProducts: () => ipcRenderer.invoke('mysql-get-products'),
     getProductTypes: () => ipcRenderer.invoke('mysql-get-product-types'),
+    getExaminationTypes: () => ipcRenderer.invoke('mysql-get-examination-types'),
 
     getClientById: (clientId: number) => ipcRenderer.invoke('mysql-get-client-by-id', clientId),
-    getExaminatiosClientById: (clientId: number) => ipcRenderer.invoke('mysql-get-client-examinatios-by-id', clientId),
+    getExaminationsClientById: (clientId: number) => ipcRenderer.invoke('mysql-get-client-examinatios-by-id', clientId),
 
+    createExamination: (examination: ExaminationModel) => ipcRenderer.invoke('mysql-create-examination', examination),
     createProduct: (product: ProductModel) => ipcRenderer.invoke('mysql-create-product', product),
 
     updateClient: (client: ClientModel) => ipcRenderer.invoke('mysql-update-client', client),

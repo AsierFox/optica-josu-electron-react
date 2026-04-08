@@ -1,7 +1,8 @@
 import ProductModel from '../models/product.model';
 import ProductTypeModel from '../models/productType.model';
 import ClientModel from './client.model';
-import ExaminationModel from './examination.mode';
+import ExaminationModel from './examination.model';
+import ExaminationTypeModel from './examinationType.model';
 
 export default class ModelParserService {
 
@@ -19,5 +20,9 @@ export default class ModelParserService {
 
   static parseProductTypes(rows: any[]): ProductTypeModel[] {
     return rows.map(row => new ProductTypeModel(row));
+  }
+
+  static parseExaminationTypes(rows: any[]): ExaminationTypeModel[] {
+    return rows.map(row => new ExaminationTypeModel(row));
   }
 }

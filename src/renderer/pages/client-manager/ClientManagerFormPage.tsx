@@ -27,7 +27,8 @@ import dayjs from 'dayjs';
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import ClientModel from '../../../main/models/client.model';
-import ExaminationModel from '../../../main/models/examination.mode';
+import ExaminationModel from '../../../main/models/examination.model';
+import ExaminationTypeModel from '../../../main/models/examinationType.model';
 import { NEW_ROW_ID_PREFIX, ROUTES } from '../../app/constants';
 import AdminLayout from '../../layouts/AdminLayout';
 import ExaminationsForm from './ExaminationsForm';
@@ -37,6 +38,9 @@ const { Title } = Typography;
 const ClientManagerFormPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [client, setClient] = useState<ClientModel | null>(null);
+  const [examinationTypes, setExaminationTypes] = useState<
+    ExaminationTypeModel[]
+  >([]);
   const [examinations, setExaminations] = useState<ExaminationModel[]>([]);
 
   // eslint-disable-next-line camelcase
@@ -76,15 +80,27 @@ const ClientManagerFormPage: React.FC = () => {
   };
 
   const handleCancelNewExamination = () => {
+    setLoading(true);
     setExaminations((prevExaminations) =>
       prevExaminations.filter(
         (examination) =>
           !examination.id.toString().startsWith(NEW_ROW_ID_PREFIX),
       ),
     );
+    setLoading(false);
   };
 
   const createNewExamination = () => {
+    if (!client) {
+      api.error({
+        message: 'Error',
+        description: '¡No se pudo cargar el cliente!',
+      });
+      return;
+    }
+
+    setLoading(true);
+
     const isNewExaminationAlreadyAdded = examinations.some((examination) =>
       examination.id.toString().startsWith(NEW_ROW_ID_PREFIX),
     );
@@ -93,17 +109,53 @@ const ClientManagerFormPage: React.FC = () => {
       api.warning({
         message: 'Atención',
         description:
-          'Ya estás añadiendo una nueva graduación. Por favor, guarda o elimina esa graduación antes de añadir otra.',
+          'Ya estás añadiendo una nueva graduación. Por favor, guarda o cancela la nueva graduación antes de añadir otra.',
       });
+      setLoading(false);
       return;
     }
 
-    setExaminations([{ id: NEW_ROW_ID_PREFIX + Date.now() }, ...examinations]);
+    const newExaminationRecordDate = dayjs(new Date()).toISOString();
+
+    setExaminations([
+      {
+        id: NEW_ROW_ID_PREFIX + Date.now(),
+        idClient: parseInt(client.id, 10),
+        idExaminationType: 1,
+        odEsfera: null,
+        odCilindro: null,
+        odEje: null,
+        odADD: null,
+        odAV: null,
+        odVP: null,
+        odVL: null,
+        odQueratometria: null,
+        oiEsfera: null,
+        oiCilindro: null,
+        oiEje: null,
+        oiADD: null,
+        oiAV: null,
+        oiVP: null,
+        oiVL: null,
+        oiQueratometria: null,
+        dip: null,
+        createdAt: newExaminationRecordDate,
+        updatedAt: newExaminationRecordDate,
+      },
+      ...examinations,
+    ]);
+
+    setLoading(false);
   };
 
   useEffect(() => {
     const getClientAndExaminationsById = async (clientId: number) => {
       try {
+        const examinationTypesDDBB =
+          await window.electron.ipcMysql.getExaminationTypes();
+
+        setExaminationTypes(examinationTypesDDBB);
+
         const clientDDBB =
           await window.electron.ipcMysql.getClientById(clientId);
 
@@ -114,7 +166,7 @@ const ClientManagerFormPage: React.FC = () => {
         }
 
         const clientExaminatiosDDBB =
-          await window.electron.ipcMysql.getExaminatiosClientById(clientId);
+          await window.electron.ipcMysql.getExaminationsClientById(clientId);
 
         setClient(clientDDBB);
         setExaminations(clientExaminatiosDDBB);
@@ -167,7 +219,7 @@ const ClientManagerFormPage: React.FC = () => {
             Volver al listado de clientes
           </Button>
 
-          <Form form={form} layout="vertical" onFinish={handleClientSubmit}>
+          <Form form={form} onFinish={handleClientSubmit} layout="vertical">
             {/* DATOS PERSONALES */}
             <Divider orientation="left">
               <UserOutlined /> Datos Personales
@@ -243,8 +295,8 @@ const ClientManagerFormPage: React.FC = () => {
 
             <Row justify="end">
               <Button
-                type="primary"
                 htmlType="submit"
+                type="primary"
                 icon={<SaveOutlined />}
                 style={{ backgroundColor: '#13c2c2', borderColor: '#13c2c2' }}
               >
@@ -272,6 +324,7 @@ const ClientManagerFormPage: React.FC = () => {
           {examinations.map((examination, i) => (
             <ExaminationsForm
               examination={examination}
+              examinationTypes={examinationTypes}
               isLastExamination={i === 0}
               handleCancelNewExamination={handleCancelNewExamination}
             />

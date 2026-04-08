@@ -2,7 +2,7 @@ export default class ExaminationModel {
   id!: string;
 
   idClient!: number;
-  idTypeExamination!: number | null;
+  idExaminationType!: number | null;
 
   // Ojo Derecho (OD)
   odEsfera!: string | null;
@@ -33,7 +33,7 @@ export default class ExaminationModel {
     this.id = row.ID;
 
     this.idClient = row.ID_CLIENT;
-    this.idTypeExamination = row.ID_TYPE_EXAMINATION;
+    this.idExaminationType = row.ID_EXAMINATION_TYPE;
 
     // Ojo Derecho
     this.odEsfera = row.OD_ESFERA;
