@@ -14,17 +14,16 @@ const { Text } = Typography;
 interface Props {
   loading: boolean;
   dataSource: ClientModel[];
-  clients: ClientModel[]; // Para los filtros
   onEdit: (record: ClientModel) => void;
 }
 
 const ClientManagerTable: React.FC<Props> = ({
   loading,
   dataSource,
-  clients,
   onEdit,
 }) => {
   const [searchFilters, setSearchFilters] = React.useState<
+    // Field name -> search value
     Record<string, string>
   >({});
 
@@ -96,7 +95,7 @@ const ClientManagerTable: React.FC<Props> = ({
       },
     ];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clients, onEdit]);
+  }, [onEdit]);
 
   const filteredDataSource = useMemo(() => {
     return dataSource.filter((item) => {
