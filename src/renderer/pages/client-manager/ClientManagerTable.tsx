@@ -2,6 +2,7 @@ import {
   EditOutlined,
   FileSearchOutlined,
   PhoneFilled,
+  SearchOutlined,
 } from '@ant-design/icons';
 import { Button, Col, Input, Row, Space, Table, Typography } from 'antd';
 import React, { useMemo } from 'react';
@@ -108,14 +109,12 @@ const ClientManagerTable: React.FC<Props> = ({
             }
             return false;
           }
-          case 'telefono': {
-            if (item.telefono?.includes(value)) {
+          default: {
+            if (item[field]?.includes(value)) {
               return true;
             }
             return false;
           }
-          default:
-            return false;
         }
       });
     });
@@ -132,7 +131,7 @@ const ClientManagerTable: React.FC<Props> = ({
             </Text>
             <Input
               placeholder="Nombre o Apellidos..."
-              prefix={<FileSearchOutlined style={{ color: '#13c2c2' }} />}
+              prefix={<SearchOutlined style={{ color: '#13c2c2' }} />}
               onChange={(e) =>
                 setSearchFilters((prev) => ({
                   ...prev,
@@ -157,6 +156,26 @@ const ClientManagerTable: React.FC<Props> = ({
                 setSearchFilters((prev) => ({
                   ...prev,
                   telefono: e.target.value,
+                }))
+              }
+              style={{ width: 300 }} // Un poco más estrecho para el teléfono
+              allowClear
+            />
+          </div>
+        </Col>
+
+        <Col>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <Text strong style={{ marginBottom: '4px', color: '#595959' }}>
+              Búsqueda por DNI
+            </Text>
+            <Input
+              placeholder="DNI..."
+              prefix={<FileSearchOutlined style={{ color: '#13c2c2' }} />}
+              onChange={(e) =>
+                setSearchFilters((prev) => ({
+                  ...prev,
+                  DNI: e.target.value,
                 }))
               }
               style={{ width: 300 }} // Un poco más estrecho para el teléfono
