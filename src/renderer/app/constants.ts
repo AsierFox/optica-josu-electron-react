@@ -26,7 +26,7 @@ export const CLIENT_FIELD_NAMES = {
   DNI: 'DNI',
   fechaNacimiento: 'Fecha de Nacimiento',
   notes: 'Observaciones',
-}
+};
 
 export const PRODUCT_FIELD_NAMES = {
   id: 'ID',
@@ -42,4 +42,4 @@ export const PRODUCT_FIELD_NAMES = {
   fechaCompra: 'Fecha de Compra',
   fechaVenta: 'Fecha de Venta',
   notes: 'Observaciones',
-}
+};
