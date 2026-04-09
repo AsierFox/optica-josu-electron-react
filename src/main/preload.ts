@@ -17,10 +17,12 @@ const electronHandler = {
     getClientById: (clientId: number) => ipcRenderer.invoke('mysql-get-client-by-id', clientId),
     getExaminationsClientById: (clientId: number) => ipcRenderer.invoke('mysql-get-client-examinatios-by-id', clientId),
 
+    createClient: (client: ClientModel) => ipcRenderer.invoke('mysql-create-client', client),
     createExamination: (examination: ExaminationModel) => ipcRenderer.invoke('mysql-create-examination', examination),
     createProduct: (product: ProductModel) => ipcRenderer.invoke('mysql-create-product', product),
 
     updateClient: (client: ClientModel) => ipcRenderer.invoke('mysql-update-client', client),
+    updateExamination: (examination: ExaminationModel) => ipcRenderer.invoke('mysql-update-examination', examination),
     updateProduct: (product: ProductModel) => ipcRenderer.invoke('mysql-update-product', product),
 
     deleteProduct: (productId: number) => ipcRenderer.invoke('mysql-delete-product', productId),

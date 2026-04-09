@@ -88,6 +88,29 @@ export const registerMysqlIPCHandlers = () => {
     }
   });
 
+  ipcMain.handle('mysql-create-client', async (_event, client: ClientModel) => {
+    try {
+      const params = [
+        client.nombre ?? null,
+        client.apellidos ?? null,
+        client.DNI ?? null,
+        client.fechaNacimiento ?? null,
+        client.telefono ?? null,
+        client.direccion ?? null,
+        client.ciudad ?? null,
+        client.codigoPostal ?? null,
+        client.notes ?? null,
+      ];
+      const [result] = await query(`INSERT INTO CLIENTS
+        (NOMBRE, APELLIDOS, DNI, FECHA_NACIMIENTO, TELEFONO, DIRECCION, CIUDAD, CODIGO_POSTAL, NOTES)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, params);
+      return result.insertId;
+    } catch (error) {
+      console.error('Database query error:', error);
+      throw new Error('Database query failed');
+    }
+  });
+
   ipcMain.handle('mysql-create-examination', async (_event, examination: ExaminationModel) => {
     try {
       const params = [
@@ -165,6 +188,39 @@ export const registerMysqlIPCHandlers = () => {
           CODIGO_POSTAL = ${client.codigoPostal ? `'${client.codigoPostal}'` : 'NULL'},
           NOTES = ${client.notes ? `'${client.notes}'` : 'NULL'}
         WHERE ID = ${client.id}
+      `);
+      // @ts-ignore - MySQL insert result contains insertId
+      return rows;
+    } catch (error) {
+      console.error('Database query error:', error);
+      throw new Error('Database query failed');
+    }
+  });
+
+  ipcMain.handle('mysql-update-examination', async (_event, examination: ExaminationModel) => {
+    try {
+      const [rows] = await query(`UPDATE EXAMINATIONS
+        SET
+          ID_CLIENT = ${examination.idClient ? `${examination.idClient}` : 'NULL'},
+          ID_EXAMINATION_TYPE = ${examination.idExaminationType ? `${examination.idExaminationType}` : 'NULL'},
+          OD_ESFERA = ${examination.odEsfera ? `'${examination.odEsfera}'` : 'NULL'},
+          OD_CILINDRO = ${examination.odCilindro ? `'${examination.odCilindro}'` : 'NULL'},
+          OD_EJE = ${examination.odEje ? `'${examination.odEje}'` : 'NULL'},
+          OD_ADD = ${examination.odADD ? `'${examination.odADD}'` : 'NULL'},
+          OD_AV = ${examination.odAV ? `'${examination.odAV}'` : 'NULL'},
+          OD_VP = ${examination.odVP ? `'${examination.odVP}'` : 'NULL'},
+          OD_VL = ${examination.odVL ? `'${examination.odVL}'` : 'NULL'},
+          OD_QUERATOMETRIA = ${examination.odQueratometria ? `'${examination.odQueratometria}'` : 'NULL'},
+          OI_ESFERA = ${examination.oiEsfera ? `'${examination.oiEsfera}'` : 'NULL'},
+          OI_CILINDRO = ${examination.oiCilindro ? `'${examination.oiCilindro}'` : 'NULL'},
+          OI_EJE = ${examination.oiEje ? `'${examination.oiEje}'` : 'NULL'},
+          OI_ADD = ${examination.oiADD ? `'${examination.oiADD}'` : 'NULL'},
+          OI_AV = ${examination.oiAV ? `'${examination.oiAV}'` : 'NULL'},
+          OI_VP = ${examination.oiVP ? `'${examination.oiVP}'` : 'NULL'},
+          OI_VL = ${examination.oiVL ? `'${examination.oiVL}'` : 'NULL'},
+          OI_QUERATOMETRIA = ${examination.oiQueratometria ? `'${examination.oiQueratometria}'` : 'NULL'},
+          DIP = ${examination.dip ? `'${examination.dip}'` : 'NULL'}
+        WHERE ID = ${examination.id}
       `);
       // @ts-ignore - MySQL insert result contains insertId
       return rows;

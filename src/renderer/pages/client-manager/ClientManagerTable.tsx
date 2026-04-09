@@ -1,5 +1,6 @@
-import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
-import { Button, Popconfirm, Space, Table } from 'antd';
+import { EditOutlined } from '@ant-design/icons';
+import { Button, Space, Table } from 'antd';
+import dayjs from 'dayjs';
 import React, { useMemo } from 'react';
 import ClientModel from '../../../main/models/client.model';
 import ProductModel from '../../../main/models/product.model';
@@ -73,6 +74,9 @@ const ClientManagerTable: React.FC<Props> = ({
       {
         title: CLIENT_FIELD_NAMES.fechaNacimiento,
         dataIndex: 'fechaNacimiento',
+        render: (value: string) =>
+          // @ts-ignore
+          value ? utils.formatDateToYYYYMMDD(value) : null,
       },
       {
         title: CLIENT_FIELD_NAMES.notes,

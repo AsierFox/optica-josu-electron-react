@@ -1,10 +1,15 @@
-import { FileTextOutlined, LineChartOutlined } from '@ant-design/icons';
-import { Card, Col, Divider, Row, Space, Typography } from 'antd';
+import {
+  FileExcelOutlined,
+  FileTextOutlined,
+  StockOutlined,
+  UsergroupAddOutlined
+} from '@ant-design/icons';
+import { Card, Col, Row, Space, Typography } from 'antd';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import logoOptica from '../../../assets/optica-josu-logo.png';
 import { ROUTES } from '../app/constants';
 import AdminLayout from '../layouts/AdminLayout';
-import logoOptica from '../../../assets/optica-josu-logo.png';
 
 const { Title, Text } = Typography;
 
@@ -43,7 +48,7 @@ const HomeSelectorPage: React.FC = () => {
         </header>
 
         <Row gutter={[24, 24]} justify="center">
-          {/* SECCIÓN CLIENTES */}
+          {/* CLIENTES */}
           <Col xs={24} sm={12} lg={8}>
             <Card
               className="card-wrapper custom-hover-card"
@@ -55,7 +60,7 @@ const HomeSelectorPage: React.FC = () => {
               onClick={() => navigate(ROUTES.CLIENT_MANAGER)}
             >
               <Space direction="vertical" size="middle">
-                <LineChartOutlined
+                <UsergroupAddOutlined
                   style={{ fontSize: '40px', color: '#fff' }}
                 />
                 <Title level={4} style={{ color: '#fff', margin: 0 }}>
@@ -68,7 +73,7 @@ const HomeSelectorPage: React.FC = () => {
             </Card>
           </Col>
 
-          {/* SECCIÓN INVENTARIO */}
+          {/* INVENTARIO */}
           <Col xs={24} sm={12} lg={8}>
             <Card
               className="card-wrapper custom-hover-card"
@@ -81,9 +86,9 @@ const HomeSelectorPage: React.FC = () => {
             >
               <Space direction="vertical" size="middle">
                 {/* Cambiado a icono de reporte/stock para no repetir el de arriba */}
-                <FileTextOutlined style={{ fontSize: '40px', color: '#fff' }} />
+                <StockOutlined style={{ fontSize: '40px', color: '#fff' }} />
                 <Title level={4} style={{ color: '#fff', margin: 0 }}>
-                  Inventario
+                  Inventario de Productos
                 </Title>
                 <Text style={{ color: 'rgba(255,255,255,0.85)' }}>
                   Stock de monturas y lentes
@@ -92,7 +97,7 @@ const HomeSelectorPage: React.FC = () => {
             </Card>
           </Col>
 
-          {/* SECCIÓN PRESUPUESTOS */}
+          {/* PRESUPUESTOS */}
           <Col xs={24} sm={12} lg={8}>
             <Card
               className="card-wrapper custom-hover-card"
@@ -106,7 +111,7 @@ const HomeSelectorPage: React.FC = () => {
               <Space direction="vertical" size="middle">
                 <FileTextOutlined style={{ fontSize: '40px', color: '#fff' }} />
                 <Title level={4} style={{ color: '#fff', margin: 0 }}>
-                  Presupuestos
+                  Generador de Presupuestos
                 </Title>
                 <Text style={{ color: 'rgba(255,255,255,0.85)' }}>
                   Generador de presupuestos rápido
@@ -115,7 +120,7 @@ const HomeSelectorPage: React.FC = () => {
             </Card>
           </Col>
 
-          {/* SECCIÓN EXCEL */}
+          {/* EXCEL */}
           <Col xs={24} sm={12} lg={8}>
             <Card
               className="card-wrapper custom-hover-card"
@@ -127,7 +132,9 @@ const HomeSelectorPage: React.FC = () => {
               // onClick={() => navigate(ROUTES.PRESUPUESTO_GENERATOR)}
             >
               <Space direction="vertical" size="middle">
-                <FileTextOutlined style={{ fontSize: '40px', color: '#fff' }} />
+                <FileExcelOutlined
+                  style={{ fontSize: '40px', color: '#fff' }}
+                />
                 <Title level={4} style={{ color: '#fff', margin: 0 }}>
                   Herramientas Excel
                 </Title>

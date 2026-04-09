@@ -20,7 +20,6 @@ import ExaminationModel from '../../../main/models/examination.model';
 import ExaminationTypeModel from '../../../main/models/examinationType.model';
 import { NEW_ROW_ID_PREFIX } from '../../app/constants';
 import utils from '../../utils/util';
-import { create } from 'domain';
 
 const { Title, Text } = Typography;
 
@@ -52,7 +51,7 @@ const ExaminationForm: React.FC<Props> = ({
     setLoading(true);
 
     try {
-      const newExamination = {
+      const updatedExamination = {
         ...examination,
         ...values,
         // Se asignaran automáticamente en la BBDD
@@ -62,10 +61,11 @@ const ExaminationForm: React.FC<Props> = ({
 
       if (isNewExamination) {
         const newExaminationId =
-          await window.electron.ipcMysql.createExamination(newExamination);
+          await window.electron.ipcMysql.createExamination(updatedExamination);
+
         examination.id = newExaminationId;
       } else {
-        // await window.electron.ipcMysql.updateExamination(newExamination);
+        await window.electron.ipcMysql.updateExamination(updatedExamination);
       }
 
       api.success({
@@ -195,7 +195,7 @@ const ExaminationForm: React.FC<Props> = ({
                     <Col span={6}>
                       <Text strong>Eje</Text>
                       <Form.Item name="odEje">
-                        <Input placeholder="0°" />
+                        <Input suffix="º" placeholder="0°" />
                       </Form.Item>
                     </Col>
                     <Col span={6}>
@@ -274,7 +274,7 @@ const ExaminationForm: React.FC<Props> = ({
                     <Col span={6}>
                       <Text strong>Eje</Text>
                       <Form.Item name="oiEje">
-                        <Input placeholder="0°" />
+                        <Input suffix="º" placeholder="0°" />
                       </Form.Item>
                     </Col>
                     <Col span={6}>

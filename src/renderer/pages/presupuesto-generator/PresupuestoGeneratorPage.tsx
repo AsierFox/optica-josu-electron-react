@@ -702,7 +702,7 @@ const PresupuestoGeneratorPage: React.FC = () => {
           </Form.Item>
 
           {/* Pie de página fijo */}
-          {() => {
+          {(() => {
             const values = form.getFieldsValue();
             return values.observaciones ? (
               <div style={{ marginTop: 40 }}>
@@ -714,7 +714,7 @@ const PresupuestoGeneratorPage: React.FC = () => {
                 </div>
               </div>
             ) : null;
-          }}
+          })()}
 
           <div
             style={{
@@ -727,8 +727,8 @@ const PresupuestoGeneratorPage: React.FC = () => {
               justifyContent: 'space-between',
             }}
           >
-            <div>Óptica Josu</div>
-            <div>Bilbao · 944 000 000</div>
+            <div>Centro Óptico Josu</div>
+            <div>Amurrio · 945 39 37 78</div>
             <div>info@opticajosu.com</div>
           </div>
         </div>

@@ -37,6 +37,7 @@ const { Title } = Typography;
 
 const ClientManagerFormPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
+  const [isNewClient, setIsNewClient] = useState<boolean>(false);
   const [client, setClient] = useState<ClientModel | null>(null);
   const [examinationTypes, setExaminationTypes] = useState<
     ExaminationTypeModel[]
@@ -62,12 +63,22 @@ const ClientManagerFormPage: React.FC = () => {
         fechaNacimiento: values.fechaNacimiento?.format('YYYY-MM-DD'),
       } as ClientModel;
 
-      await window.electron.ipcMysql.updateClient(updatedClient);
+      if (isNewClient) {
+        const newClientId =
+          await window.electron.ipcMysql.createClient(updatedClient);
+
+        updatedClient.id = newClientId;
+        // Ahora que el cliente tiene un ID, dejamos de considerarlo "nuevo".
+        setIsNewClient(false);
+      } else {
+        await window.electron.ipcMysql.updateClient(updatedClient);
+      }
+
       setClient(updatedClient);
 
       api.success({
         message: 'Éxito',
-        description: '¡Cliente actualizado correctamente!',
+        description: `¡Cliente ${isNewClient ? 'creado' : 'actualizado'} correctamente!`,
       });
     } catch {
       api.error({
@@ -122,26 +133,9 @@ const ClientManagerFormPage: React.FC = () => {
         id: NEW_ROW_ID_PREFIX + Date.now(),
         idClient: parseInt(client.id, 10),
         idExaminationType: 1,
-        odEsfera: null,
-        odCilindro: null,
-        odEje: null,
-        odADD: null,
-        odAV: null,
-        odVP: null,
-        odVL: null,
-        odQueratometria: null,
-        oiEsfera: null,
-        oiCilindro: null,
-        oiEje: null,
-        oiADD: null,
-        oiAV: null,
-        oiVP: null,
-        oiVL: null,
-        oiQueratometria: null,
-        dip: null,
         createdAt: newExaminationRecordDate,
         updatedAt: newExaminationRecordDate,
-      },
+      } as ExaminationModel,
       ...examinations,
     ]);
 
@@ -190,8 +184,14 @@ const ClientManagerFormPage: React.FC = () => {
     // @ts-ignore
     // eslint-disable-next-line no-restricted-globals, camelcase
     if (!isNaN(client_id) && client_id) {
+      // Cliente existente, cargamos sus datos y sus graduaciones
       const clientId = parseInt(client_id, 10);
       getClientAndExaminationsById(clientId);
+    } else {
+      // Nuevo cliente, inicializamos el formulario vacío
+      setIsNewClient(true);
+      setClient({ id: NEW_ROW_ID_PREFIX + Date.now() } as ClientModel);
+      setLoading(false);
     }
     // eslint-disable-next-line camelcase, react-hooks/exhaustive-deps
   }, [client_id, form]);
@@ -211,13 +211,22 @@ const ClientManagerFormPage: React.FC = () => {
 
       <Spin spinning={loading} size="large">
         <Card>
-          <Button
-            icon={<ArrowLeftOutlined />}
-            style={{ marginBottom: '20px' }}
-            onClick={() => navigate(ROUTES.CLIENT_MANAGER)}
+          <Row
+            justify="space-between"
+            align="middle"
+            style={{ marginBottom: 20 }}
           >
-            Volver al listado de clientes
-          </Button>
+            <Button
+              icon={<ArrowLeftOutlined />}
+              onClick={() => navigate(ROUTES.CLIENT_MANAGER)}
+            >
+              Volver al listado de clientes
+            </Button>
+
+            <h2 style={{ color: '#5e7b8a' }}>
+              {isNewClient ? 'Creando Nuevo Cliente' : 'Editando Cliente'}
+            </h2>
+          </Row>
 
           <Form form={form} onFinish={handleClientSubmit} layout="vertical">
             {/* DATOS PERSONALES */}
@@ -227,13 +236,13 @@ const ClientManagerFormPage: React.FC = () => {
 
             <Row gutter={16}>
               <Col xs={24} sm={12}>
-                <Form.Item name="nombre" label="Nombre">
-                  <Input placeholder="Nombre del cliente" />
+                <Form.Item required name="nombre" label="Nombre">
+                  <Input required placeholder="Nombre del cliente" />
                 </Form.Item>
               </Col>
               <Col xs={24} sm={12}>
-                <Form.Item name="apellidos" label="Apellidos">
-                  <Input placeholder="Apellidos del cliente" />
+                <Form.Item required name="apellidos" label="Apellidos">
+                  <Input required placeholder="Apellidos del cliente" />
                 </Form.Item>
               </Col>
               <Col xs={24} sm={12}>
@@ -242,8 +251,13 @@ const ClientManagerFormPage: React.FC = () => {
                 </Form.Item>
               </Col>
               <Col xs={24} sm={12}>
-                <Form.Item name="fechaNacimiento" label="Fecha de Nacimiento">
+                <Form.Item
+                  required
+                  name="fechaNacimiento"
+                  label="Fecha de Nacimiento"
+                >
                   <DatePicker
+                    required
                     style={{ width: '100%' }}
                     format="DD/MM/YYYY"
                     placeholder="Seleccionar fecha"
@@ -259,8 +273,12 @@ const ClientManagerFormPage: React.FC = () => {
 
             <Row gutter={16}>
               <Col xs={24} sm={8}>
-                <Form.Item name="telefono" label="Teléfono">
-                  <Input prefix={<PhoneOutlined />} placeholder="600 000 000" />
+                <Form.Item required name="telefono" label="Teléfono">
+                  <Input
+                    required
+                    prefix={<PhoneOutlined />}
+                    placeholder="600 000 000"
+                  />
                 </Form.Item>
               </Col>
               <Col xs={24} sm={16}>
@@ -306,29 +324,31 @@ const ClientManagerFormPage: React.FC = () => {
           </Form>
 
           {/* EXAMINATIOS */}
-          <div style={{ marginBottom: '20px' }}>
-            <Title level={3} style={{ marginBottom: '15px' }}>
-              <HistoryOutlined /> Historial de Graduaciones
-            </Title>
+          <Card style={{ marginTop: 30 }} hidden={isNewClient}>
+            <div style={{ marginBottom: '20px' }}>
+              <Title level={3} style={{ marginBottom: '15px' }}>
+                <HistoryOutlined /> Historial de Graduaciones
+              </Title>
 
-            <Button
-              type="dashed"
-              icon={<PlusOutlined />}
-              style={{ borderColor: '#13c2c2', color: '#13c2c2' }}
-              onClick={createNewExamination}
-            >
-              Nueva Graduación
-            </Button>
-          </div>
+              <Button
+                type="dashed"
+                icon={<PlusOutlined />}
+                style={{ borderColor: '#13c2c2', color: '#13c2c2' }}
+                onClick={createNewExamination}
+              >
+                Nueva Graduación
+              </Button>
+            </div>
 
-          {examinations.map((examination, i) => (
-            <ExaminationsForm
-              examination={examination}
-              examinationTypes={examinationTypes}
-              isLastExamination={i === 0}
-              handleCancelNewExamination={handleCancelNewExamination}
-            />
-          ))}
+            {examinations.map((examination, i) => (
+              <ExaminationsForm
+                examination={examination}
+                examinationTypes={examinationTypes}
+                isLastExamination={i === 0}
+                handleCancelNewExamination={handleCancelNewExamination}
+              />
+            ))}
+          </Card>
         </Card>
       </Spin>
     </AdminLayout>

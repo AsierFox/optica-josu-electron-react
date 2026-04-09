@@ -2,6 +2,7 @@ import {
   FileTextOutlined,
   LineChartOutlined,
   ToolOutlined,
+  UsergroupAddOutlined,
 } from '@ant-design/icons';
 import { Menu, Typography } from 'antd';
 import Sider from 'antd/es/layout/Sider';
@@ -23,19 +24,19 @@ const MenuSlider: React.FC = () => {
   const menuOptions = {
     [ROUTES.HOME]: {
       key: '1',
-      label: 'Herramientas',
+      label: 'HERRAMIENTAS',
     },
     [ROUTES.CLIENT_MANAGER]: {
       key: '2',
-      label: 'Gestión de Clientes y Graduaciones',
+      label: 'Clientes',
     },
     [ROUTES.PRODUCT_STOCK]: {
       key: '3',
-      label: 'Inventario de Productos',
+      label: 'Inventario',
     },
     [ROUTES.PRESUPUESTO_GENERATOR]: {
       key: '4',
-      label: 'Generador de Presupuestos',
+      label: 'Presupuesto',
     },
   };
 
@@ -84,7 +85,6 @@ const MenuSlider: React.FC = () => {
 
       <Menu
         theme="dark"
-        mode="inline"
         defaultSelectedKeys={getCurrentMenuSelection()}
         items={[
           {
@@ -97,7 +97,7 @@ const MenuSlider: React.FC = () => {
           },
           {
             key: menuOptions[ROUTES.CLIENT_MANAGER].key,
-            icon: <FileTextOutlined />,
+            icon: <UsergroupAddOutlined />,
             label: menuOptions[ROUTES.CLIENT_MANAGER].label,
             onClick: () => {
               navigate(ROUTES.CLIENT_MANAGER);
