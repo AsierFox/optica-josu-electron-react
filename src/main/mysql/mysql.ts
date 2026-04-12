@@ -154,7 +154,8 @@ export const registerMysqlIPCHandlers = () => {
         product.firma ?? null,
         product.typeId,
         product.referencia,
-        product.modeloColor ?? null,
+        product.modelo ?? null,
+        product.color ?? null,
         product.calibrePuente ?? null,
         product.cantidad ?? 1,
         product.fechaCompra ?? null,
@@ -164,9 +165,9 @@ export const registerMysqlIPCHandlers = () => {
         product.notes ?? null,
       ];
       const [result] = await query(`INSERT INTO PRODUCTS
-        (PROVEEDOR, FIRMA, ID_PRODUCT_TYPE, REFERENCIA, MODELO_COLOR, CALIBRE_PUENTE,
+        (PROVEEDOR, FIRMA, ID_PRODUCT_TYPE, REFERENCIA, MODELO, COLOR, CALIBRE_PUENTE,
         CANTIDAD, FECHA_COMPRA, PRECIO_COMPRA, FECHA_VENTA, PRECIO_VENTA, NOTES)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, params);
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, params);
       return result.insertId;
     } catch (error) {
       console.error('Database query error:', error);
@@ -232,13 +233,14 @@ export const registerMysqlIPCHandlers = () => {
 
   ipcMain.handle('mysql-update-product', async (_event, product: ProductModel) => {
     try {
-      const [rows] = await query(`UPDATE PRODUCT
+      const [rows] = await query(`UPDATE PRODUCTS
         SET
           PROVEEDOR = ${product.proveedor ? `'${product.proveedor}'` : 'NULL'},
           FIRMA = ${product.firma ? `'${product.firma}'` : 'NULL'},
           ID_PRODUCT_TYPE = ${product.typeId},
           REFERENCIA = '${product.referencia}',
-          MODELO_COLOR = ${product.modeloColor ? `'${product.modeloColor}'` : 'NULL'},
+          MODELO = ${product.modelo ? `'${product.modelo}'` : 'NULL'},
+          COLOR = ${product.color ? `'${product.color}'` : 'NULL'},
           CALIBRE_PUENTE = ${product.calibrePuente ? `'${product.calibrePuente}'` : 'NULL'},
           CANTIDAD = ${product.cantidad ?? 0},
           FECHA_COMPRA = ${product.fechaCompra ? `'${product.fechaCompra}'` : 'NULL'},

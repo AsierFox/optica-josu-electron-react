@@ -140,14 +140,27 @@ const ProductStockTable: React.FC<Props> = ({
         }),
       },
       {
-        title: PRODUCT_FIELD_NAMES.modeloColor,
-        dataIndex: 'modeloColor',
+        title: PRODUCT_FIELD_NAMES.modelo,
+        dataIndex: 'modelo',
         sorter: !editingProduct
           ? (a: ProductModel, b: ProductModel) =>
-              a.modeloColor?.localeCompare(b?.modeloColor)
+              a.modelo?.localeCompare(b?.modelo)
           : false,
         onCell: (record: ProductModel) => ({
-          dataIndex: 'modeloColor',
+          dataIndex: 'modelo',
+          record,
+          editingProduct,
+        }),
+      },
+      {
+        title: PRODUCT_FIELD_NAMES.color,
+        dataIndex: 'color',
+        sorter: !editingProduct
+          ? (a: ProductModel, b: ProductModel) =>
+              a.color?.localeCompare(b?.color)
+          : false,
+        onCell: (record: ProductModel) => ({
+          dataIndex: 'color',
           record,
           editingProduct,
         }),

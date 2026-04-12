@@ -6,7 +6,8 @@ export default class ProductModel {
   proveedor!: string | null;
   firma!: string | null;
   referencia!: string;
-  modeloColor!: string | null;
+  modelo!: string | null;
+  color!: string | null;
   typeId!: number | null;
   type!: string | null;
   calibrePuente!: string | null;
@@ -33,7 +34,8 @@ export default class ProductModel {
     this.proveedor = null;
     this.firma = null;
     this.referencia = '';
-    this.modeloColor = null;
+    this.modelo = null;
+    this.color = null;
     this.typeId = null;
     this.type = null;
     this.precioCompra = null;
@@ -55,7 +57,8 @@ export default class ProductModel {
     this.proveedor = row.PROVEEDOR;
     this.firma = row.FIRMA;
     this.referencia = row.REFERENCIA;
-    this.modeloColor = row.MODELO_COLOR;
+    this.modelo = row.MODELO;
+    this.color = row.COLOR;
     this.typeId = row.ID_PRODUCT_TYPE;
     this.type = row.TYPE;
     this.precioCompra = row.PRECIO_COMPRA;

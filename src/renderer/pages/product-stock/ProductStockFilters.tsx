@@ -1,9 +1,11 @@
 import { AlertOutlined, ShopOutlined } from '@ant-design/icons';
 import {
+  Col,
   Collapse,
   DatePicker,
   Divider,
   Input,
+  Row,
   Select,
   Space,
   Typography,
@@ -52,9 +54,14 @@ const ProductStockFilters: React.FC<Props> = ({
       targetKey: 'referencia',
       value: '',
     },
-    modeloColorInput: {
+    modeloInput: {
       type: 'SINGLE',
-      targetKey: 'modeloColor',
+      targetKey: 'modelo',
+      value: '',
+    },
+    colorInput: {
+      type: 'SINGLE',
+      targetKey: 'color',
       value: '',
     },
     calibrePuenteInput: {
@@ -209,11 +216,7 @@ const ProductStockFilters: React.FC<Props> = ({
   };
 
   return (
-    <div
-      style={{
-        background: '#fff',
-      }}
-    >
+    <div>
       <Text strong style={{ fontSize: '15px', color: '#141414' }}>
         Gestión de Inventario
       </Text>
@@ -230,12 +233,17 @@ const ProductStockFilters: React.FC<Props> = ({
             ]) => (
               <div
                 key={`input_${filterKey}`}
-                style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '4px',
+                  width: '100%',
+                }}
               >
                 <span
                   style={{
                     fontWeight: 500,
-                    fontSize: '12px',
+                    fontSize: '14px',
                     marginLeft: '4px',
                   }}
                 >
@@ -248,54 +256,48 @@ const ProductStockFilters: React.FC<Props> = ({
                   prefix={<ShopOutlined style={{ color: '#bfbfbf' }} />}
                   value={searchFilterInput.value}
                   onChange={(e) => handleInputChange(filterKey, e.target.value)}
-                  style={{ width: 220, borderRadius: '8px' }}
                   allowClear
                 />
               </div>
             ),
           )}
-
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '4px',
-            minWidth: '150px',
-            flex: 1,
-          }}
-        >
-          <span
-            style={{
-              fontWeight: 500,
-              fontSize: '12px',
-              marginLeft: '4px',
-            }}
-          >
-            Tipo de Producto
-          </span>
-          <Select
-            disabled={allDisabled}
-            mode="multiple"
-            allowClear
-            placeholder="Tipo de Producto..."
-            // El valor viene de tu estado global de filtros
-            value={filters.typeSelect.value}
-            // Al cambiar, mandamos el array completo de strings
-            onChange={(selectedValues) =>
-              handleSelectChange('typeSelect', selectedValues)
-            }
-            // Opciones (esto podría venir de un searchFilterCollapse.tags)
-            options={productTypes.map((productType: ProductTypeModel) => ({
-              label: productType.type,
-              value: productType.id,
-            }))}
-            // Para que al buscar no importe mayúsculas/minúsculas
-            filterOption={(input, option) =>
-              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-            }
-          />
-        </div>
       </Space>
+
+      <span
+        style={{
+          marginTop: '14px',
+          marginBottom: '5px',
+          fontWeight: 500,
+          fontSize: '13px',
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+        }}
+      >
+        Tipo de Producto
+      </span>
+      <Select
+        disabled={allDisabled}
+        mode="multiple"
+        allowClear
+        placeholder="Tipo de Producto..."
+        style={{ width: '25%' }}
+        // El valor viene de tu estado global de filtros
+        value={filters.typeSelect.value}
+        // Al cambiar, mandamos el array completo de strings
+        onChange={(selectedValues) =>
+          handleSelectChange('typeSelect', selectedValues)
+        }
+        // Opciones (esto podría venir de un searchFilterCollapse.tags)
+        options={productTypes.map((productType: ProductTypeModel) => ({
+          label: productType.type,
+          value: productType.id,
+        }))}
+        // Para que al buscar no importe mayúsculas/minúsculas
+        filterOption={(input, option) =>
+          (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+        }
+      />
 
       <Divider />
 

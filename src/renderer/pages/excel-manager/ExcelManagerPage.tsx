@@ -37,12 +37,13 @@ const ExcelImporter: React.FC = () => {
   const allDataRef = React.useRef<ProductModel[]>([]);
   const [api, contextHolder] = notification.useNotification();
 
-  const createNewProductFromExcelSheetRows = (
+  const createNewProductsFromExcelSheetRows = (
     sheetName: string,
     sheetRows: any[],
-  ) => {
-    // La key es el index de cada columna, y el value es el nombre de la columna
-    let sheetHeaderColumnsStructure: any = {};
+  ): ProductModel[] => {
+    const newProductsFromSheet: ProductModel[] = [];
+    // La key es el nombre de cada columna, y el value es el index de la columna
+    let sheetHeaderColumnsStructure: { [key: string]: number } = {};
 
     const sheetRowsLength = sheetRows.length;
     for (let i = 0; i < sheetRowsLength; i += 1) {
@@ -56,7 +57,7 @@ const ExcelImporter: React.FC = () => {
             // para quedarnos solo con las que corresponden a las columnas del Excel.
             // eslint-disable-next-line no-restricted-globals
             if (value && !isNaN(Number(key))) {
-              acc[key] = (value as string).trim().toUpperCase();
+              acc[(value as string).trim().toUpperCase()] = Number(key);
             }
             return acc;
           },
@@ -66,7 +67,7 @@ const ExcelImporter: React.FC = () => {
       }
 
       // Si no se ha encontrado un HEADER
-      if (Object.keys(sheetHeaderColumnsStructure).length <= 0) {
+      if (Object.values(sheetHeaderColumnsStructure).length <= 0) {
         setProcessResultMessages((prevMessages) => [
           ...prevMessages,
           `Pestaña "${sheetName}": No se ha encontrado un ENCABEZADO de COLUMNAS válido!`,
@@ -80,28 +81,47 @@ const ExcelImporter: React.FC = () => {
         (requiredColumn) => {
           const requiredColumnSearch = Object.entries(
             sheetHeaderColumnsStructure,
-          ).find(([, columName]) => columName === requiredColumn);
+          ).find(([columnName]) => columnName === requiredColumn);
 
           if (!requiredColumnSearch || requiredColumnSearch.length <= 0) {
             return false;
           }
 
-          const requiredColumnKey = requiredColumnSearch[0];
+          const requiredColumnKey = requiredColumnSearch[1] as number;
           const sheetRowColValue = sheetRow[requiredColumnKey];
-          return sheetRowColValue;
+          return !!sheetRowColValue;
         },
       );
 
       if (!hasRequiredColumns) {
         setProcessResultMessages((prevMessages) => [
           ...prevMessages,
-          `Pestaña "${sheetName}": Alguna FILA tiene las columnas obligatorias ${EXCEL_HEADER_REQUIRED_COLUMNS.join(', ')}!`,
+          `Pestaña "${sheetName}": Alguna FILA NO tiene las columnas obligatorias ${EXCEL_HEADER_REQUIRED_COLUMNS.join(', ')}!`,
         ]);
       }
+
+      debugger;
+      newProductsFromSheet.push(
+        new ProductModel({
+          proveedor: sheetRow[sheetHeaderColumnsStructure.PROVEEDOR] ?? null,
+          firma: sheetRow[sheetHeaderColumnsStructure.PROVEEDOR] ?? null,
+          referencia: sheetRow[sheetHeaderColumnsStructure.REFERENCIA] ?? null,
+          modelo: sheetRow[sheetHeaderColumnsStructure.MODELO] ?? null,
+          color: sheetRow[sheetHeaderColumnsStructure.COLOR] ?? null,
+          typeId: null,
+          type: null,
+          precioCompra: null,
+          precioVenta: null,
+          calibrePuente: null,
+          cantidad: 1,
+
+          fechaCompra: null,
+          fechaVenta: null,
+        }),
+      );
     }
 
-    // Reseteamos la estructura de las columnas del header para la siguiente pestaña
-    sheetHeaderColumnsStructure = {};
+    return [];
   };
 
   const handleReadFile = (file: File) => {
@@ -123,7 +143,6 @@ const ExcelImporter: React.FC = () => {
           });
 
           const productsToImport: ProductModel[] = [];
-          let totalProductsCount = 0;
 
           // Recorremos las pestañas del Excel
           workbook.SheetNames.forEach(async (name: string) => {
@@ -162,10 +181,6 @@ const ExcelImporter: React.FC = () => {
                     EXCEL_HEADER_REQUIRED_COLUMNS.includes(cell.toUpperCase()),
                 );
 
-                if (!isHeaderRow) {
-                  totalProductsCount += 1;
-                }
-
                 allSheetProcessedRows.push({
                   ...sheetRow,
                   isHeaderRow,
@@ -173,7 +188,12 @@ const ExcelImporter: React.FC = () => {
               }
             }
 
-            createNewProductFromExcelSheetRows(name, allSheetProcessedRows);
+            productsToImport.push(
+              ...createNewProductsFromExcelSheetRows(
+                name,
+                allSheetProcessedRows,
+              ),
+            );
 
             // Cada pestaña procesada, liberamos el hilo 1ms
             await new Promise((resolve) => {
@@ -185,7 +205,7 @@ const ExcelImporter: React.FC = () => {
 
           setProcessResultMessages((prevMessages) => [
             ...prevMessages,
-            `Total: ${totalProductsCount} productos en ${workbook.SheetNames.length} pestañas.`,
+            `Total: ${allDataRef.current.length} productos en ${workbook.SheetNames.length} pestañas.`,
           ]);
         } catch {
           setErrorMessage('Error al procesar el Excel');
@@ -202,6 +222,7 @@ const ExcelImporter: React.FC = () => {
   const handleSaveToDDBB = async () => {
     setLoading(true);
     try {
+      console.log(allDataRef.current);
       // await window.electron.ipcMysql.importClients(data);
 
       api.success({
@@ -213,6 +234,12 @@ const ExcelImporter: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCancelImport = () => {
+    allDataRef.current = [];
+    setProcessResultMessages([]);
+    setErrorMessage(null);
   };
 
   useEffect(() => {
@@ -294,17 +321,22 @@ const ExcelImporter: React.FC = () => {
                     );
                   })}
                   description={
-                    <Button
-                      type="primary"
-                      style={{
-                        backgroundColor: '#13c268',
-                        borderColor: '#13c268',
-                        fontSize: '16px',
-                      }}
-                      onClick={handleSaveToDDBB}
-                    >
-                      Importar Productos a la Base de Datos
-                    </Button>
+                    <Space>
+                      <Button
+                        type="primary"
+                        style={{
+                          backgroundColor: '#13c268',
+                          borderColor: '#13c268',
+                          fontSize: '16px',
+                        }}
+                        onClick={handleSaveToDDBB}
+                      >
+                        Importar Productos a la Base de Datos
+                      </Button>
+                      <Button type="default" onClick={handleCancelImport}>
+                        Volver a Cargar
+                      </Button>
+                    </Space>
                   }
                   type="success"
                   showIcon
