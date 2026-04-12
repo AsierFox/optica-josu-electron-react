@@ -101,6 +101,11 @@ const ClientManagerTable: React.FC<Props> = ({
   const filteredDataSource = useMemo(() => {
     return dataSource.filter((item) => {
       return Object.entries(searchFilters).every(([field, value]) => {
+        // Si el filtro está vacío, no filtramos
+        if (!value) {
+          return true;
+        }
+
         switch (field) {
           case 'nombre': {
             const fullName = `${item.nombre} ${item.apellidos}`.toLowerCase();
@@ -187,6 +192,7 @@ const ClientManagerTable: React.FC<Props> = ({
 
       <Table
         rowKey="id"
+        virtual
         loading={loading}
         columns={columns}
         dataSource={filteredDataSource}

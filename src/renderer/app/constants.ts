@@ -11,6 +11,7 @@ export const ROUTES = {
   PRESUPUESTO_GENERATOR: '/presupuesto-generator',
   CLIENT_MANAGER: '/client-manager',
   CLIENT_MANAGER_FORM: '/client-manager/:client_id?',
+  EXCEL_MANAGER: '/excel-manager',
 };
 
 export const NEW_ROW_ID_PREFIX = 'temp_';

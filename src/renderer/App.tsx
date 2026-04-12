@@ -13,6 +13,7 @@ import { ROUTES } from './app/constants';
 import { store } from './app/store';
 import ClientManagerFormPage from './pages/client-manager/ClientManagerFormPage';
 import ClientManagerPage from './pages/client-manager/ClientManagerPage';
+import ExcelManagerPage from './pages/excel-manager/ExcelManagerPage';
 import HomeSelector from './pages/HomeSelectorPage';
 import PresupuestoGenerator from './pages/presupuesto-generator/PresupuestoGeneratorPage';
 import ProductStockPage from './pages/product-stock/ProductStockPage';
@@ -45,6 +46,10 @@ export default function App() {
               <Route
                 path={ROUTES.CLIENT_MANAGER_FORM}
                 element={<ClientManagerFormPage />}
+              />
+              <Route
+                path={ROUTES.EXCEL_MANAGER}
+                element={<ExcelManagerPage />}
               />
               <Route path="*" element={<Navigate to={ROUTES.HOME} />} />
             </Routes>

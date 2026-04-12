@@ -2,7 +2,7 @@ import {
   FileTextOutlined,
   LineChartOutlined,
   ToolOutlined,
-  UsergroupAddOutlined,
+  UsergroupAddOutlined
 } from '@ant-design/icons';
 import { Menu, Typography } from 'antd';
 import Sider from 'antd/es/layout/Sider';

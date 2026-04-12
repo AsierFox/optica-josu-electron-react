@@ -36,7 +36,6 @@ const ClientManagerPage: React.FC = () => {
         setTableDataSource(clientsFetched);
       } catch {
         setErrorMessage('¡Error al obtener los clientes de la Base de Datos!');
-        setLoading(false);
       } finally {
         setLoading(false);
       }

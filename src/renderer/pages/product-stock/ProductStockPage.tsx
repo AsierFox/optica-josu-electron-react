@@ -252,15 +252,19 @@ const ProductStockPage: React.FC = () => {
 
   useEffect(() => {
     const getProductsWithTypes = async () => {
-      const productsFetched = await window.electron.ipcMysql.getProducts();
-      const productsTypesFetched =
-        await window.electron.ipcMysql.getProductTypes();
+      try {
+        const productsFetched = await window.electron.ipcMysql.getProducts();
+        const productsTypesFetched =
+          await window.electron.ipcMysql.getProductTypes();
 
-      setProducts(productsFetched);
-      setTableDataSource(productsFetched);
-      setProductTypes(productsTypesFetched);
-
-      setLoading(false);
+        setProducts(productsFetched);
+        setTableDataSource(productsFetched);
+        setProductTypes(productsTypesFetched);
+      } catch {
+        setErrorMessage('¡Error al obtener los productos de la Base de Datos!');
+      } finally {
+        setLoading(false);
+      }
     };
 
     getProductsWithTypes();

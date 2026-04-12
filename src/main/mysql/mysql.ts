@@ -88,7 +88,7 @@ export const registerMysqlIPCHandlers = () => {
     }
   });
 
-  ipcMain.handle('mysql-create-client', async (_event, client: ClientModel) => {
+  ipcMain.handle('mysql-create-client', async (_event, client: ClientModel): Promise<number> => {
     try {
       const params = [
         client.nombre ?? null,
@@ -111,7 +111,7 @@ export const registerMysqlIPCHandlers = () => {
     }
   });
 
-  ipcMain.handle('mysql-create-examination', async (_event, examination: ExaminationModel) => {
+  ipcMain.handle('mysql-create-examination', async (_event, examination: ExaminationModel): Promise<number> => {
     try {
       const params = [
         examination.idClient,
@@ -147,7 +147,7 @@ export const registerMysqlIPCHandlers = () => {
     }
   });
 
-  ipcMain.handle('mysql-create-product', async (_event, product: ProductModel) => {
+  ipcMain.handle('mysql-create-product', async (_event, product: ProductModel): Promise<number> => {
     try {
       const params = [
         product.proveedor ?? null,

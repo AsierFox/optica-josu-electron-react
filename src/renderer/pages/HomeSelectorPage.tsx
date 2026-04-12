@@ -2,7 +2,7 @@ import {
   FileExcelOutlined,
   FileTextOutlined,
   StockOutlined,
-  UsergroupAddOutlined
+  UsergroupAddOutlined,
 } from '@ant-design/icons';
 import { Card, Col, Row, Space, Typography } from 'antd';
 import React from 'react';
@@ -19,32 +19,29 @@ const HomeSelectorPage: React.FC = () => {
   return (
     <AdminLayout>
       <div style={{ margin: '20px auto', padding: '0 20px' }}>
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            marginBottom: '40px',
-          }}
-        >
-          <img
-            src={logoOptica}
-            alt="Logo Óptica Josu"
-            style={{
-              width: '400px',
-              height: 'auto',
-              filter: 'drop-shadow(0px 4px 8px rgba(0,0,0,0.1))',
-            }}
-          />
-        </div>
-
         <header style={{ textAlign: 'center', marginBottom: '30px' }}>
-          <Title level={1} className="main-title">
-            Panel de Control
-          </Title>
-          <Text type="secondary" style={{ fontSize: '18px', fontWeight: 400 }}>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              marginTop: '40px',
+              marginBottom: '40px',
+            }}
+          >
+            <img
+              src={logoOptica}
+              alt="Logo Óptica Josu"
+              style={{
+                width: '400px',
+                height: 'auto',
+                filter: 'drop-shadow(0px 4px 8px rgba(0,0,0,0.1))',
+              }}
+            />
+          </div>
+          <Title type="secondary" style={{ fontSize: '22px', fontWeight: 400 }}>
             Selecciona una herramienta para comenzar
-          </Text>
+          </Title>
         </header>
 
         <Row gutter={[24, 24]} justify="center">
@@ -129,7 +126,7 @@ const HomeSelectorPage: React.FC = () => {
                 background: 'linear-gradient(135deg, #209b7e 0%, #085644 100%)',
                 borderRadius: '12px',
               }}
-              // onClick={() => navigate(ROUTES.PRESUPUESTO_GENERATOR)}
+              onClick={() => navigate(ROUTES.EXCEL_MANAGER)}
             >
               <Space direction="vertical" size="middle">
                 <FileExcelOutlined

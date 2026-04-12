@@ -233,7 +233,7 @@ const ExaminationForm: React.FC<Props> = ({
                       </Col>
                     </Row>
                   </div>
-                  <Text strong>Queratomatría</Text>
+                  <Text strong>Queratometría</Text>
                   <Form.Item name="odQueratometria">
                     <Input placeholder="K1, K2..." />
                   </Form.Item>
@@ -312,7 +312,7 @@ const ExaminationForm: React.FC<Props> = ({
                       </Col>
                     </Row>
                   </div>
-                  <Text strong>Queratomatría</Text>
+                  <Text strong>Queratometría</Text>
                   <Form.Item name="oiQueratometria">
                     <Input placeholder="K1, K2..." />
                   </Form.Item>

@@ -2,30 +2,31 @@
 /* eslint no-unused-vars: off */
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 import ClientModel from './models/client.model';
-import ProductModel from './models/product.model';
 import ExaminationModel from './models/examination.model';
+import ProductModel from './models/product.model';
+import ProductTypeModel from './models/productType.model';
 
 export type Channels = 'ipc-example';
 
 const electronHandler = {
   ipcMysql: {
-    getClients: () => ipcRenderer.invoke('mysql-get-clients'),
-    getProducts: () => ipcRenderer.invoke('mysql-get-products'),
-    getProductTypes: () => ipcRenderer.invoke('mysql-get-product-types'),
-    getExaminationTypes: () => ipcRenderer.invoke('mysql-get-examination-types'),
+    getClients: (): Promise<ClientModel[]> => ipcRenderer.invoke('mysql-get-clients'),
+    getProducts: (): Promise<ProductModel[]> => ipcRenderer.invoke('mysql-get-products'),
+    getProductTypes: (): Promise<ProductTypeModel[]> => ipcRenderer.invoke('mysql-get-product-types'),
+    getExaminationTypes: (): Promise<ExaminationModel[]> => ipcRenderer.invoke('mysql-get-examination-types'),
 
-    getClientById: (clientId: number) => ipcRenderer.invoke('mysql-get-client-by-id', clientId),
-    getExaminationsClientById: (clientId: number) => ipcRenderer.invoke('mysql-get-client-examinatios-by-id', clientId),
+    getClientById: (clientId: number): Promise<ClientModel> => ipcRenderer.invoke('mysql-get-client-by-id', clientId),
+    getExaminationsClientById: (clientId: number): Promise<ExaminationModel[]> => ipcRenderer.invoke('mysql-get-client-examinatios-by-id', clientId),
 
-    createClient: (client: ClientModel) => ipcRenderer.invoke('mysql-create-client', client),
-    createExamination: (examination: ExaminationModel) => ipcRenderer.invoke('mysql-create-examination', examination),
-    createProduct: (product: ProductModel) => ipcRenderer.invoke('mysql-create-product', product),
+    createClient: (client: ClientModel): Promise<number> => ipcRenderer.invoke('mysql-create-client', client),
+    createExamination: (examination: ExaminationModel): Promise<number> => ipcRenderer.invoke('mysql-create-examination', examination),
+    createProduct: (product: ProductModel): Promise<number> => ipcRenderer.invoke('mysql-create-product', product),
 
-    updateClient: (client: ClientModel) => ipcRenderer.invoke('mysql-update-client', client),
-    updateExamination: (examination: ExaminationModel) => ipcRenderer.invoke('mysql-update-examination', examination),
-    updateProduct: (product: ProductModel) => ipcRenderer.invoke('mysql-update-product', product),
+    updateClient: (client: ClientModel): Promise<void> => ipcRenderer.invoke('mysql-update-client', client),
+    updateExamination: (examination: ExaminationModel): Promise<void> => ipcRenderer.invoke('mysql-update-examination', examination),
+    updateProduct: (product: ProductModel): Promise<void> => ipcRenderer.invoke('mysql-update-product', product),
 
-    deleteProduct: (productId: number) => ipcRenderer.invoke('mysql-delete-product', productId),
+    deleteProduct: (productId: number): Promise<void> => ipcRenderer.invoke('mysql-delete-product', productId),
   },
   ipcRenderer: {
     sendMessage(channel: Channels, ...args: unknown[]) {
