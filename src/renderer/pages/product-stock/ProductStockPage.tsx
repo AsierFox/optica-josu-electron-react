@@ -45,6 +45,24 @@ const ProductStockPage: React.FC = () => {
     fechaVenta: product.fechaVenta?.format('YYYY-MM-DD'),
   });
 
+  const prepareProductForReadOnTable = (
+    product: ProductModel,
+  ): ProductModel => ({
+    ...product,
+    type:
+      productTypes.find(
+        (productType: ProductTypeModel) => productType.id === product.typeId,
+      )?.type || null,
+    fechaCompra: product.fechaCompra
+      ? util.formatDateToYYYYMMDD(dayjs(product.fechaCompra))
+      : null,
+    fechaVenta: product.fechaVenta
+      ? util.formatDateToYYYYMMDD(dayjs(product.fechaVenta))
+      : null,
+    createNewProduct: product.createNewProduct,
+    createNewProductFromDDBB: product.createNewProductFromDDBB,
+  });
+
   const prepareProductForEditOnTable = (
     product: ProductModel,
   ): ProductModel => ({
@@ -146,65 +164,69 @@ const ProductStockPage: React.FC = () => {
         );
       }
 
-      // Buscamos el registro nuevo o editado para actualizar en el array de la tabla y el listado de la BBDD original,
-      // sin tener que actualizar recargando la tabla entera.
-      // @ts-ignore
-      setTableDataSource((prevTableDataSource: ProductModel[]) =>
-        prevTableDataSource.map((product: ProductModel) =>
-          product.id === editingProduct.id
-            ? {
-                ...finalProduct,
-                type: productTypes.find(
-                  (productType: ProductTypeModel) =>
-                    productType.id === finalProduct.typeId,
-                )?.type,
-                fechaCompra: finalProduct.fechaCompra
-                  ? util.formatDateToYYYYMMDD(dayjs(finalProduct.fechaCompra))
-                  : null,
-                fechaVenta: finalProduct.fechaVenta
-                  ? util.formatDateToYYYYMMDD(dayjs(finalProduct.fechaVenta))
-                  : null,
-              }
-            : product,
-        ),
-      );
+      const finalProductPreparedForTable =
+        prepareProductForReadOnTable(finalProduct);
 
-      // Actualizamos el listado de la tabla original con el nuevo producto editado o creado,
-      // para evitar recargar la tabla entera a traves de la BBDD.
-      // @ts-ignore
-      setProducts((prevTableDataSource: ProductModel[]) =>
-        prevTableDataSource.map((product: ProductModel) =>
-          product.id === editingProduct.id
-            ? {
-                ...finalProduct,
-                type: productTypes.find(
-                  (productType: ProductTypeModel) =>
-                    productType.id === finalProduct.typeId,
-                )?.type,
-                fechaCompra: finalProduct.fechaCompra
-                  ? util.formatDateToYYYYMMDD(dayjs(finalProduct.fechaCompra))
-                  : null,
-                fechaVenta: finalProduct.fechaVenta
-                  ? util.formatDateToYYYYMMDD(dayjs(finalProduct.fechaVenta))
-                  : null,
-              }
-            : product,
-        ),
-      );
+      if (isNewProduct) {
+        // Si es nuevo producto, lo añadimos al principio del array y eliminamos la linea temporal
+        setTableDataSource((prevTableDataSource: ProductModel[]) => [
+          finalProductPreparedForTable,
+          ...prevTableDataSource.filter(
+            (product: ProductModel) =>
+              !product.id.toString().startsWith(NEW_ROW_ID_PREFIX),
+          ),
+        ]);
+        setProducts((prevTableDataSource: ProductModel[]) => [
+          finalProductPreparedForTable,
+          ...prevTableDataSource.filter(
+            (product: ProductModel) =>
+              !product.id.toString().startsWith(NEW_ROW_ID_PREFIX),
+          ),
+        ]);
+      } else {
+        // Si es una edición, actualizamos el producto editado en su posición dentro del array:
+        // Buscamos el registro nuevo o editado para actualizar en el array de la tabla y el listado de la BBDD original,
+        // sin tener que actualizar recargando la tabla entera.
+        // @ts-ignore
+        setTableDataSource((prevTableDataSource: ProductModel[]) =>
+          prevTableDataSource.map((product: ProductModel) =>
+            product.id === editingProduct.id
+              ? finalProductPreparedForTable
+              : product,
+          ),
+        );
+
+        // Actualizamos el listado de la tabla original con el nuevo producto editado o creado,
+        // para evitar recargar la tabla entera a traves de la BBDD.
+        // @ts-ignore
+        setProducts((prevTableDataSource: ProductModel[]) =>
+          prevTableDataSource.map((product: ProductModel) =>
+            product.id === editingProduct.id
+              ? finalProductPreparedForTable
+              : product,
+          ),
+        );
+      }
+
       setEditingProduct(null);
 
       api.success({
-        placement: 'top',
         message: `¡Producto ${isNewProduct ? 'creado' : 'editado'} satisfactoriamente!`,
       });
     } catch (error) {
       if (error && error?.errorFields) {
-        setErrorMessage('Por favor, revisa los campos marcados en rojo.');
+        api.error({
+          placement: 'top',
+          message: 'Por favor, revisa los campos marcados en rojo.',
+        });
         return;
       }
-      setErrorMessage(
-        `Error de conexión con base de datos: ${error.message || error}`,
-      );
+      const errorMsg = `Error de conexión con base de datos: ${error?.message || error}`;
+      api.error({
+        placement: 'top',
+        message: errorMsg,
+      });
+      setErrorMessage(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -243,8 +265,16 @@ const ProductStockPage: React.FC = () => {
         );
         setTableDataSource(productsWithRemovedOne);
         setProducts(productsWithRemovedOne);
+        api.success({
+          message: '¡Producto eliminado!',
+        });
       } catch (error) {
-        setErrorMessage(`Error al eliminar producto: ${error}`);
+        const errorMsg = `Error al eliminar producto: ${error?.message || error}`;
+        api.error({
+          message: 'Error',
+          description: errorMsg,
+        });
+        setErrorMessage(errorMsg);
       }
     },
     [tableDataSource],

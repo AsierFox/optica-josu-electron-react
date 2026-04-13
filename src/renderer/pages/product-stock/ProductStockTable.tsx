@@ -231,17 +231,6 @@ const ProductStockTable: React.FC<Props> = ({
         }),
       },
       {
-        title: PRODUCT_FIELD_NAMES.cantidad,
-        dataIndex: 'cantidad',
-        onCell: (record: ProductModel) => ({
-          dataIndex: 'cantidad',
-          required: true,
-          type: 'number',
-          record,
-          editingProduct,
-        }),
-      },
-      {
         title: PRODUCT_FIELD_NAMES.notes,
         dataIndex: 'notes',
         onCell: (record: ProductModel) => ({
@@ -287,6 +276,9 @@ const ProductStockTable: React.FC<Props> = ({
               </Button>
               <Popconfirm
                 title="¿Desea borrar producto?"
+                okText="Sí, eliminar"
+                cancelText="No"
+                okButtonProps={{ danger: true }}
                 onConfirm={() => onDelete(record)}
               >
                 <Button

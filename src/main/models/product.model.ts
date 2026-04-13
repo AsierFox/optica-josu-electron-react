@@ -13,7 +13,6 @@ export default class ProductModel {
   calibrePuente!: string | null;
   precioCompra!: number | null;
   precioVenta!: number | null;
-  cantidad!: number;
   fechaCompra!: string | null;
   fechaVenta!: string | null;
   notes!: string | null;
@@ -41,7 +40,6 @@ export default class ProductModel {
     this.precioCompra = null;
     this.precioVenta = null;
     this.calibrePuente = null;
-    this.cantidad = 1;
 
     this.fechaCompra = null;
     this.fechaVenta = null;
@@ -64,7 +62,6 @@ export default class ProductModel {
     this.precioCompra = row.PRECIO_COMPRA;
     this.precioVenta = row.PRECIO_VENTA;
     this.calibrePuente = row.CALIBRE_PUENTE;
-    this.cantidad = row.CANTIDAD;
 
     this.fechaCompra = util.formatDateToYYYYMMDD(row.FECHA_COMPRA);
     this.fechaVenta = util.formatDateToYYYYMMDD(row.FECHA_VENTA);

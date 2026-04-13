@@ -21,10 +21,24 @@ const { Title } = Typography;
 
 const ExcelImporter: React.FC = () => {
   const MAX_SEARCH_BLANK_ROWS: number = 100;
-  const EXCEL_HEADER_REQUIRED_COLUMNS = [
+  const EXCEL_HEADER_WITH_REQUIRED_VALUE_COLUMNS = [
     'PROVEEDOR',
     'TIPO DE GAFA',
     'REFERENCIA',
+  ];
+  const EXCEL_HEADER_REQUIRED_COLUMNS = [
+    'PROVEEDOR',
+    'FIRMAS',
+    'TIPO DE GAFA',
+    'REFERENCIA',
+    'MODELO',
+    'COLOR',
+    'CALIBRE Y PUENTE',
+    'PRECIO DE COMPRA',
+    'FECHA DE COMPRA',
+    'PRECIO DE VENTA',
+    'VENDIDA',
+    'FECHA DE VENTA',
   ];
 
   const [loading, setLoading] = useState(true);
@@ -76,52 +90,73 @@ const ExcelImporter: React.FC = () => {
       }
 
       // Validamos que TODAS las filas tengan las columnas obligatorias
-      const hasRequiredColumns = EXCEL_HEADER_REQUIRED_COLUMNS.every(
-        // eslint-disable-next-line no-loop-func
-        (requiredColumn) => {
-          const requiredColumnSearch = Object.entries(
-            sheetHeaderColumnsStructure,
-          ).find(([columnName]) => columnName === requiredColumn);
-
-          if (!requiredColumnSearch || requiredColumnSearch.length <= 0) {
-            return false;
-          }
-
-          const requiredColumnKey = requiredColumnSearch[1] as number;
-          const sheetRowColValue = sheetRow[requiredColumnKey];
-          return !!sheetRowColValue;
-        },
+      const sheetHeaderColumnsStructureList = Object.keys(
+        sheetHeaderColumnsStructure,
       );
-
-      if (!hasRequiredColumns) {
+      const requiredColumnsLeft = EXCEL_HEADER_REQUIRED_COLUMNS.filter(
+        (requiredColumn) =>
+          !sheetHeaderColumnsStructureList.includes(requiredColumn),
+      );
+      if (requiredColumnsLeft.length > 0) {
         setProcessResultMessages((prevMessages) => [
           ...prevMessages,
-          `Pestaña "${sheetName}": Alguna FILA NO tiene las columnas obligatorias ${EXCEL_HEADER_REQUIRED_COLUMNS.join(', ')}!`,
+          `Pestaña "${sheetName}": NO cumple con las COLUMNAS obligatorias!`,
         ]);
       }
 
-      debugger;
-      newProductsFromSheet.push(
-        new ProductModel({
-          proveedor: sheetRow[sheetHeaderColumnsStructure.PROVEEDOR] ?? null,
-          firma: sheetRow[sheetHeaderColumnsStructure.PROVEEDOR] ?? null,
-          referencia: sheetRow[sheetHeaderColumnsStructure.REFERENCIA] ?? null,
-          modelo: sheetRow[sheetHeaderColumnsStructure.MODELO] ?? null,
-          color: sheetRow[sheetHeaderColumnsStructure.COLOR] ?? null,
-          typeId: null,
-          type: null,
-          precioCompra: null,
-          precioVenta: null,
-          calibrePuente: null,
-          cantidad: 1,
+      // Comprobamos que TODAS las columnas obligatorias tengan VALOR
+      const hasRequiredColumnsValue =
+        EXCEL_HEADER_WITH_REQUIRED_VALUE_COLUMNS.every(
+          // eslint-disable-next-line no-loop-func
+          (requiredColumn) => {
+            const requiredColumnSearch = Object.entries(
+              sheetHeaderColumnsStructure,
+            ).find(([columnName]) => columnName === requiredColumn);
 
-          fechaCompra: null,
-          fechaVenta: null,
-        }),
-      );
+            if (!requiredColumnSearch || requiredColumnSearch.length <= 0) {
+              return false;
+            }
+
+            const requiredColumnKey = requiredColumnSearch[1] as number;
+            const sheetRowColValue = sheetRow[requiredColumnKey];
+            return !!sheetRowColValue;
+          },
+        );
+
+      if (!hasRequiredColumnsValue) {
+        setProcessResultMessages((prevMessages) => [
+          ...prevMessages,
+          `Pestaña "${sheetName}": Alguna FILA NO tiene VALOR las columnas obligatorias!`,
+        ]);
+      }
+
+      const newProduct: ProductModel = new ProductModel();
+
+      newProduct.proveedor =
+        sheetRow[sheetHeaderColumnsStructure.PROVEEDOR] ?? null;
+      newProduct.firma = sheetRow[sheetHeaderColumnsStructure.FIRMA] ?? null;
+      newProduct.referencia =
+        sheetRow[sheetHeaderColumnsStructure.FIRMAS] ?? null;
+      newProduct.modelo = sheetRow[sheetHeaderColumnsStructure.MODELO] ?? null;
+      newProduct.color = sheetRow[sheetHeaderColumnsStructure.COLOR] ?? null;
+      newProduct.typeId = null;
+      newProduct.precioCompra =
+        sheetRow[sheetHeaderColumnsStructure['PRECIO DE COMPRA']] ?? null;
+      newProduct.precioVenta =
+        sheetRow[sheetHeaderColumnsStructure['PRECIO DE VENTA']] ?? null;
+      newProduct.calibrePuente =
+        sheetRow[sheetHeaderColumnsStructure['CALIBRE Y PUENTE']] ?? null;
+      // TODO Revisar FECHAS
+      newProduct.fechaCompra =
+        sheetRow[sheetHeaderColumnsStructure['FECHA DE COMPRA']] ?? null;
+      // TODO Hacer juego con Columna VENDIDA
+      newProduct.fechaVenta =
+        sheetRow[sheetHeaderColumnsStructure['FECHA DE VENTA']] ?? null;
+
+      newProductsFromSheet.push(newProduct);
     }
 
-    return [];
+    return newProductsFromSheet;
   };
 
   const handleReadFile = (file: File) => {
@@ -178,7 +213,9 @@ const ExcelImporter: React.FC = () => {
                 const isHeaderRow = sheetRow.some(
                   (cell) =>
                     typeof cell === 'string' &&
-                    EXCEL_HEADER_REQUIRED_COLUMNS.includes(cell.toUpperCase()),
+                    EXCEL_HEADER_WITH_REQUIRED_VALUE_COLUMNS.includes(
+                      cell.toUpperCase(),
+                    ),
                 );
 
                 allSheetProcessedRows.push({

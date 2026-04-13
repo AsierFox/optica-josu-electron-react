@@ -26,6 +26,7 @@ const electronHandler = {
     updateExamination: (examination: ExaminationModel): Promise<void> => ipcRenderer.invoke('mysql-update-examination', examination),
     updateProduct: (product: ProductModel): Promise<void> => ipcRenderer.invoke('mysql-update-product', product),
 
+    deleteExamination: (examinationId: number): Promise<void> => ipcRenderer.invoke('mysql-delete-examination', examinationId),
     deleteProduct: (productId: number): Promise<void> => ipcRenderer.invoke('mysql-delete-product', productId),
   },
   ipcRenderer: {

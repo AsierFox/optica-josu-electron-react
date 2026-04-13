@@ -14,7 +14,6 @@ dayjs.extend(isBetween);
 const ClientManagerPage: React.FC = () => {
   const [isLoading, setLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [tableDataSource, setTableDataSource] = useState<ClientModel[]>([]);
   const [clients, setClients] = useState<ClientModel[]>([]);
 
   const navigate = useNavigate();
@@ -33,7 +32,6 @@ const ClientManagerPage: React.FC = () => {
       try {
         const clientsFetched = await window.electron.ipcMysql.getClients();
         setClients(clientsFetched);
-        setTableDataSource(clientsFetched);
       } catch {
         setErrorMessage('¡Error al obtener los clientes de la Base de Datos!');
       } finally {
@@ -69,8 +67,7 @@ const ClientManagerPage: React.FC = () => {
       <Form form={form} component={false}>
         <ClientManagerTable
           loading={isLoading}
-          dataSource={tableDataSource}
-          clients={clients}
+          dataSource={clients}
           onEdit={handleEdit}
         />
       </Form>

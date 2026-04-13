@@ -26,6 +26,8 @@ export default class ExaminationModel {
 
   dip!: string | null;
 
+  observaciones!: string | null;
+
   createdAt!: string | null;
   updatedAt!: string | null;
 
@@ -56,6 +58,8 @@ export default class ExaminationModel {
     this.oiQueratometria = row.OI_QUERATOMETRIA;
 
     this.dip = row.DIP;
+
+    this.observaciones = row.OBSERVACIONES;
 
     this.createdAt = row.CREATED_AT;
     this.updatedAt = row.UPDATED_AT;

@@ -58,7 +58,7 @@ const ProductStockStats: React.FC<Props> = ({ products, productTypes }) => {
     );
 
     return Object.values(groupByTypes);
-  }, [products]);
+  }, [products, productTypes]);
 
   const productsByMonthsConfig = {
     data: productsByMonthsData,

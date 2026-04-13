@@ -1,4 +1,9 @@
-import { EyeOutlined, SaveOutlined } from '@ant-design/icons';
+import {
+  DeleteOutlined,
+  EyeOutlined,
+  SaveOutlined,
+  StopOutlined,
+} from '@ant-design/icons';
 import {
   Badge,
   Button,
@@ -27,14 +32,14 @@ interface Props {
   examination: ExaminationModel;
   examinationTypes: ExaminationTypeModel[];
   isLastExamination: boolean;
-  handleCancelNewExamination: () => void;
+  handleDeleteExamination: (examinationId: string) => void;
 }
 
 const ExaminationForm: React.FC<Props> = ({
   examination,
   examinationTypes,
   isLastExamination,
-  handleCancelNewExamination,
+  handleDeleteExamination,
 }) => {
   const DEFAULT_CARD_COLOR = '#8fe2c5';
   const isNewExamination = examination.id
@@ -63,7 +68,7 @@ const ExaminationForm: React.FC<Props> = ({
         const newExaminationId =
           await window.electron.ipcMysql.createExamination(updatedExamination);
 
-        examination.id = newExaminationId;
+        examination.id = newExaminationId.toString();
       } else {
         await window.electron.ipcMysql.updateExamination(updatedExamination);
       }
@@ -81,6 +86,21 @@ const ExaminationForm: React.FC<Props> = ({
         message: 'Error al guardar la graduación',
         description:
           'Ocurrió un error al intentar guardar la graduación. Por favor, intenta nuevamente.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteExistentExamination = async (id: string) => {
+    setLoading(true);
+    try {
+      await window.electron.ipcMysql.deleteExamination(Number(id));
+      handleDeleteExamination(id);
+    } catch {
+      api.error({
+        message: 'Error',
+        description: '¡No se pudo eliminar la graduación!',
       });
     } finally {
       setLoading(false);
@@ -183,25 +203,25 @@ const ExaminationForm: React.FC<Props> = ({
                     <Col span={6}>
                       <Text strong>Esfera</Text>
                       <Form.Item name="odEsfera">
-                        <Input placeholder="0.00" />
+                        <Input />
                       </Form.Item>
                     </Col>
                     <Col span={6}>
                       <Text strong>Cilindro</Text>
                       <Form.Item name="odCilindro">
-                        <Input placeholder="0.00" />
+                        <Input />
                       </Form.Item>
                     </Col>
                     <Col span={6}>
                       <Text strong>Eje</Text>
                       <Form.Item name="odEje">
-                        <Input suffix="º" placeholder="0°" />
+                        <Input suffix="º" />
                       </Form.Item>
                     </Col>
                     <Col span={6}>
                       <Text strong>Add</Text>
                       <Form.Item name="odADD">
-                        <Input placeholder="0.00" />
+                        <Input />
                       </Form.Item>
                     </Col>
                   </Row>
@@ -235,7 +255,7 @@ const ExaminationForm: React.FC<Props> = ({
                   </div>
                   <Text strong>Queratometría</Text>
                   <Form.Item name="odQueratometria">
-                    <Input placeholder="K1, K2..." />
+                    <Input />
                   </Form.Item>
                 </Space>
               </Col>
@@ -262,25 +282,25 @@ const ExaminationForm: React.FC<Props> = ({
                       <Text strong>Esfera</Text>
 
                       <Form.Item name="oiEsfera">
-                        <Input placeholder="0.00" />
+                        <Input />
                       </Form.Item>
                     </Col>
                     <Col span={6}>
                       <Text strong>Cilindro</Text>
                       <Form.Item name="oiCilindro">
-                        <Input placeholder="0.00" />
+                        <Input />
                       </Form.Item>
                     </Col>
                     <Col span={6}>
                       <Text strong>Eje</Text>
                       <Form.Item name="oiEje">
-                        <Input suffix="º" placeholder="0°" />
+                        <Input suffix="º" />
                       </Form.Item>
                     </Col>
                     <Col span={6}>
                       <Text strong>Add</Text>
                       <Form.Item name="oiADD">
-                        <Input placeholder="0.00" />
+                        <Input />
                       </Form.Item>
                     </Col>
                   </Row>
@@ -314,7 +334,7 @@ const ExaminationForm: React.FC<Props> = ({
                   </div>
                   <Text strong>Queratometría</Text>
                   <Form.Item name="oiQueratometria">
-                    <Input placeholder="K1, K2..." />
+                    <Input />
                   </Form.Item>
                 </Space>
               </Col>
@@ -327,11 +347,17 @@ const ExaminationForm: React.FC<Props> = ({
                   Distancia Interpupilar (DIP)
                 </Text>
                 <Form.Item name="dip">
-                  <InputNumber
-                    suffix="mm"
-                    placeholder="64"
-                    style={{ width: '120px' }}
-                  />
+                  <InputNumber suffix="mm" style={{ width: '120px' }} />
+                </Form.Item>
+              </Col>
+            </Row>
+            <Row justify="center">
+              <Col span={8} style={{ textAlign: 'center' }}>
+                <Text strong style={{ display: 'block', marginBottom: 8 }}>
+                  Observaciones
+                </Text>
+                <Form.Item name="observaciones">
+                  <Input.TextArea rows={4} style={{ width: '100%' }} />
                 </Form.Item>
               </Col>
             </Row>
@@ -351,19 +377,41 @@ const ExaminationForm: React.FC<Props> = ({
                     ? 'Guardar Nueva Graduación'
                     : 'Actualizar Graduación'}
                 </Button>
-                {isNewExamination && (
+                {isNewExamination ? (
                   <Popconfirm
                     title="¿Quieres cancelar esta nueva graduación?"
-                    onConfirm={handleCancelNewExamination}
+                    onConfirm={() => handleDeleteExamination(examination.id)}
                   >
                     <Button
                       type="default"
                       color="danger"
+                      icon={<StopOutlined />}
                       style={{
                         marginTop: 20,
                       }}
                     >
                       Cancelar Nueva Graduación
+                    </Button>
+                  </Popconfirm>
+                ) : (
+                  <Popconfirm
+                    title="¿Estás seguro de que quieres eliminar esta graduación?"
+                    okText="Sí, eliminar"
+                    cancelText="No"
+                    okButtonProps={{ danger: true }}
+                    onConfirm={() =>
+                      handleDeleteExistentExamination(examination.id)
+                    }
+                  >
+                    <Button
+                      danger
+                      size="small"
+                      icon={<DeleteOutlined />}
+                      style={{
+                        marginTop: 20,
+                      }}
+                    >
+                      Eliminar Graduación
                     </Button>
                   </Popconfirm>
                 )}

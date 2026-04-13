@@ -31,7 +31,7 @@ import ExaminationModel from '../../../main/models/examination.model';
 import ExaminationTypeModel from '../../../main/models/examinationType.model';
 import { NEW_ROW_ID_PREFIX, ROUTES } from '../../app/constants';
 import AdminLayout from '../../layouts/AdminLayout';
-import ExaminationsForm from './ExaminationsForm';
+import ExaminationForm from './ExaminationForm';
 
 const { Title } = Typography;
 
@@ -80,25 +80,30 @@ const ClientManagerFormPage: React.FC = () => {
         message: 'Éxito',
         description: `¡Cliente ${isNewClient ? 'creado' : 'actualizado'} correctamente!`,
       });
-    } catch {
+    } catch (error) {
       api.error({
         message: 'Error',
         description: '¡No se pudo guardar el cliente!',
       });
+      setErrorMessage(
+        `¡No se pudo guardar el cliente! ${error?.message || error}`,
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCancelNewExamination = () => {
+  const handleDeleteExamination = (examinationId: string) => {
     setLoading(true);
     setExaminations((prevExaminations) =>
       prevExaminations.filter(
-        (examination) =>
-          !examination.id.toString().startsWith(NEW_ROW_ID_PREFIX),
+        (examination) => examination.id !== examinationId,
       ),
     );
     setLoading(false);
+    api.success({
+      message: '¡Graduación Eliminada!',
+    });
   };
 
   const createNewExamination = () => {
@@ -173,8 +178,14 @@ const ClientManagerFormPage: React.FC = () => {
             ? dayjs(clientDDBB.fechaNacimiento)
             : null,
         });
-      } catch {
-        setErrorMessage('¡No se pudo cargar el cliente!');
+      } catch (error) {
+        api.error({
+          message: 'Error',
+          description: '¡No se pudo guardar el cliente!',
+        });
+        setErrorMessage(
+          `¡No se pudo guardar el cliente! ${error?.message || error}`,
+        );
       } finally {
         setLoading(false);
       }
@@ -303,10 +314,7 @@ const ClientManagerFormPage: React.FC = () => {
             <Row gutter={16}>
               <Col span={24}>
                 <Form.Item name="notes" label="Notas internas">
-                  <Input.TextArea
-                    rows={4}
-                    placeholder="Alergias, preferencias de montura, etc."
-                  />
+                  <Input.TextArea rows={4} />
                 </Form.Item>
               </Col>
             </Row>
@@ -341,11 +349,12 @@ const ClientManagerFormPage: React.FC = () => {
             </div>
 
             {examinations.map((examination, i) => (
-              <ExaminationsForm
+              <ExaminationForm
+                key={`examination-form-${examination.id}`}
                 examination={examination}
                 examinationTypes={examinationTypes}
                 isLastExamination={i === 0}
-                handleCancelNewExamination={handleCancelNewExamination}
+                handleDeleteExamination={handleDeleteExamination}
               />
             ))}
           </Card>

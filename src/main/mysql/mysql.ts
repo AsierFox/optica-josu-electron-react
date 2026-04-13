@@ -133,13 +133,14 @@ export const registerMysqlIPCHandlers = () => {
         examination.oiVL ?? null,
         examination.oiQueratometria ?? null,
         examination.dip ?? null,
+        examination.observaciones ?? null,
         examination.createdAt ?? null,
         examination.updatedAt ?? null,
       ];
       const [result] = await query(`INSERT INTO EXAMINATIONS
         (ID_CLIENT, ID_EXAMINATION_TYPE, OD_ESFERA, OD_CILINDRO, OD_EJE, OD_ADD, OD_AV, OD_VP, OD_VL, OD_QUERATOMETRIA,
-        OI_ESFERA, OI_CILINDRO, OI_EJE, OI_ADD, OI_AV, OI_VP, OI_VL, OI_QUERATOMETRIA, DIP, CREATED_AT, UPDATED_AT)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, params);
+        OI_ESFERA, OI_CILINDRO, OI_EJE, OI_ADD, OI_AV, OI_VP, OI_VL, OI_QUERATOMETRIA, DIP, OBSERVACIONES, CREATED_AT, UPDATED_AT)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, params);
       return result.insertId;
     } catch (error) {
       console.error('Database query error:', error);
@@ -157,7 +158,6 @@ export const registerMysqlIPCHandlers = () => {
         product.modelo ?? null,
         product.color ?? null,
         product.calibrePuente ?? null,
-        product.cantidad ?? 1,
         product.fechaCompra ?? null,
         product.precioCompra ?? null,
         product.fechaVenta ?? null,
@@ -166,8 +166,8 @@ export const registerMysqlIPCHandlers = () => {
       ];
       const [result] = await query(`INSERT INTO PRODUCTS
         (PROVEEDOR, FIRMA, ID_PRODUCT_TYPE, REFERENCIA, MODELO, COLOR, CALIBRE_PUENTE,
-        CANTIDAD, FECHA_COMPRA, PRECIO_COMPRA, FECHA_VENTA, PRECIO_VENTA, NOTES)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, params);
+        FECHA_COMPRA, PRECIO_COMPRA, FECHA_VENTA, PRECIO_VENTA, NOTES)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, params);
       return result.insertId;
     } catch (error) {
       console.error('Database query error:', error);
@@ -220,7 +220,8 @@ export const registerMysqlIPCHandlers = () => {
           OI_VP = ${examination.oiVP ? `'${examination.oiVP}'` : 'NULL'},
           OI_VL = ${examination.oiVL ? `'${examination.oiVL}'` : 'NULL'},
           OI_QUERATOMETRIA = ${examination.oiQueratometria ? `'${examination.oiQueratometria}'` : 'NULL'},
-          DIP = ${examination.dip ? `'${examination.dip}'` : 'NULL'}
+          DIP = ${examination.dip ? `'${examination.dip}'` : 'NULL'},
+          OBSERVACIONES = ${examination.observaciones ? `'${examination.observaciones}'` : 'NULL'}
         WHERE ID = ${examination.id}
       `);
       // @ts-ignore - MySQL insert result contains insertId
@@ -242,7 +243,6 @@ export const registerMysqlIPCHandlers = () => {
           MODELO = ${product.modelo ? `'${product.modelo}'` : 'NULL'},
           COLOR = ${product.color ? `'${product.color}'` : 'NULL'},
           CALIBRE_PUENTE = ${product.calibrePuente ? `'${product.calibrePuente}'` : 'NULL'},
-          CANTIDAD = ${product.cantidad ?? 0},
           FECHA_COMPRA = ${product.fechaCompra ? `'${product.fechaCompra}'` : 'NULL'},
           PRECIO_COMPRA = ${product.precioCompra ? `'${product.precioCompra}'` : 'NULL'},
           FECHA_VENTA = ${product.fechaVenta ? `'${product.fechaVenta}'` : 'NULL'},
@@ -251,6 +251,16 @@ export const registerMysqlIPCHandlers = () => {
         WHERE ID = ${product.id}
       `);
       // @ts-ignore - MySQL insert result contains insertId
+      return rows;
+    } catch (error) {
+      console.error('Database query error:', error);
+      throw new Error('Database query failed');
+    }
+  });
+
+  ipcMain.handle('mysql-delete-examination', async (_event, examinationId: number) => {
+    try {
+      const [rows] = await query(`DELETE FROM EXAMINATIONS WHERE ID = ${examinationId}`);
       return rows;
     } catch (error) {
       console.error('Database query error:', error);
