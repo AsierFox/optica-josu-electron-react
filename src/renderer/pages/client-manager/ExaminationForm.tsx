@@ -16,6 +16,7 @@ import {
   notification,
   Popconfirm,
   Row,
+  Select,
   Space,
   Spin,
   Typography,
@@ -56,6 +57,8 @@ const ExaminationForm: React.FC<Props> = ({
     setLoading(true);
 
     try {
+      console.log(values);
+      debugger;
       const updatedExamination = {
         ...examination,
         ...values,
@@ -148,11 +151,20 @@ const ExaminationForm: React.FC<Props> = ({
                 <EyeOutlined color={cardColor} />
                 <span>
                   {utils.formatDateToYYYYMMDD(examination.updatedAt)} -{' '}
-                  {
-                    examinationTypes.find(
-                      (ex) => ex.id === examination.idExaminationType,
-                    )?.type
-                  }
+                  <Form.Item name="idExaminationType" noStyle>
+                    <Select
+                      style={{ width: '100%' }}
+                      defaultValue={
+                        examinationTypes.find(
+                          (ex) => ex.id === examination.idExaminationType,
+                        )?.type
+                      }
+                      options={examinationTypes.map((exType) => ({
+                        label: exType.type,
+                        value: exType.id,
+                      }))}
+                    />
+                  </Form.Item>
                 </span>
               </Space>
             }

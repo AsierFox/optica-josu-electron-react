@@ -16,127 +16,172 @@ const { Title, Text } = Typography;
 const HomeSelectorPage: React.FC = () => {
   const navigate = useNavigate();
 
+  const cardStyle = (gradient: string) => ({
+    background: gradient,
+    borderRadius: '14px',
+    border: '1px solid #e5e7eb',
+    height: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    boxShadow: '0 6px 18px rgba(0,0,0,0.08)',
+    cursor: 'pointer',
+  });
+
   return (
     <AdminLayout>
-      <div style={{ margin: '20px auto', padding: '0 20px' }}>
-        <header style={{ textAlign: 'center', marginBottom: '30px' }}>
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              marginTop: '40px',
-              marginBottom: '40px',
-            }}
-          >
+      {/* Hover por CSS (evita bugs de estado) */}
+      <style>{`
+        .custom-card { transition: all 0.25s ease; }
+        .custom-card:hover {
+          transform: translateY(-6px);
+          box-shadow: 0 12px 28px rgba(0,0,0,0.15);
+        }
+      `}</style>
+
+      <div
+        style={{ maxWidth: '1200px', margin: '20px auto', padding: '0 20px' }}
+      >
+        <header style={{ textAlign: 'center', marginBottom: '50px' }}>
+          <div style={{ marginTop: '40px', marginBottom: '30px' }}>
             <img
               src={logoOptica}
               alt="Logo Óptica Josu"
               style={{
-                width: '400px',
+                width: '350px',
                 height: 'auto',
-                filter: 'drop-shadow(0px 4px 8px rgba(0,0,0,0.1))',
+                filter: 'drop-shadow(0px 4px 12px rgba(0,0,0,0.05))',
               }}
             />
           </div>
-          <Title type="secondary" style={{ fontSize: '22px', fontWeight: 400 }}>
-            Selecciona una herramienta para comenzar
+          <Title
+            type="secondary"
+            level={3}
+            style={{ fontWeight: 300, letterSpacing: '0.5px' }}
+          >
+            Panel de Gestión Central
           </Title>
         </header>
 
         <Row gutter={[24, 24]} justify="center">
-          {/* CLIENTES */}
           <Col xs={24} sm={12} lg={8}>
             <Card
-              className="card-wrapper custom-hover-card"
               hoverable
-              style={{
-                background: 'linear-gradient(135deg, #096dd9 0%, #003a8c 100%)',
-                borderRadius: '12px',
-              }}
+              className="custom-card"
+              style={cardStyle(
+                'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)',
+              )}
               onClick={() => navigate(ROUTES.CLIENT_MANAGER)}
             >
-              <Space direction="vertical" size="middle">
+              <Space direction="vertical" size="small">
                 <UsergroupAddOutlined
-                  style={{ fontSize: '40px', color: '#fff' }}
+                  style={{ fontSize: '32px', color: '#fff' }}
                 />
-                <Title level={4} style={{ color: '#fff', margin: 0 }}>
+                <Title
+                  level={3}
+                  style={{ color: '#fff', margin: '10px 0 0 0' }}
+                >
                   Clientes y Graduaciones
                 </Title>
-                <Text style={{ color: 'rgba(255,255,255,0.85)' }}>
-                  Control de fichas y salud visual
+                <Text style={{ color: 'rgba(255,255,255,0.9)' }}>
+                  Gestión de expedientes y salud visual.
                 </Text>
               </Space>
             </Card>
           </Col>
 
-          {/* INVENTARIO */}
           <Col xs={24} sm={12} lg={8}>
             <Card
-              className="card-wrapper custom-hover-card"
               hoverable
-              style={{
-                background: 'linear-gradient(135deg, #13c2c2 0%, #006d75 100%)',
-                borderRadius: '12px',
-              }}
+              className="custom-card"
+              style={cardStyle(
+                'linear-gradient(135deg, #334155 0%, #0f172a 100%)',
+              )}
               onClick={() => navigate(ROUTES.PRODUCT_STOCK)}
             >
-              <Space direction="vertical" size="middle">
-                {/* Cambiado a icono de reporte/stock para no repetir el de arriba */}
-                <StockOutlined style={{ fontSize: '40px', color: '#fff' }} />
-                <Title level={4} style={{ color: '#fff', margin: 0 }}>
-                  Inventario de Productos
+              <Space direction="vertical" size="small">
+                <StockOutlined style={{ fontSize: '32px', color: '#fff' }} />
+                <Title
+                  level={3}
+                  style={{ color: '#fff', margin: '10px 0 0 0' }}
+                >
+                  Inventario
                 </Title>
-                <Text style={{ color: 'rgba(255,255,255,0.85)' }}>
-                  Stock de monturas y lentes
+                <Text style={{ color: 'rgba(255,255,255,0.9)' }}>
+                  Stock de monturas, lentes y accesorios.
                 </Text>
               </Space>
             </Card>
           </Col>
 
-          {/* PRESUPUESTOS */}
           <Col xs={24} sm={12} lg={8}>
             <Card
-              className="card-wrapper custom-hover-card"
               hoverable
-              style={{
-                background: 'linear-gradient(135deg, #722ed1 0%, #391085 100%)',
-                borderRadius: '12px',
-              }}
+              className="custom-card"
+              style={cardStyle(
+                'linear-gradient(135deg, #4f46e5 0%, #312e81 100%)',
+              )}
+              onClick={() => navigate(ROUTES.STATISTICS)}
+            >
+              <Space direction="vertical" size="small">
+                <FileTextOutlined style={{ fontSize: '32px', color: '#fff' }} />
+                <Title
+                  level={3}
+                  style={{ color: '#fff', margin: '10px 0 0 0' }}
+                >
+                  Estadísticas
+                </Title>
+                <Text style={{ color: 'rgba(255,255,255,0.9)' }}>
+                  Visualizador de estadísticas.
+                </Text>
+              </Space>
+            </Card>
+          </Col>
+
+          <Col xs={24} sm={12} lg={8}>
+            <Card
+              hoverable
+              className="custom-card"
+              style={cardStyle(
+                'linear-gradient(135deg, #d97706 0%, #78350f 100%)',
+              )}
               onClick={() => navigate(ROUTES.PRESUPUESTO_GENERATOR)}
             >
-              <Space direction="vertical" size="middle">
-                <FileTextOutlined style={{ fontSize: '40px', color: '#fff' }} />
-                <Title level={4} style={{ color: '#fff', margin: 0 }}>
-                  Generador de Presupuestos
+              <Space direction="vertical" size="small">
+                <FileTextOutlined style={{ fontSize: '32px', color: '#fff' }} />
+                <Title
+                  level={3}
+                  style={{ color: '#fff', margin: '10px 0 0 0' }}
+                >
+                  Presupuestos
                 </Title>
-                <Text style={{ color: 'rgba(255,255,255,0.85)' }}>
-                  Generador de presupuestos rápido
+                <Text style={{ color: 'rgba(255,255,255,0.9)' }}>
+                  Generación de presupuestos.
                 </Text>
               </Space>
             </Card>
           </Col>
 
-          {/* EXCEL */}
           <Col xs={24} sm={12} lg={8}>
             <Card
-              className="card-wrapper custom-hover-card"
               hoverable
-              style={{
-                background: 'linear-gradient(135deg, #209b7e 0%, #085644 100%)',
-                borderRadius: '12px',
-              }}
+              className="custom-card"
+              style={cardStyle(
+                'linear-gradient(135deg, #16a34a 0%, #14532d 100%)',
+              )}
               onClick={() => navigate(ROUTES.EXCEL_MANAGER)}
             >
-              <Space direction="vertical" size="middle">
+              <Space direction="vertical" size="small">
                 <FileExcelOutlined
-                  style={{ fontSize: '40px', color: '#fff' }}
+                  style={{ fontSize: '32px', color: '#fff' }}
                 />
-                <Title level={4} style={{ color: '#fff', margin: 0 }}>
+                <Title
+                  level={3}
+                  style={{ color: '#fff', margin: '10px 0 0 0' }}
+                >
                   Herramientas Excel
                 </Title>
-                <Text style={{ color: 'rgba(255,255,255,0.85)' }}>
-                  Exportador e Importador de Excel
+                <Text style={{ color: 'rgba(255,255,255,0.9)' }}>
+                  Importación y exportación de datos masivos.
                 </Text>
               </Space>
             </Card>

@@ -11,6 +11,7 @@ export const ROUTES = {
   PRESUPUESTO_GENERATOR: '/presupuesto-generator',
   CLIENT_MANAGER: '/client-manager',
   CLIENT_MANAGER_FORM: '/client-manager/:client_id?',
+  STATISTICS: '/statistics',
   EXCEL_MANAGER: '/excel-manager',
 };
 

@@ -22,7 +22,6 @@ const { Title } = Typography;
 const ExcelImporter: React.FC = () => {
   const MAX_SEARCH_BLANK_ROWS: number = 100;
   const EXCEL_HEADER_WITH_REQUIRED_VALUE_COLUMNS = [
-    'PROVEEDOR',
     'TIPO DE GAFA',
     'REFERENCIA',
   ];
@@ -100,7 +99,7 @@ const ExcelImporter: React.FC = () => {
       if (requiredColumnsLeft.length > 0) {
         setProcessResultMessages((prevMessages) => [
           ...prevMessages,
-          `Pestaña "${sheetName}": NO cumple con las COLUMNAS obligatorias!`,
+          `Pestaña "${sheetName}": NO cumple con las COLUMNAS obligatorias ${requiredColumnsLeft.join(', ')}!`,
         ]);
       }
 
