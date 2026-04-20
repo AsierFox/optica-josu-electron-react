@@ -164,11 +164,11 @@ const ClientManagerFormPage: React.FC = () => {
           );
         }
 
-        const clientExaminatiosDDBB =
-          await window.electron.ipcMysql.getExaminationsClientById(clientId);
+        const clientExaminationsDDBB =
+          await window.electron.ipcMysql.getClientExaminationsById(clientId);
 
         setClient(clientDDBB);
-        setExaminations(clientExaminatiosDDBB);
+        setExaminations(clientExaminationsDDBB);
 
         form.setFieldsValue({
           ...clientDDBB,
@@ -331,7 +331,6 @@ const ClientManagerFormPage: React.FC = () => {
             </Row>
           </Form>
 
-          {/* EXAMINATIOS */}
           <Card style={{ marginTop: 30 }} hidden={isNewClient}>
             <div style={{ marginBottom: '20px' }}>
               <Title level={3} style={{ marginBottom: '15px' }}>

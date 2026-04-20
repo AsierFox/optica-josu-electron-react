@@ -38,10 +38,12 @@ const ProductStockPage: React.FC = () => {
     setEditingProduct(newProduct);
   };
 
-  const prepareProductForDDBB = (product: ProductModel) => ({
+  const prepareProductForDDBB = (product: ProductModel): ProductModel => ({
     ...product,
     fechaCompra: product.fechaCompra?.format('YYYY-MM-DD'),
     fechaVenta: product.fechaVenta?.format('YYYY-MM-DD'),
+    createNewProduct: product.createNewProduct,
+    createNewProductFromDDBB: product.createNewProductFromDDBB,
   });
 
   const prepareProductForReadOnTable = (

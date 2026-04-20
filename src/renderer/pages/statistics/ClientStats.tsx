@@ -18,11 +18,15 @@ const ClientStats: React.FC<Props> = ({ clients }) => {
   useEffect(() => {
     const geocodeAddresses = async () => {
       setLoadingMap(true);
+      const alreadySearchedLatLng: Record<string, google.maps.LatLng> = {};
 
       const geolocatingLatLng = clients.map(
-        async (client: ClientModel): window.google.maps.LatLng => {
+        async (client: ClientModel): Promise<google.maps.LatLng | null> => {
           if (!client.ciudad) {
             return null;
+          }
+          if (alreadySearchedLatLng[client.ciudad]) {
+            return alreadySearchedLatLng[client.ciudad];
           }
           try {
             // Nominatim para geocodificar gratis
@@ -33,16 +37,20 @@ const ClientStats: React.FC<Props> = ({ clients }) => {
             if (data && data.length > 0) {
               const lat = parseFloat(data[0].lat);
               const lng = parseFloat(data[0].lon);
-              return new window.google.maps.LatLng(lat, lng);
+              alreadySearchedLatLng[client.ciudad] =
+                new window.google.maps.LatLng(lat, lng);
+              return alreadySearchedLatLng[client.ciudad];
             }
           } catch {
-            console.error('Error geocodificando:', client.ciudad);
+            console.log('Error geocodificando:', client.ciudad);
           }
           return null;
         },
       );
 
-      const geolocatedLatLng = await Promise.all(geolocatingLatLng);
+      const geolocatedLatLng = (await Promise.all(geolocatingLatLng)).filter(
+        (latLng) => !!latLng,
+      );
       setMapPoints(geolocatedLatLng);
       setLoadingMap(false);
     };
@@ -61,7 +69,7 @@ const ClientStats: React.FC<Props> = ({ clients }) => {
           <Card
             title={
               <Text strong style={{ fontSize: '18px' }}>
-                Mapa de Calor de Clientes por Ciudad
+                Clientes por Ciudad
               </Text>
             }
             style={{

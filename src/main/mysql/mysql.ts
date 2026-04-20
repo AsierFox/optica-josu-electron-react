@@ -63,6 +63,16 @@ export const registerMysqlIPCHandlers = () => {
     }
   });
 
+  ipcMain.handle('mysql-get-client-examinations', async () => {
+    try {
+      const [rows] = await query(`SELECT * FROM EXAMINATIONS`);
+      return ModelParserService.parseExaminationModels(rows as any []);
+    } catch (error) {
+      console.error('Database query error:', error);
+      throw new Error('Database query failed');
+    }
+  });
+
   ipcMain.handle('mysql-get-client-by-id', async (_event, clientId: number) => {
     try {
       const [rows] = await query(`
@@ -77,7 +87,7 @@ export const registerMysqlIPCHandlers = () => {
     }
   });
 
-  ipcMain.handle('mysql-get-client-examinatios-by-id', async (_event, clientId: number) => {
+  ipcMain.handle('mysql-get-client-examinations-by-id', async (_event, clientId: number) => {
     try {
       const [rows] = await query(`
         SELECT * FROM EXAMINATIONS WHERE ID_CLIENT = ? ORDER BY UPDATED_AT DESC`, [clientId]);
@@ -164,11 +174,43 @@ export const registerMysqlIPCHandlers = () => {
         product.precioVenta ?? null,
         product.notes ?? null,
       ];
+
       const [result] = await query(`INSERT INTO PRODUCTS
         (PROVEEDOR, FIRMA, ID_PRODUCT_TYPE, REFERENCIA, MODELO, COLOR, CALIBRE_PUENTE,
         FECHA_COMPRA, PRECIO_COMPRA, FECHA_VENTA, PRECIO_VENTA, NOTES)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, params);
+
       return result.insertId;
+    } catch (error) {
+      console.error('Database query error:', error);
+      throw new Error('Database query failed');
+    }
+  });
+
+  ipcMain.handle('mysql-create-products', async (_event, products: ProductModel[]) => {
+    try {
+      const values = products.map((product) => [
+        product.proveedor ? `'${product.proveedor}'` : 'NULL',
+        product.firma ? `'${product.firma}'` : 'NULL',
+        `'${product.typeId}'`,
+        `'${product.referencia}'`,
+        product.modelo ? `'${product.modelo}'` : 'NULL',
+        product.color ? `'${product.color}'` : 'NULL',
+        product.calibrePuente ? `'${product.calibrePuente}'` : 'NULL',
+        product.fechaCompra ? `'${product.fechaCompra}'` : 'NULL',
+        product.precioCompra ? `'${product.precioCompra}'` : 'NULL',
+        product.fechaVenta ? `'${product.fechaVenta}'` : 'NULL',
+        product.precioVenta ? `'${product.precioVenta}'` : 'NULL',
+        product.notes ? `'${product.notes}'` : 'NULL',
+      ]);
+
+      const sql = `INSERT INTO PRODUCTS
+        (PROVEEDOR, FIRMA, ID_PRODUCT_TYPE, REFERENCIA, MODELO, COLOR, CALIBRE_PUENTE,
+        FECHA_COMPRA, PRECIO_COMPRA, FECHA_VENTA, PRECIO_VENTA, NOTES)
+        VALUES ${ values.map((value) => `( ${value.join(', ')} )`).join(', ') }`;
+
+      const [result] = await query(sql, [values]);
+      return result;
     } catch (error) {
       console.error('Database query error:', error);
       throw new Error('Database query failed');

@@ -15,6 +15,7 @@ import * as XLSX from 'xlsx';
 import ProductModel from '../../../main/models/product.model';
 import ProductTypeModel from '../../../main/models/productType.model';
 import AdminLayout from '../../layouts/AdminLayout';
+import utils from '../../utils/util';
 
 const { Dragger } = Upload;
 const { Title } = Typography;
@@ -157,7 +158,23 @@ const ExcelImporter: React.FC = () => {
         sheetRow[sheetHeaderColumnsStructure.REFERENCIA] ?? null;
       newProduct.modelo = sheetRow[sheetHeaderColumnsStructure.MODELO] ?? null;
       newProduct.color = sheetRow[sheetHeaderColumnsStructure.COLOR] ?? null;
-      newProduct.typeId = null;
+      switch (sheetRow[sheetHeaderColumnsStructure['TIPO DE GAFA']]) {
+        case 'GRADUADA':
+        case 'GRADUADO':
+          newProduct.typeId = 1;
+          break;
+        case 'SOL':
+          newProduct.typeId = 3;
+          break;
+        case 'LUPA':
+          newProduct.typeId = 4;
+          break;
+        case 'PRISMATICOS':
+          newProduct.typeId = 5;
+          break;
+        default:
+          newProduct.typeId = null;
+      }
       newProduct.precioCompra =
         sheetRow[sheetHeaderColumnsStructure['PRECIO DE COMPRA']] ?? null;
       newProduct.precioVenta =
@@ -166,10 +183,10 @@ const ExcelImporter: React.FC = () => {
         sheetRow[sheetHeaderColumnsStructure['CALIBRE Y PUENTE']] ?? null;
       // TODO Revisar FECHAS
       newProduct.fechaCompra =
-        sheetRow[sheetHeaderColumnsStructure['FECHA DE COMPRA']] ?? null;
+        utils.formatDateToYYYYMMDD(new Date((sheetRow[sheetHeaderColumnsStructure['FECHA DE COMPRA']] - 25569) * 86400 * 1000)) ?? null;
       // TODO Hacer juego con Columna VENDIDA
       newProduct.fechaVenta =
-        sheetRow[sheetHeaderColumnsStructure['FECHA DE VENTA']] ?? null;
+        utils.formatDateToYYYYMMDD(new Date((sheetRow[sheetHeaderColumnsStructure['FECHA DE VENTA']] - 25569) * 86400 * 1000)) ?? null;
 
       newProductsFromSheet.push(newProduct);
 
@@ -314,9 +331,9 @@ const ExcelImporter: React.FC = () => {
   const handleSaveToDDBB = async () => {
     setLoading(true);
     try {
-      console.log(allDataRef.current);
-      // await window.electron.ipcMysql.importClients(data);
-
+      await window.electron.ipcMysql.createProducts(
+        allDataRef.current.productsToImport,
+      );
       api.success({
         message: 'Importación completada',
         description: 'Los datos se han guardado en la base de datos.',

@@ -7,11 +7,13 @@ import ProductTypeModel from '../../../main/models/productType.model';
 import AdminLayout from '../../layouts/AdminLayout';
 import ClientStats from './ClientStats';
 import ProductStockStats from './ProductStockStats';
+import ExaminationModel from '../../../main/models/examination.model';
 
 const StatisticsPage: React.FC = () => {
   const [isLoading, setLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [clients, setClients] = useState<ClientModel[]>([]);
+  const [examinations, setExaminations] = useState<ExaminationModel[]>();
   const [products, setProducts] = useState<ProductModel[]>([]);
   const [productTypes, setProductTypes] = useState<ProductTypeModel[]>([]);
   const [examinationTypes, setExaminationTypes] = useState<
@@ -25,12 +27,15 @@ const StatisticsPage: React.FC = () => {
         const productsFetched = await window.electron.ipcMysql.getProducts();
         const productsTypesFetched =
           await window.electron.ipcMysql.getProductTypes();
+        const examinationsFetched =
+          await window.electron.ipcMysql.getClientExaminations();
         const examinationTypesFetched =
           await window.electron.ipcMysql.getExaminationTypes();
 
         setClients(clientsFetched);
         setProducts(productsFetched);
         setProductTypes(productsTypesFetched);
+        setExaminations(examinationsFetched);
         setExaminationTypes(examinationTypesFetched);
       } catch {
         setErrorMessage('¡Error al obtener los productos de la Base de Datos!');

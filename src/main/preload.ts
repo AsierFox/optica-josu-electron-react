@@ -15,13 +15,15 @@ const electronHandler = {
     getProducts: (): Promise<ProductModel[]> => ipcRenderer.invoke('mysql-get-products'),
     getProductTypes: (): Promise<ProductTypeModel[]> => ipcRenderer.invoke('mysql-get-product-types'),
     getExaminationTypes: (): Promise<ExaminationTypeModel[]> => ipcRenderer.invoke('mysql-get-examination-types'),
+    getClientExaminations: (): Promise<ExaminationModel[]> => ipcRenderer.invoke('mysql-get-client-examinations'),
 
     getClientById: (clientId: number): Promise<ClientModel> => ipcRenderer.invoke('mysql-get-client-by-id', clientId),
-    getExaminationsClientById: (clientId: number): Promise<ExaminationModel[]> => ipcRenderer.invoke('mysql-get-client-examinatios-by-id', clientId),
+    getClientExaminationsById: (clientId: number): Promise<ExaminationModel[]> => ipcRenderer.invoke('mysql-get-client-examinations-by-id', clientId),
 
     createClient: (client: ClientModel): Promise<number> => ipcRenderer.invoke('mysql-create-client', client),
     createExamination: (examination: ExaminationModel): Promise<number> => ipcRenderer.invoke('mysql-create-examination', examination),
     createProduct: (product: ProductModel): Promise<number> => ipcRenderer.invoke('mysql-create-product', product),
+    createProducts: (products: ProductModel[]): Promise<number> => ipcRenderer.invoke('mysql-create-products', products),
 
     updateClient: (client: ClientModel): Promise<void> => ipcRenderer.invoke('mysql-update-client', client),
     updateExamination: (examination: ExaminationModel): Promise<void> => ipcRenderer.invoke('mysql-update-examination', examination),

@@ -86,7 +86,7 @@ const HomeSelectorPage: React.FC = () => {
               hoverable
               className="custom-card"
               style={cardStyle(
-                'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)',
+                'linear-gradient(135deg, #daedff 0%, #9dceff 100%)',
               )}
               onClick={() => navigate(ROUTES.PRODUCT_STOCK)}
             >
