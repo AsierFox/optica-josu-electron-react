@@ -57,8 +57,6 @@ const ExaminationForm: React.FC<Props> = ({
     setLoading(true);
 
     try {
-      console.log(values);
-      debugger;
       const updatedExamination = {
         ...examination,
         ...values,

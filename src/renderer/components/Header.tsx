@@ -27,7 +27,7 @@ const Header: React.FC = () => {
         alignItems: 'center',
         justifyContent: 'space-between',
         borderBottom: '1px solid #002140',
-        height: 64,
+        height: 50,
         boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
       }}
     >

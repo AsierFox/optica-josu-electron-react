@@ -105,28 +105,7 @@ const ProductStockStats: React.FC<Props> = ({ products, productTypes }) => {
   return (
     <div style={{ marginTop: 16 }}>
       <Row gutter={[16, 16]}>
-        {/* Gráfica de Línea - Ocupa 14 de 24 columnas (aprox 60%) */}
-        <Col xs={24} lg={14}>
-          <Card
-            style={{
-              borderRadius: 8,
-              height: '100%',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-            }}
-            title={
-              <span
-                style={{ color: '#595959', fontSize: '18px', fontWeight: 600 }}
-              >
-                Evolución de Inventario
-              </span>
-            }
-          >
-            <Line {...productsByMonthsConfig} height={250} />
-          </Card>
-        </Col>
-
-        {/* Gráfica de Tarta - Ocupa 10 de 24 columnas (aprox 40%) */}
-        <Col xs={24} lg={10}>
+        <Col xs={24} lg={12}>
           <Card
             style={{
               borderRadius: 8,
@@ -142,6 +121,25 @@ const ProductStockStats: React.FC<Props> = ({ products, productTypes }) => {
             }
           >
             <Pie {...productByTypesConfig} height={250} />
+          </Card>
+        </Col>
+
+        <Col xs={24} lg={12}>
+          <Card
+            style={{
+              borderRadius: 8,
+              height: '100%',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+            }}
+            title={
+              <span
+                style={{ color: '#595959', fontSize: '18px', fontWeight: 600 }}
+              >
+                Evolución de Inventario
+              </span>
+            }
+          >
+            <Line {...productsByMonthsConfig} height={250} />
           </Card>
         </Col>
       </Row>

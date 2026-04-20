@@ -30,7 +30,9 @@ const Footer: React.FC = () => {
         <span style={{ color: '#d9d9d9' }}>|</span>
         <span>
           Desarrollado por{' '}
-          <span style={{ color: '#1890ff', fontWeight: 500 }}>Asier</span>
+          <span style={{ color: '#1890ff', fontWeight: 500 }}>
+            asiergonzalez1995@gmail.com
+          </span>
         </span>
       </div>
     </AntFooter>

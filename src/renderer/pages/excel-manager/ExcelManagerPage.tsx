@@ -41,20 +41,39 @@ const ExcelImporter: React.FC = () => {
   ];
 
   const [loading, setLoading] = useState(true);
+  const [api, contextHolder] = notification.useNotification();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [processResultMessages, setProcessResultMessages] = useState<string[]>(
     [],
   );
   const [productTypes, setProductTypes] = useState<ProductTypeModel[]>([]);
   // Ref para almacenar todos los datos sin necesidad de re-renderizar
-  const allDataRef = React.useRef<ProductModel[]>([]);
-  const [api, contextHolder] = notification.useNotification();
+  const allDataRef = React.useRef<{
+    productsToImport: ProductModel[];
+    productsToExportExcel: any[];
+  }>({
+    productsToImport: [],
+    productsToExportExcel: [],
+  });
+
+  const exportToExcel = (fileName: string = 'Exportacion_Productos.xlsx') => {
+    const worksheet = XLSX.utils.json_to_sheet(
+      allDataRef.current.productsToExportExcel,
+    );
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Productos');
+    XLSX.writeFile(workbook, fileName);
+  };
 
   const createNewProductsFromExcelSheetRows = (
     sheetName: string,
     sheetRows: any[],
-  ): ProductModel[] => {
+  ): {
+    newProductsToImport: ProductModel[];
+    newProductsToExportExcel: any[];
+  } => {
     const newProductsFromSheet: ProductModel[] = [];
+    const rowsToExportSingleExcel: any[] = [];
     // La key es el nombre de cada columna, y el value es el index de la columna
     let sheetHeaderColumnsStructure: { [key: string]: number } = {};
 
@@ -133,9 +152,9 @@ const ExcelImporter: React.FC = () => {
 
       newProduct.proveedor =
         sheetRow[sheetHeaderColumnsStructure.PROVEEDOR] ?? null;
-      newProduct.firma = sheetRow[sheetHeaderColumnsStructure.FIRMA] ?? null;
+      newProduct.firma = sheetRow[sheetHeaderColumnsStructure.FIRMAS] ?? null;
       newProduct.referencia =
-        sheetRow[sheetHeaderColumnsStructure.FIRMAS] ?? null;
+        sheetRow[sheetHeaderColumnsStructure.REFERENCIA] ?? null;
       newProduct.modelo = sheetRow[sheetHeaderColumnsStructure.MODELO] ?? null;
       newProduct.color = sheetRow[sheetHeaderColumnsStructure.COLOR] ?? null;
       newProduct.typeId = null;
@@ -153,9 +172,33 @@ const ExcelImporter: React.FC = () => {
         sheetRow[sheetHeaderColumnsStructure['FECHA DE VENTA']] ?? null;
 
       newProductsFromSheet.push(newProduct);
+
+      rowsToExportSingleExcel.push({
+        PROVEEDOR: sheetRow[sheetHeaderColumnsStructure.PROVEEDOR] ?? null,
+        FIRMAS: sheetRow[sheetHeaderColumnsStructure.FIRMAS] ?? null,
+        'TIPO DE GAFA':
+          sheetRow[sheetHeaderColumnsStructure['TIPO DE GAFA']] ?? null,
+        REFERENCIA: sheetRow[sheetHeaderColumnsStructure.REFERENCIA] ?? null,
+        MODELO: sheetRow[sheetHeaderColumnsStructure.MODELO] ?? null,
+        COLOR: sheetRow[sheetHeaderColumnsStructure.COLOR] ?? null,
+        'CALIBRE Y PUENTE':
+          sheetRow[sheetHeaderColumnsStructure['CALIBRE Y PUENTE']] ?? null,
+        'PRECIO DE COMPRA':
+          sheetRow[sheetHeaderColumnsStructure['PRECIO DE COMPRA']] ?? null,
+        'FECHA DE COMPRA':
+          sheetRow[sheetHeaderColumnsStructure['FECHA DE COMPRA']] ?? null,
+        'PRECIO DE VENTA':
+          sheetRow[sheetHeaderColumnsStructure['PRECIO DE VENTA']] ?? null,
+        'FECHA DE VENTA':
+          sheetRow[sheetHeaderColumnsStructure['FECHA DE VENTA']] ?? null,
+        VENDIDA: sheetRow[sheetHeaderColumnsStructure.VENDIDA] ?? null,
+      });
     }
 
-    return newProductsFromSheet;
+    return {
+      newProductsToImport: newProductsFromSheet,
+      newProductsToExportExcel: rowsToExportSingleExcel,
+    };
   };
 
   const handleReadFile = (file: File) => {
@@ -176,7 +219,13 @@ const ExcelImporter: React.FC = () => {
             cellFormula: false, // Vital para mayor rapidez
           });
 
-          const productsToImport: ProductModel[] = [];
+          const productsToImport: {
+            newProductsToImport: ProductModel[];
+            newProductsToExportExcel: any[];
+          } = {
+            newProductsToImport: [],
+            newProductsToExportExcel: [],
+          };
 
           // Recorremos las pestañas del Excel
           workbook.SheetNames.forEach(async (name: string) => {
@@ -224,11 +273,15 @@ const ExcelImporter: React.FC = () => {
               }
             }
 
-            productsToImport.push(
-              ...createNewProductsFromExcelSheetRows(
-                name,
-                allSheetProcessedRows,
-              ),
+            const productsFromSheet = createNewProductsFromExcelSheetRows(
+              name,
+              allSheetProcessedRows,
+            );
+            productsToImport.newProductsToImport.push(
+              ...productsFromSheet.newProductsToImport,
+            );
+            productsToImport.newProductsToExportExcel.push(
+              ...productsFromSheet.newProductsToExportExcel,
             );
 
             // Cada pestaña procesada, liberamos el hilo 1ms
@@ -237,11 +290,14 @@ const ExcelImporter: React.FC = () => {
             });
           });
 
-          allDataRef.current = productsToImport;
+          allDataRef.current.productsToImport =
+            productsToImport.newProductsToImport;
+          allDataRef.current.productsToExportExcel =
+            productsToImport.newProductsToExportExcel;
 
           setProcessResultMessages((prevMessages) => [
             ...prevMessages,
-            `Total: ${allDataRef.current.length} productos en ${workbook.SheetNames.length} pestañas.`,
+            `Total: ${allDataRef.current.productsToImport.length} productos en ${workbook.SheetNames.length} pestañas.`,
           ]);
         } catch {
           setErrorMessage('Error al procesar el Excel');
@@ -273,7 +329,8 @@ const ExcelImporter: React.FC = () => {
   };
 
   const handleCancelImport = () => {
-    allDataRef.current = [];
+    allDataRef.current.productsToImport = [];
+    allDataRef.current.productsToExportExcel = [];
     setProcessResultMessages([]);
     setErrorMessage(null);
   };
@@ -361,13 +418,24 @@ const ExcelImporter: React.FC = () => {
                       <Button
                         type="primary"
                         style={{
-                          backgroundColor: '#13c268',
-                          borderColor: '#13c268',
+                          backgroundColor: '#3fc213',
+                          borderColor: '#3fc213',
                           fontSize: '16px',
                         }}
                         onClick={handleSaveToDDBB}
                       >
                         Importar Productos a la Base de Datos
+                      </Button>
+                      <Button
+                        type="primary"
+                        style={{
+                          backgroundColor: '#13c268',
+                          borderColor: '#13c268',
+                          fontSize: '16px',
+                        }}
+                        onClick={() => exportToExcel()}
+                      >
+                        Exportar a Única Excel
                       </Button>
                       <Button type="default" onClick={handleCancelImport}>
                         Volver a Cargar

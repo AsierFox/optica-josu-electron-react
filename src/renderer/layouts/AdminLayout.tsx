@@ -12,10 +12,10 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   } = theme.useToken();
 
   return (
-    <Layout style={{ height: '100%' }}>
+    <Layout style={{ minHeight: '100vh' }}>
       <MenuSlider />
       <Layout>
-        <Header colorBgContainer={colorBgContainer} />
+        <Header />
 
         <Content
           style={{

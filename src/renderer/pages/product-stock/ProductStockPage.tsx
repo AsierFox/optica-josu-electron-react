@@ -10,7 +10,6 @@ import AdminLayout from '../../layouts/AdminLayout';
 import util from '../../utils/util';
 import ProductStockFilters from './ProductStockFilters';
 import { ProductStockFilterValue } from './ProductStockFilterValue';
-import ProductStockStats from './ProductStockStats';
 import ProductStockTable from './ProductStockTable';
 
 dayjs.extend(isBetween);
@@ -18,12 +17,12 @@ dayjs.extend(isBetween);
 const ProductStockPage: React.FC = () => {
   const [isLoading, setLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [editingProduct, setEditingProduct] = useState<ProductModel | null>(
-    null,
-  );
   const [tableDataSource, setTableDataSource] = useState<ProductModel[]>([]);
   const [products, setProducts] = useState<ProductModel[]>([]);
   const [productTypes, setProductTypes] = useState<ProductTypeModel[]>([]);
+  const [editingProduct, setEditingProduct] = useState<ProductModel | null>(
+    null,
+  );
 
   const [api, contextHolder] = notification.useNotification();
   const [form] = Form.useForm();
@@ -352,8 +351,6 @@ const ProductStockPage: React.FC = () => {
           onDelete={handleDelete}
         />
       </Form>
-
-      <ProductStockStats products={products} productTypes={productTypes} />
     </AdminLayout>
   );
 };

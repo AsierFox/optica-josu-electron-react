@@ -5,6 +5,7 @@ import ClientModel from './models/client.model';
 import ExaminationModel from './models/examination.model';
 import ProductModel from './models/product.model';
 import ProductTypeModel from './models/productType.model';
+import ExaminationTypeModel from './models/examinationType.model';
 
 export type Channels = 'ipc-example';
 
@@ -13,7 +14,7 @@ const electronHandler = {
     getClients: (): Promise<ClientModel[]> => ipcRenderer.invoke('mysql-get-clients'),
     getProducts: (): Promise<ProductModel[]> => ipcRenderer.invoke('mysql-get-products'),
     getProductTypes: (): Promise<ProductTypeModel[]> => ipcRenderer.invoke('mysql-get-product-types'),
-    getExaminationTypes: (): Promise<ExaminationModel[]> => ipcRenderer.invoke('mysql-get-examination-types'),
+    getExaminationTypes: (): Promise<ExaminationTypeModel[]> => ipcRenderer.invoke('mysql-get-examination-types'),
 
     getClientById: (clientId: number): Promise<ClientModel> => ipcRenderer.invoke('mysql-get-client-by-id', clientId),
     getExaminationsClientById: (clientId: number): Promise<ExaminationModel[]> => ipcRenderer.invoke('mysql-get-client-examinatios-by-id', clientId),

@@ -17,6 +17,7 @@ import ExcelManagerPage from './pages/excel-manager/ExcelManagerPage';
 import HomeSelector from './pages/HomeSelectorPage';
 import PresupuestoGenerator from './pages/presupuesto-generator/PresupuestoGeneratorPage';
 import ProductStockPage from './pages/product-stock/ProductStockPage';
+import StatisticsPage from './pages/statistics/StatisticsPage';
 
 require('dayjs/locale/es');
 
@@ -32,14 +33,6 @@ export default function App() {
             <Routes>
               <Route path={ROUTES.HOME} element={<HomeSelector />} />
               <Route
-                path={ROUTES.PRODUCT_STOCK}
-                element={<ProductStockPage />}
-              />
-              <Route
-                path={ROUTES.PRESUPUESTO_GENERATOR}
-                element={<PresupuestoGenerator />}
-              />
-              <Route
                 path={ROUTES.CLIENT_MANAGER}
                 element={<ClientManagerPage />}
               />
@@ -47,6 +40,15 @@ export default function App() {
                 path={ROUTES.CLIENT_MANAGER_FORM}
                 element={<ClientManagerFormPage />}
               />
+              <Route
+                path={ROUTES.PRODUCT_STOCK}
+                element={<ProductStockPage />}
+              />
+              <Route
+                path={ROUTES.PRESUPUESTO_GENERATOR}
+                element={<PresupuestoGenerator />}
+              />
+              <Route path={ROUTES.STATISTICS} element={<StatisticsPage />} />
               <Route
                 path={ROUTES.EXCEL_MANAGER}
                 element={<ExcelManagerPage />}

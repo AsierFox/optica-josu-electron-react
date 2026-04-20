@@ -2,7 +2,7 @@ import {
   FileTextOutlined,
   LineChartOutlined,
   ToolOutlined,
-  UsergroupAddOutlined
+  UsergroupAddOutlined,
 } from '@ant-design/icons';
 import { Menu, Typography } from 'antd';
 import Sider from 'antd/es/layout/Sider';
@@ -38,6 +38,10 @@ const MenuSlider: React.FC = () => {
       key: '4',
       label: 'Presupuesto',
     },
+    [ROUTES.STATISTICS]: {
+      key: '5',
+      label: 'Estadísticas',
+    },
   };
 
   const getCurrentMenuSelection = () => {
@@ -53,7 +57,6 @@ const MenuSlider: React.FC = () => {
       collapsed={collapsed}
       style={{
         backgroundColor: '#001529',
-        height: '100vh',
         boxShadow: '2px 0 8px rgba(0,0,0,0.15)',
       }}
     >
@@ -117,6 +120,14 @@ const MenuSlider: React.FC = () => {
             label: menuOptions[ROUTES.PRESUPUESTO_GENERATOR].label,
             onClick: () => {
               navigate(ROUTES.PRESUPUESTO_GENERATOR);
+            },
+          },
+          {
+            key: menuOptions[ROUTES.STATISTICS].key,
+            icon: <FileTextOutlined />,
+            label: menuOptions[ROUTES.STATISTICS].label,
+            onClick: () => {
+              navigate(ROUTES.STATISTICS);
             },
           },
         ]}
