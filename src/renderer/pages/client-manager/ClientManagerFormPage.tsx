@@ -248,17 +248,17 @@ const ClientManagerFormPage: React.FC = () => {
             <Row gutter={16}>
               <Col xs={24} sm={12}>
                 <Form.Item required name="nombre" label="Nombre">
-                  <Input required placeholder="Nombre del cliente" />
+                  <Input required />
                 </Form.Item>
               </Col>
               <Col xs={24} sm={12}>
                 <Form.Item required name="apellidos" label="Apellidos">
-                  <Input required placeholder="Apellidos del cliente" />
+                  <Input required />
                 </Form.Item>
               </Col>
               <Col xs={24} sm={12}>
                 <Form.Item name="DNI" label="DNI / NIE / Pasaporte">
-                  <Input prefix={<IdcardOutlined />} placeholder="12345678Z" />
+                  <Input prefix={<IdcardOutlined />} />
                 </Form.Item>
               </Col>
               <Col xs={24} sm={12}>
@@ -271,7 +271,7 @@ const ClientManagerFormPage: React.FC = () => {
                     required
                     style={{ width: '100%' }}
                     format="DD/MM/YYYY"
-                    placeholder="Seleccionar fecha"
+                    placeholder="Seleccionar fecha..."
                   />
                 </Form.Item>
               </Col>
@@ -285,26 +285,22 @@ const ClientManagerFormPage: React.FC = () => {
             <Row gutter={16}>
               <Col xs={24} sm={8}>
                 <Form.Item required name="telefono" label="Teléfono">
-                  <Input
-                    required
-                    prefix={<PhoneOutlined />}
-                    placeholder="600 000 000"
-                  />
+                  <Input required prefix={<PhoneOutlined />} />
                 </Form.Item>
               </Col>
               <Col xs={24} sm={16}>
                 <Form.Item name="direccion" label="Dirección">
-                  <Input placeholder="Calle, número, piso..." />
+                  <Input />
                 </Form.Item>
               </Col>
               <Col xs={24} sm={16}>
                 <Form.Item name="ciudad" label="Ciudad">
-                  <Input placeholder="Vitoria-Gasteiz" />
+                  <Input />
                 </Form.Item>
               </Col>
               <Col xs={24} sm={8}>
                 <Form.Item name="codigoPostal" label="Código Postal">
-                  <InputNumber style={{ width: '100%' }} placeholder="01001" />
+                  <Input style={{ width: '100%' }} />
                 </Form.Item>
               </Col>
             </Row>
