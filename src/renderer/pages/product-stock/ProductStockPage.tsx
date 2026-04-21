@@ -334,8 +334,13 @@ const ProductStockPage: React.FC = () => {
           title="¿Desea cancelar la edición del producto?"
           onConfirm={() => handleCancel()}
         >
-          <Button danger icon={<CloseOutlined />} disabled={!editingProduct}>
-            Cancelar Ediciones
+          <Button
+            danger
+            icon={<CloseOutlined />}
+            style={{ display: editingProduct ? '' : 'none' }}
+            disabled={!editingProduct}
+          >
+            Cancelar Creación / Edición
           </Button>
         </Popconfirm>
       </Space>

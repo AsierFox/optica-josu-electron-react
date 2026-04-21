@@ -195,6 +195,10 @@ const ProductStockTable: React.FC<Props> = ({
       {
         title: PRODUCT_FIELD_NAMES.precioCompra,
         dataIndex: 'precioCompra',
+        sorter: !editingProduct
+          ? (a: ProductModel, b: ProductModel) =>
+              (a.precioCompra || 0) - (b.precioCompra || 0)
+          : false,
         render: (_: any, record: ProductModel) =>
           record.precioCompra
             ? `${utils.priceInputFormatter(record.precioCompra)} €`
@@ -209,6 +213,10 @@ const ProductStockTable: React.FC<Props> = ({
       {
         title: PRODUCT_FIELD_NAMES.fechaVenta,
         dataIndex: 'fechaVenta',
+        sorter: !editingProduct
+          ? (a: ProductModel, b: ProductModel) =>
+              dayjs(a.fechaVenta).unix() - dayjs(b.fechaVenta).unix()
+          : false,
         onCell: (record: ProductModel) => ({
           dataIndex: 'fechaVenta',
           type: 'date',
@@ -219,6 +227,10 @@ const ProductStockTable: React.FC<Props> = ({
       {
         title: PRODUCT_FIELD_NAMES.precioVenta,
         dataIndex: 'precioVenta',
+        sorter: !editingProduct
+          ? (a: ProductModel, b: ProductModel) =>
+              (a.precioVenta || 0) - (b.precioVenta || 0)
+          : false,
         render: (_: any, record: ProductModel) =>
           record.precioVenta
             ? `${utils.priceInputFormatter(record.precioVenta)} €`
