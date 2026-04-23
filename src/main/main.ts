@@ -25,6 +25,7 @@ class AppUpdater {
 }
 
 let mainWindow: BrowserWindow | null = null;
+let splash: BrowserWindow | null = null;
 
 registerMysqlIPCHandlers();
 
@@ -66,8 +67,21 @@ const createWindow = async () => {
     return path.join(RESOURCES_PATH, ...paths);
   };
 
+  splash = new BrowserWindow({
+    transparent: true,
+    frame: false,
+    alwaysOnTop: true,
+    width: 600,
+    height: 350,
+  });
+
+  splash.loadFile(getAssetPath('splash.html'));
+
   mainWindow = new BrowserWindow({
     show: false,
+    fullscreenable: true,
+    autoHideMenuBar: true,
+    alwaysOnTop: true,
     width: 1024,
     height: 728,
     icon: getAssetPath('optica-josu-logo.png'),
@@ -87,7 +101,12 @@ const createWindow = async () => {
     if (process.env.START_MINIMIZED) {
       mainWindow.minimize();
     } else {
+      splash?.close();
       mainWindow.show();
+      mainWindow.focus();
+      mainWindow.setAlwaysOnTop(false);
+
+      splash = null;
     }
   });
 

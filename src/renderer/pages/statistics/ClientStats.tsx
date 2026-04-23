@@ -55,8 +55,12 @@ const ClientStats: React.FC<Props> = ({ clients }) => {
       setLoadingMap(false);
     };
 
-    if (clients.length > 0) {
-      geocodeAddresses();
+    try {
+      if (clients.length > 0) {
+        geocodeAddresses();
+      }
+    } catch {
+      setLoadingMap(false);
     }
   }, [clients]);
 

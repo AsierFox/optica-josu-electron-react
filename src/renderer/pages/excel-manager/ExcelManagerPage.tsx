@@ -12,6 +12,7 @@ import {
 } from 'antd';
 import React, { useEffect, useState } from 'react';
 import * as XLSX from 'xlsx';
+import dayjs from 'dayjs';
 import ProductModel from '../../../main/models/product.model';
 import ProductTypeModel from '../../../main/models/productType.model';
 import AdminLayout from '../../layouts/AdminLayout';
@@ -47,6 +48,7 @@ const ExcelImporter: React.FC = () => {
   const [processResultMessages, setProcessResultMessages] = useState<string[]>(
     [],
   );
+  const [existingProducts, setExistingProducts] = useState<ProductModel[]>([]);
   const [productTypes, setProductTypes] = useState<ProductTypeModel[]>([]);
   // Ref para almacenar todos los datos sin necesidad de re-renderizar
   const allDataRef = React.useRef<{
@@ -64,6 +66,37 @@ const ExcelImporter: React.FC = () => {
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Productos');
     XLSX.writeFile(workbook, fileName);
+  };
+
+  const compareProductsFromExcel = () => {
+    const newProducts = allDataRef.current.productsToImport.filter(
+      (sheetRow) =>
+        !existingProducts.some(
+          (dbProduct) => dbProduct.referencia === sheetRow.referencia,
+        ),
+    );
+    setProcessResultMessages((prevMessages) => [
+      ...prevMessages,
+      `Productos nuevos encontrados: ${JSON.stringify(newProducts.map((product) => product.referencia))}`,
+    ]);
+
+    const productsWithIncoherentDates: string[] = [];
+    allDataRef.current.productsToImport.forEach((importProduct) => {
+      existingProducts.forEach((existingProduct) => {
+        if (importProduct.referencia === existingProduct.referencia) {
+          if (importProduct.fechaCompra !== existingProduct.fechaCompra) {
+            productsWithIncoherentDates.push(importProduct.referencia ?? '');
+          }
+          if (importProduct.fechaVenta !== existingProduct.fechaVenta) {
+            productsWithIncoherentDates.push(importProduct.referencia ?? '');
+          }
+        }
+      });
+    });
+    setProcessResultMessages((prevMessages) => [
+      ...prevMessages,
+      `Productos con fechas que no coinciden!!: ${productsWithIncoherentDates.join(', ')}`,
+    ]);
   };
 
   const createNewProductsFromExcelSheetRows = (
@@ -181,12 +214,48 @@ const ExcelImporter: React.FC = () => {
         sheetRow[sheetHeaderColumnsStructure['PRECIO DE VENTA']] ?? null;
       newProduct.calibrePuente =
         sheetRow[sheetHeaderColumnsStructure['CALIBRE Y PUENTE']] ?? null;
-      // TODO Revisar FECHAS
-      newProduct.fechaCompra =
-        utils.formatDateToYYYYMMDD(new Date((sheetRow[sheetHeaderColumnsStructure['FECHA DE COMPRA']] - 25569) * 86400 * 1000)) ?? null;
-      // TODO Hacer juego con Columna VENDIDA
-      newProduct.fechaVenta =
-        utils.formatDateToYYYYMMDD(new Date((sheetRow[sheetHeaderColumnsStructure['FECHA DE VENTA']] - 25569) * 86400 * 1000)) ?? null;
+
+      if (sheetRow[sheetHeaderColumnsStructure['FECHA DE COMPRA']]) {
+        let fechaCompraValor =
+          sheetRow[sheetHeaderColumnsStructure['FECHA DE COMPRA']];
+
+        const regexValidateMMYYYY = /^(0[1-9]|1[0-2])\/\d{4}$/;
+
+        if (regexValidateMMYYYY.test(fechaCompraValor)) {
+          fechaCompraValor = `01/${fechaCompraValor}`;
+        }
+        if (!dayjs(fechaCompraValor).isValid()) {
+          setProcessResultMessages((prevMessages) => [
+            ...prevMessages,
+            `La fecha de Compra de ${newProduct.referencia} no es válida.`,
+          ]);
+        } else {
+          newProduct.fechaCompra =
+            utils.formatDateToYYYYMMDD(fechaCompraValor) ?? null;
+        }
+      }
+
+      if (sheetRow[sheetHeaderColumnsStructure['FECHA DE VENTA']]) {
+        let fechaVentaValor =
+          sheetRow[sheetHeaderColumnsStructure['FECHA DE VENTA']];
+
+        const regexValidateMMYYYY = /^(0[1-9]|1[0-2])\/\d{4}$/;
+
+        if (regexValidateMMYYYY.test(fechaVentaValor)) {
+          fechaVentaValor = `01/${fechaVentaValor}`;
+        }
+        if (!dayjs(fechaVentaValor).isValid()) {
+          setProcessResultMessages((prevMessages) => [
+            ...prevMessages,
+            `La fecha de Venta de ${newProduct.referencia} no es válida.`,
+          ]);
+        } else {
+          newProduct.fechaVenta =
+            utils.formatDateToYYYYMMDD(fechaVentaValor) ?? null;
+        }
+      }
+
+      newProduct.notes = sheetRow[sheetHeaderColumnsStructure.NOTES] ?? null;
 
       newProductsFromSheet.push(newProduct);
 
@@ -209,6 +278,7 @@ const ExcelImporter: React.FC = () => {
         'FECHA DE VENTA':
           sheetRow[sheetHeaderColumnsStructure['FECHA DE VENTA']] ?? null,
         VENDIDA: sheetRow[sheetHeaderColumnsStructure.VENDIDA] ?? null,
+        NOTES: sheetRow[sheetHeaderColumnsStructure.NOTES] ?? null,
       });
     }
 
@@ -218,8 +288,11 @@ const ExcelImporter: React.FC = () => {
     };
   };
 
-  const handleReadFile = (file: File) => {
+  const handleReadFile = async (file: File) => {
     setLoading(true);
+
+    const productsFetched = await window.electron.ipcMysql.getProducts();
+    setExistingProducts(productsFetched);
 
     // Timeout para poder mostrar spinner
     setTimeout(() => {
@@ -229,6 +302,7 @@ const ExcelImporter: React.FC = () => {
           const dataArray = new Uint8Array(e.target?.result as ArrayBuffer);
           // Esta línea es la que "congela" todo si el archivo es gigante
           const workbook = XLSX.read(dataArray, {
+            cellDates: true,
             type: 'array',
             dense: true,
             cellHTML: false,
@@ -442,6 +516,17 @@ const ExcelImporter: React.FC = () => {
                         onClick={handleSaveToDDBB}
                       >
                         Importar Productos a la Base de Datos
+                      </Button>
+                      <Button
+                        type="primary"
+                        style={{
+                          backgroundColor: '#43bb7d',
+                          borderColor: '#43bb7d',
+                          fontSize: '16px',
+                        }}
+                        onClick={() => compareProductsFromExcel()}
+                      >
+                        Comparar datos con BBDD
                       </Button>
                       <Button
                         type="primary"

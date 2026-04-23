@@ -73,14 +73,23 @@ export const registerMysqlIPCHandlers = () => {
     }
   });
 
-  ipcMain.handle('mysql-get-client-by-id', async (_event, clientId: number) => {
+  ipcMain.handle('mysql-get-product-by-reference', async (_event, reference: string) => {
     try {
       const [rows] = await query(`
-        SELECT * FROM CLIENTS WHERE ID = ?`, [clientId]);
-      if (rows.length <= 0) {
-        return null;
-      }
-      return ModelParserService.parseClientModels(rows as any [])[0];
+        SELECT * FROM PRODUCTS WHERE REFERENCIA = ?`, [reference]);
+      const foundProducts = ModelParserService.parseProductModels(rows as any []);
+      return foundProducts.length > 0 ? foundProducts[0] : null;
+    } catch (error) {
+      console.error('Database query error:', error);
+      throw new Error('Database query failed');
+    }
+  });
+
+  ipcMain.handle('mysql-get-client-by-id', async (_event, clientId: number) => {
+    try {
+      const [rows] = await query(`SELECT * FROM CLIENTS WHERE ID = ?`, [clientId]);
+      const clients = ModelParserService.parseClientModels(rows as any []);
+      return clients.length > 0 ? clients[0] : null;
     } catch (error) {
       console.error('Database query error:', error);
       throw new Error('Database query failed');

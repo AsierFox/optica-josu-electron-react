@@ -18,6 +18,7 @@ const electronHandler = {
     getClientExaminations: (): Promise<ExaminationModel[]> => ipcRenderer.invoke('mysql-get-client-examinations'),
 
     getClientById: (clientId: number): Promise<ClientModel> => ipcRenderer.invoke('mysql-get-client-by-id', clientId),
+    getProductByReference: (reference: string): Promise<ProductModel> => ipcRenderer.invoke('mysql-get-product-by-reference', reference),
     getClientExaminationsById: (clientId: number): Promise<ExaminationModel[]> => ipcRenderer.invoke('mysql-get-client-examinations-by-id', clientId),
 
     createClient: (client: ClientModel): Promise<number> => ipcRenderer.invoke('mysql-create-client', client),
