@@ -1,5 +1,5 @@
 export const APP_NAME = 'Josu Optica Electron';
-export const APP_VERSION = '1.0.0';
+export const APP_VERSION = '1.0.2';
 
 export const DATE_FORMATS = {
   YYYY_MM_DD: 'YYYY-MM-DD',
