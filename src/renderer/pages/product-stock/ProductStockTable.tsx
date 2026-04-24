@@ -324,6 +324,7 @@ const ProductStockTable: React.FC<Props> = ({
       columns={columns}
       dataSource={dataSource}
       scroll={{ x: 'max-content' }}
+      sticky
       components={{
         body: {
           // Componente de celda que usa Form.Item

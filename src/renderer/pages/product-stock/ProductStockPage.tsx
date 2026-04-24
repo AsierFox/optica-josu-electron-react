@@ -300,9 +300,9 @@ const ProductStockPage: React.FC = () => {
         COLOR: product.color,
         'CALIBRE Y PUENTE': product.calibrePuente,
         'FECHA DE COMPRA': product.fechaCompra,
-        'PRECIO DE COMPRA': product.fechaCompra,
+        'PRECIO DE COMPRA': product.precioCompra,
         'FECHA DE VENTA': product.fechaVenta,
-        'PRECIO DE VENTA': product.fechaVenta,
+        'PRECIO DE VENTA': product.precioVenta,
         OBSERVACIONES: product.notes,
       })),
     );

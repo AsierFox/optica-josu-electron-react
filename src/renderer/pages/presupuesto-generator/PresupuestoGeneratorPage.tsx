@@ -40,7 +40,6 @@ const PresupuestoGeneratorPage: React.FC = () => {
   const defaultConceptFormValues = { cantidad: 1, precio: 0, iva: 0.21 };
   const defaultFormValues = {
     items: [defaultConceptFormValues],
-    fecha: dayjs().format('DD/MM/YYYY'),
   };
 
   const ivaOptions = [
@@ -179,12 +178,17 @@ const PresupuestoGeneratorPage: React.FC = () => {
                 </Form.Item>
               </Col>
               <Col xs={24} sm={4}>
-                <Form.Item name="fecha" label={<Text strong>Fecha</Text>}>
-                  <Input
-                    disabled
-                    size="large"
-                    style={{ textAlign: 'center' }}
-                  />
+                <Form.Item
+                  name="numero"
+                  label={<Text strong>Nº Presupuesto</Text>}
+                  rules={[
+                    {
+                      required: true,
+                      message: 'El número de presupuesto es obligatorio',
+                    },
+                  ]}
+                >
+                  <Input size="large" style={{ width: '100%' }} />
                 </Form.Item>
               </Col>
               <Col xs={24} sm={12}>
@@ -491,7 +495,7 @@ const PresupuestoGeneratorPage: React.FC = () => {
                     src={logoPresupuesto}
                     alt="Logo Óptica Josu"
                     style={{
-                      width: '350px',
+                      width: '380px',
                       height: 'auto',
                     }}
                   />
@@ -500,19 +504,22 @@ const PresupuestoGeneratorPage: React.FC = () => {
             </div>
 
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 20, fontWeight: 400 }}>
-                Presupuesto Fecha: {form.getFieldValue('fecha')}
+              <div style={{ fontSize: 18, fontWeight: 400 }}>
+                Nº Presupuesto: {form.getFieldValue('numero')}
+              </div>
+              <div style={{ fontSize: 15, fontWeight: 300 }}>
+                Fecha: {dayjs().format('DD/MM/YYYY')}
               </div>
             </div>
           </div>
 
           <div
             style={{
-              borderTop: '2px solid #2877e6',
+              borderTop: '2px solid #81C784',
+              marginTop: '22px',
               marginBottom: '30px',
             }}
           />
-
           {/* Datos del Cliente */}
           <Form.Item shouldUpdate noStyle>
             {() => {
@@ -634,10 +641,15 @@ const PresupuestoGeneratorPage: React.FC = () => {
                           <span style={valueStyle}>01470 AMURRIO, ALAVA</span>
                         </div>
                         <div style={rowStyle}>
-                          <span style={valueStyle}>30598959N</span>
+                          <span style={valueStyle}>CIF: 30598959N</span>
                         </div>
                         <div style={rowStyle}>
-                          <span style={valueStyle}>945393778</span>
+                          <span style={valueStyle}>Tel: 945393778</span>
+                        </div>
+                        <div style={rowStyle}>
+                          <span style={valueStyle}>
+                            Correo: jbordes@cnoo.es
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -758,7 +770,14 @@ const PresupuestoGeneratorPage: React.FC = () => {
 
                   {/* Totales */}
                   <div
-                    style={{ width: 280, marginTop: 30, marginLeft: 'auto' }}
+                    style={{
+                      width: 280,
+                      marginTop: 30,
+                      marginLeft: 'auto',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: 6,
+                      padding: 15,
+                    }}
                   >
                     <div
                       style={{
@@ -803,7 +822,7 @@ const PresupuestoGeneratorPage: React.FC = () => {
           <div
             style={{
               marginTop: 60,
-              borderTop: '1px solid #2877e6',
+              borderTop: '1px solid #81C784',
               paddingTop: 10,
               fontSize: 10,
               color: '#777',
@@ -812,7 +831,8 @@ const PresupuestoGeneratorPage: React.FC = () => {
             }}
           >
             <div>Centro Óptico Josu</div>
-            <div>Amurrio · 945 39 37 78</div>
+            <div>Iturralde 3, Amurrio · 945 39 37 78</div>
+            <div>jbordes@cnoo.es</div>
           </div>
         </div>
       </div>
