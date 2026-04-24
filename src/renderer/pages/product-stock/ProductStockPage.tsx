@@ -1,8 +1,13 @@
-import { CloseOutlined, PlusOutlined } from '@ant-design/icons';
-import { Alert, Button, Form, notification, Popconfirm, Space } from 'antd';
+import {
+  CloseOutlined,
+  FileExcelOutlined,
+  PlusOutlined,
+} from '@ant-design/icons';
+import { Alert, Button, Form, notification, Popconfirm } from 'antd';
 import dayjs from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import React, { useCallback, useEffect, useState } from 'react';
+import * as XLSX from 'xlsx';
 import ProductModel from '../../../main/models/product.model';
 import ProductTypeModel from '../../../main/models/productType.model';
 import { NEW_ROW_ID_PREFIX } from '../../app/constants';
@@ -279,8 +284,37 @@ const ProductStockPage: React.FC = () => {
         setErrorMessage(errorMsg);
       }
     },
-    [tableDataSource],
+    [api, tableDataSource],
   );
+
+  const handleExportExcel = useCallback(() => {
+    setLoading(true);
+
+    const worksheet = XLSX.utils.json_to_sheet(
+      tableDataSource.map((product) => ({
+        PROVEEDOR: product.proveedor,
+        FIRMA: product.firma,
+        'TIPO DE GAFA': product.type,
+        REFERENCIA: product.referencia,
+        MODELO: product.modelo,
+        COLOR: product.color,
+        'CALIBRE Y PUENTE': product.calibrePuente,
+        'FECHA DE COMPRA': product.fechaCompra,
+        'PRECIO DE COMPRA': product.fechaCompra,
+        'FECHA DE VENTA': product.fechaVenta,
+        'PRECIO DE VENTA': product.fechaVenta,
+        OBSERVACIONES: product.notes,
+      })),
+    );
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Productos');
+    XLSX.writeFile(workbook, 'PRODUCTOS_EXPORTADOS.xlsx');
+
+    setLoading(false);
+    api.success({
+      message: '¡Productos exportados a Excel satisfactoriamente!',
+    });
+  }, [api, tableDataSource]);
 
   useEffect(() => {
     const getProductsWithTypes = async () => {
@@ -322,29 +356,52 @@ const ProductStockPage: React.FC = () => {
         onFilterChange={handleFilter}
       />
 
-      <Space size="middle" style={{ marginBottom: 16 }}>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          disabled={!!editingProduct}
-          onClick={generateNewProductTableRow}
-        >
-          Agregar Producto
-        </Button>
-        <Popconfirm
-          title="¿Desea cancelar la edición del producto?"
-          onConfirm={() => handleCancel()}
-        >
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: 16,
+          width: '100%',
+        }}
+      >
+        <div style={{ display: 'flex', gap: '8px' }}>
           <Button
-            danger
-            icon={<CloseOutlined />}
-            style={{ display: editingProduct ? '' : 'none' }}
-            disabled={!editingProduct}
+            type="primary"
+            icon={<PlusOutlined />}
+            disabled={!!editingProduct}
+            onClick={generateNewProductTableRow}
           >
-            Cancelar Creación / Edición
+            Agregar Producto
           </Button>
-        </Popconfirm>
-      </Space>
+          <Popconfirm
+            title="¿Desea cancelar la edición del producto?"
+            onConfirm={() => handleCancel()}
+          >
+            <Button
+              danger
+              icon={<CloseOutlined />}
+              style={{ display: editingProduct ? '' : 'none' }}
+              disabled={!editingProduct}
+            >
+              Cancelar Creación / Edición
+            </Button>
+          </Popconfirm>
+        </div>
+        <Button
+          icon={<FileExcelOutlined />}
+          disabled={!!editingProduct}
+          onClick={handleExportExcel}
+          style={{
+            backgroundColor: '#217346',
+            borderColor: '#217346',
+            color: '#ffffff',
+            fontWeight: '500',
+          }}
+        >
+          Exportar a Excel
+        </Button>
+      </div>
 
       <Form form={form} component={false}>
         <ProductStockTable
