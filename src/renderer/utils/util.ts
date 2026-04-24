@@ -11,6 +11,13 @@ const includesStrings = (a: string, b: string) => a?.toUpperCase().includes(b?.t
 
 const formatDateToYYYYMMDD = (date: Dayjs) : string | null => date ? dayjs(date).format(DATE_FORMATS.YYYY_MM_DD) : null;
 
+function isNumeric(str: string) {
+  if (typeof str != "string") {
+    return false; // we only process strings!
+  }
+  return !isNaN(str) && !isNaN(parseFloat(str));
+}
+
 const priceInputFormatter = (value: any) => {
   if (!value) return '';
   const parts = `${value}`.split('.');
@@ -29,6 +36,7 @@ const util = {
   equalsStrings,
   includesStrings,
   formatDateToYYYYMMDD,
+  isNumeric,
   priceInputFormatter,
   priceInputParser,
 };

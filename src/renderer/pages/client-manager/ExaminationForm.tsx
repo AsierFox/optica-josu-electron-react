@@ -138,6 +138,7 @@ const ExaminationForm: React.FC<Props> = ({
       {contextHolder}
       <Form
         form={form}
+        initialValues={examination}
         onFinish={handleSaveExamination}
         style={{ marginTop: 30 }}
       >

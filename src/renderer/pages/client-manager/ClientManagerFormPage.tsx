@@ -32,6 +32,7 @@ import ExaminationTypeModel from '../../../main/models/examinationType.model';
 import { NEW_ROW_ID_PREFIX, ROUTES } from '../../app/constants';
 import AdminLayout from '../../layouts/AdminLayout';
 import ExaminationForm from './ExaminationForm';
+import utils from '../../utils/util';
 
 const { Title } = Typography;
 
@@ -194,7 +195,7 @@ const ClientManagerFormPage: React.FC = () => {
     form.resetFields();
     // @ts-ignore
     // eslint-disable-next-line no-restricted-globals, camelcase
-    if (!isNaN(client_id) && client_id) {
+    if (utils.isNumeric(client_id)) {
       // Cliente existente, cargamos sus datos y sus graduaciones
       const clientId = parseInt(client_id, 10);
       getClientAndExaminationsById(clientId);

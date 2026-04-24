@@ -19,12 +19,13 @@ import {
   Select,
   Space,
   Spin,
-  Typography
+  Typography,
 } from 'antd';
 import dayjs from 'dayjs';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import React, { useRef } from 'react';
+import logoPresupuesto from '../../../../assets/logo-presupuesto.png';
 import AdminLayout from '../../layouts/AdminLayout';
 
 const { Text, Title } = Typography;
@@ -480,67 +481,165 @@ const PresupuestoGeneratorPage: React.FC = () => {
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: 30,
+              marginBottom: 10,
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div
-                style={{
-                  width: 50,
-                  height: 50,
-                  borderRadius: '50%',
-                  background: '#2877e6',
-                  color: '#fff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 'bold',
-                }}
-              >
-                OJ
-              </div>
               <div>
-                <div style={{ fontSize: 18, fontWeight: 600 }}>Óptica Josu</div>
-                <div style={{ fontSize: 12, color: '#666' }}>CALLE</div>
+                <div>
+                  <img
+                    src={logoPresupuesto}
+                    alt="Logo Óptica Josu"
+                    style={{
+                      width: '350px',
+                      height: 'auto',
+                    }}
+                  />
+                </div>
               </div>
             </div>
 
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 20, fontWeight: 600 }}>
+              <div style={{ fontSize: 20, fontWeight: 400 }}>
                 Presupuesto Fecha: {form.getFieldValue('fecha')}
               </div>
             </div>
           </div>
 
           <div
-            style={{ borderTop: '2px solid #2877e6', marginBottom: '30px' }}
+            style={{
+              borderTop: '2px solid #2877e6',
+              marginBottom: '30px',
+            }}
           />
 
-          {/* Datos del Cliente - Usamos Form.Item para forzar el re-render */}
+          {/* Datos del Cliente */}
           <Form.Item shouldUpdate noStyle>
             {() => {
               const values = form.getFieldsValue();
+
+              // Estilo común para las filas de datos
+              const rowStyle = { display: 'flex', marginBottom: 2 };
+              const labelStyle = {
+                width: '70px',
+                fontWeight: '500',
+                color: '#888',
+              };
+              const valueStyle = { flex: 1 };
+
               return (
-                <div style={{ marginBottom: 30 }}>
-                  <div style={{ fontSize: 11, color: '#888', marginBottom: 5 }}>
-                    DATOS DEL CLIENTE
-                  </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: '20px',
+                    fontSize: 13,
+                    marginBottom: 30,
+                    width: '100%',
+                    alignItems: 'stretch',
+                  }}
+                >
+                  {/* CUADRO IZQUIERDO */}
                   <div
                     style={{
-                      border: '1px solid #e5e7eb',
-                      borderRadius: 6,
-                      padding: 15,
+                      flex: 1,
+                      display: 'flex',
+                      flexDirection: 'column',
                     }}
                   >
-                    <div style={{ fontWeight: 600, fontSize: 15 }}>
-                      {values.cliente || '---'}
+                    <div
+                      style={{
+                        fontSize: 11,
+                        marginBottom: 5,
+                        fontWeight: 'bold',
+                      }}
+                    >
+                      CLIENTE
                     </div>
-                    <div style={{ fontSize: 13, color: '#555' }}>
-                      {values.dni && <>DNI: {values.dni} · </>}
-                      {values.telefono && <>Tel: {values.telefono}</>}
+                    <div
+                      style={{
+                        border: '1px solid #e5e7eb',
+                        borderRadius: 6,
+                        padding: 15,
+                        flex: 1,
+                        backgroundColor: '#fff',
+                      }}
+                    >
+                      <div style={{ color: '#555', lineHeight: '1.4' }}>
+                        <div
+                          style={{
+                            ...rowStyle,
+                            fontSize: 14,
+                            fontWeight: 'bold',
+                          }}
+                        >
+                          <span style={labelStyle}>Nombre:</span>
+                          <span style={valueStyle}>{values.cliente}</span>
+                        </div>
+                      </div>
+                      <div style={rowStyle}>
+                        <span style={labelStyle}>Dirección:</span>
+                        <span style={valueStyle}>{values.direccion}</span>
+                      </div>
+                      <div style={rowStyle}>
+                        <span style={labelStyle}>Población:</span>
+                        <span style={valueStyle}>
+                          {values.ciudad} {values.codigoPostal}
+                        </span>
+                      </div>
+                      <div style={rowStyle}>
+                        <span style={labelStyle}>DNI/NIF:</span>
+                        <span style={valueStyle}>{values.dni}</span>
+                      </div>
+                      <div style={rowStyle}>
+                        <span style={labelStyle}>Teléfono:</span>
+                        <span style={valueStyle}>{values.telefono}</span>
+                      </div>
                     </div>
-                    <div style={{ fontSize: 13, color: '#555', marginTop: 5 }}>
-                      {values.direccion} {values.codigoPostal} {values.ciudad}
+                  </div>
+
+                  {/* CUADRO DERECHO */}
+                  <div
+                    style={{
+                      flex: 1,
+                      display: 'flex',
+                      flexDirection: 'column',
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: 11,
+                        marginBottom: 5,
+                        fontWeight: 'bold',
+                      }}
+                    >
+                      EMISOR
+                    </div>
+                    <div
+                      style={{
+                        border: '1px solid #e5e7eb',
+                        borderRadius: 6,
+                        padding: 15,
+                        flex: 1,
+                        backgroundColor: '#fff',
+                      }}
+                    >
+                      <div style={{ marginBottom: 10, fontSize: 14 }}>
+                        <b>CENTRO ÓPTICO JOSU</b>
+                      </div>
+                      <div style={{ color: '#555', lineHeight: '1.4' }}>
+                        <div style={rowStyle}>
+                          <span style={valueStyle}>ITURRALDE 3</span>
+                        </div>
+                        <div style={rowStyle}>
+                          <span style={valueStyle}>01470 AMURRIO, ALAVA</span>
+                        </div>
+                        <div style={rowStyle}>
+                          <span style={valueStyle}>30598959N</span>
+                        </div>
+                        <div style={rowStyle}>
+                          <span style={valueStyle}>945393778</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -627,7 +726,7 @@ const PresupuestoGeneratorPage: React.FC = () => {
                             style={{ borderBottom: '1px solid #eee' }}
                           >
                             <td style={{ padding: '12px' }}>
-                              {it.descripcion || '---'}
+                              {it.descripcion}
                             </td>
                             <td
                               style={{ padding: '12px', textAlign: 'center' }}
@@ -701,25 +800,10 @@ const PresupuestoGeneratorPage: React.FC = () => {
             }}
           </Form.Item>
 
-          {/* Pie de página fijo */}
-          {(() => {
-            const values = form.getFieldsValue();
-            return values.observaciones ? (
-              <div style={{ marginTop: 40 }}>
-                <div style={{ fontSize: 11, color: '#888', marginBottom: 5 }}>
-                  OBSERVACIONES
-                </div>
-                <div style={{ fontSize: 13, color: '#444' }}>
-                  {values.observaciones || '---'}
-                </div>
-              </div>
-            ) : null;
-          })()}
-
           <div
             style={{
               marginTop: 60,
-              borderTop: '1px solid #e5e7eb',
+              borderTop: '1px solid #2877e6',
               paddingTop: 10,
               fontSize: 10,
               color: '#777',
@@ -729,7 +813,6 @@ const PresupuestoGeneratorPage: React.FC = () => {
           >
             <div>Centro Óptico Josu</div>
             <div>Amurrio · 945 39 37 78</div>
-            <div>info@opticajosu.com</div>
           </div>
         </div>
       </div>

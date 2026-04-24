@@ -86,16 +86,17 @@ const ProductStockPage: React.FC = () => {
                 }
                 return util.includesStrings(itemValue, filter.value);
 
-              case 'MULTIPLE':
+              case 'MULTIPLE': {
                 if (filter.value.length <= 0) {
                   return true;
                 }
                 // Formateamos el valor en caso de que llegue a ser un number
-                const searchValue = isNaN(itemValue)
+                const searchValue = Number.isNaN(itemValue)
                   ? itemValue.toUpperCase()
                   : itemValue;
 
                 return filter.value.includes(searchValue);
+              }
 
               case 'RANGE_NUMBER':
                 const min = filter.value.min ? Number(filter.value.min) : null;

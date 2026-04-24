@@ -10,9 +10,9 @@ import {
   Upload,
   notification,
 } from 'antd';
+import dayjs from 'dayjs';
 import React, { useEffect, useState } from 'react';
 import * as XLSX from 'xlsx';
-import dayjs from 'dayjs';
 import ProductModel from '../../../main/models/product.model';
 import ProductTypeModel from '../../../main/models/productType.model';
 import AdminLayout from '../../layouts/AdminLayout';
@@ -38,7 +38,6 @@ const ExcelImporter: React.FC = () => {
     'PRECIO DE COMPRA',
     'FECHA DE COMPRA',
     'PRECIO DE VENTA',
-    'VENDIDA',
     'FECHA DE VENTA',
   ];
 
@@ -53,15 +52,13 @@ const ExcelImporter: React.FC = () => {
   // Ref para almacenar todos los datos sin necesidad de re-renderizar
   const allDataRef = React.useRef<{
     productsToImport: ProductModel[];
-    productsToExportExcel: any[];
   }>({
     productsToImport: [],
-    productsToExportExcel: [],
   });
 
   const exportToExcel = (fileName: string = 'Exportacion_Productos.xlsx') => {
     const worksheet = XLSX.utils.json_to_sheet(
-      allDataRef.current.productsToExportExcel,
+      allDataRef.current.productsToImport,
     );
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Productos');
@@ -102,12 +99,8 @@ const ExcelImporter: React.FC = () => {
   const createNewProductsFromExcelSheetRows = (
     sheetName: string,
     sheetRows: any[],
-  ): {
-    newProductsToImport: ProductModel[];
-    newProductsToExportExcel: any[];
-  } => {
+  ): ProductModel[] => {
     const newProductsFromSheet: ProductModel[] = [];
-    const rowsToExportSingleExcel: any[] = [];
     // La key es el nombre de cada columna, y el value es el index de la columna
     let sheetHeaderColumnsStructure: { [key: string]: number } = {};
 
@@ -122,7 +115,7 @@ const ExcelImporter: React.FC = () => {
             // Descartamos las columnas que son null y el campo isHeaderRow,
             // para quedarnos solo con las que corresponden a las columnas del Excel.
             // eslint-disable-next-line no-restricted-globals
-            if (value && !isNaN(Number(key))) {
+            if (value && !Number.isNaN(Number(key))) {
               acc[(value as string).trim().toUpperCase()] = Number(key);
             }
             return acc;
@@ -188,26 +181,37 @@ const ExcelImporter: React.FC = () => {
         sheetRow[sheetHeaderColumnsStructure.PROVEEDOR] ?? null;
       newProduct.firma = sheetRow[sheetHeaderColumnsStructure.FIRMAS] ?? null;
       newProduct.referencia =
-        sheetRow[sheetHeaderColumnsStructure.REFERENCIA] ?? null;
+        sheetRow[sheetHeaderColumnsStructure.REFERENCIA]?.trim() ?? null;
       newProduct.modelo = sheetRow[sheetHeaderColumnsStructure.MODELO] ?? null;
       newProduct.color = sheetRow[sheetHeaderColumnsStructure.COLOR] ?? null;
-      switch (sheetRow[sheetHeaderColumnsStructure['TIPO DE GAFA']]) {
-        case 'GRADUADA':
-        case 'GRADUADO':
-          newProduct.typeId = 1;
-          break;
-        case 'SOL':
-          newProduct.typeId = 3;
-          break;
-        case 'LUPA':
-          newProduct.typeId = 4;
-          break;
-        case 'PRISMATICOS':
-          newProduct.typeId = 5;
-          break;
-        default:
-          newProduct.typeId = null;
+
+      if (Number.isNaN(sheetRow[sheetHeaderColumnsStructure['TIPO DE GAFA']])) {
+        switch (
+          sheetRow[sheetHeaderColumnsStructure['TIPO DE GAFA']]
+            .toUpperCase()
+            .trim()
+        ) {
+          case 'GRADUADA':
+          case 'GRADUADO':
+            newProduct.typeId = 1;
+            break;
+          case 'SOL':
+            newProduct.typeId = 2;
+            break;
+          case 'LUPA':
+            newProduct.typeId = 3;
+            break;
+          case 'PRISMATICOS':
+            newProduct.typeId = 4;
+            break;
+          default:
+            newProduct.typeId = null;
+        }
+      } else {
+        newProduct.typeId =
+          Number(sheetRow[sheetHeaderColumnsStructure['TIPO DE GAFA']]) ?? null;
       }
+
       newProduct.precioCompra =
         sheetRow[sheetHeaderColumnsStructure['PRECIO DE COMPRA']] ?? null;
       newProduct.precioVenta =
@@ -258,34 +262,9 @@ const ExcelImporter: React.FC = () => {
       newProduct.notes = sheetRow[sheetHeaderColumnsStructure.NOTES] ?? null;
 
       newProductsFromSheet.push(newProduct);
-
-      rowsToExportSingleExcel.push({
-        PROVEEDOR: sheetRow[sheetHeaderColumnsStructure.PROVEEDOR] ?? null,
-        FIRMAS: sheetRow[sheetHeaderColumnsStructure.FIRMAS] ?? null,
-        'TIPO DE GAFA':
-          sheetRow[sheetHeaderColumnsStructure['TIPO DE GAFA']] ?? null,
-        REFERENCIA: sheetRow[sheetHeaderColumnsStructure.REFERENCIA] ?? null,
-        MODELO: sheetRow[sheetHeaderColumnsStructure.MODELO] ?? null,
-        COLOR: sheetRow[sheetHeaderColumnsStructure.COLOR] ?? null,
-        'CALIBRE Y PUENTE':
-          sheetRow[sheetHeaderColumnsStructure['CALIBRE Y PUENTE']] ?? null,
-        'PRECIO DE COMPRA':
-          sheetRow[sheetHeaderColumnsStructure['PRECIO DE COMPRA']] ?? null,
-        'FECHA DE COMPRA':
-          sheetRow[sheetHeaderColumnsStructure['FECHA DE COMPRA']] ?? null,
-        'PRECIO DE VENTA':
-          sheetRow[sheetHeaderColumnsStructure['PRECIO DE VENTA']] ?? null,
-        'FECHA DE VENTA':
-          sheetRow[sheetHeaderColumnsStructure['FECHA DE VENTA']] ?? null,
-        VENDIDA: sheetRow[sheetHeaderColumnsStructure.VENDIDA] ?? null,
-        NOTES: sheetRow[sheetHeaderColumnsStructure.NOTES] ?? null,
-      });
     }
 
-    return {
-      newProductsToImport: newProductsFromSheet,
-      newProductsToExportExcel: rowsToExportSingleExcel,
-    };
+    return newProductsFromSheet;
   };
 
   const handleReadFile = async (file: File) => {
@@ -310,13 +289,7 @@ const ExcelImporter: React.FC = () => {
             cellFormula: false, // Vital para mayor rapidez
           });
 
-          const productsToImport: {
-            newProductsToImport: ProductModel[];
-            newProductsToExportExcel: any[];
-          } = {
-            newProductsToImport: [],
-            newProductsToExportExcel: [],
-          };
+          const productsToImport: ProductModel[] = [];
 
           // Recorremos las pestañas del Excel
           workbook.SheetNames.forEach(async (name: string) => {
@@ -364,15 +337,11 @@ const ExcelImporter: React.FC = () => {
               }
             }
 
-            const productsFromSheet = createNewProductsFromExcelSheetRows(
-              name,
-              allSheetProcessedRows,
-            );
-            productsToImport.newProductsToImport.push(
-              ...productsFromSheet.newProductsToImport,
-            );
-            productsToImport.newProductsToExportExcel.push(
-              ...productsFromSheet.newProductsToExportExcel,
+            productsToImport.push(
+              ...createNewProductsFromExcelSheetRows(
+                name,
+                allSheetProcessedRows,
+              ),
             );
 
             // Cada pestaña procesada, liberamos el hilo 1ms
@@ -381,10 +350,7 @@ const ExcelImporter: React.FC = () => {
             });
           });
 
-          allDataRef.current.productsToImport =
-            productsToImport.newProductsToImport;
-          allDataRef.current.productsToExportExcel =
-            productsToImport.newProductsToExportExcel;
+          allDataRef.current.productsToImport = productsToImport;
 
           setProcessResultMessages((prevMessages) => [
             ...prevMessages,
@@ -421,7 +387,6 @@ const ExcelImporter: React.FC = () => {
 
   const handleCancelImport = () => {
     allDataRef.current.productsToImport = [];
-    allDataRef.current.productsToExportExcel = [];
     setProcessResultMessages([]);
     setErrorMessage(null);
   };

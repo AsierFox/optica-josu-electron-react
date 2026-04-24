@@ -68,9 +68,9 @@ const createWindow = async () => {
   };
 
   splash = new BrowserWindow({
-    transparent: true,
     frame: false,
     alwaysOnTop: true,
+    transparent: true,
     width: 600,
     height: 350,
   });
@@ -103,7 +103,6 @@ const createWindow = async () => {
     } else {
       splash?.close();
       mainWindow.show();
-      mainWindow.focus();
       mainWindow.setAlwaysOnTop(false);
 
       splash = null;
