@@ -251,30 +251,57 @@ export const registerMysqlIPCHandlers = () => {
 
   ipcMain.handle('mysql-update-examination', async (_event, examination: ExaminationModel) => {
     try {
-      const [rows] = await query(`UPDATE EXAMINATIONS
+      const sql = `UPDATE EXAMINATIONS
         SET
-          ID_CLIENT = ${examination.idClient ? `${examination.idClient}` : 'NULL'},
-          ID_EXAMINATION_TYPE = ${examination.idExaminationType ? `${examination.idExaminationType}` : 'NULL'},
-          OD_ESFERA = ${examination.odEsfera ? `'${examination.odEsfera}'` : 'NULL'},
-          OD_CILINDRO = ${examination.odCilindro ? `'${examination.odCilindro}'` : 'NULL'},
-          OD_EJE = ${examination.odEje ? `'${examination.odEje}'` : 'NULL'},
-          OD_ADD = ${examination.odADD ? `'${examination.odADD}'` : 'NULL'},
-          OD_AV = ${examination.odAV ? `'${examination.odAV}'` : 'NULL'},
-          OD_VP = ${examination.odVP ? `'${examination.odVP}'` : 'NULL'},
-          OD_VL = ${examination.odVL ? `'${examination.odVL}'` : 'NULL'},
-          OD_QUERATOMETRIA = ${examination.odQueratometria ? `'${examination.odQueratometria}'` : 'NULL'},
-          OI_ESFERA = ${examination.oiEsfera ? `'${examination.oiEsfera}'` : 'NULL'},
-          OI_CILINDRO = ${examination.oiCilindro ? `'${examination.oiCilindro}'` : 'NULL'},
-          OI_EJE = ${examination.oiEje ? `'${examination.oiEje}'` : 'NULL'},
-          OI_ADD = ${examination.oiADD ? `'${examination.oiADD}'` : 'NULL'},
-          OI_AV = ${examination.oiAV ? `'${examination.oiAV}'` : 'NULL'},
-          OI_VP = ${examination.oiVP ? `'${examination.oiVP}'` : 'NULL'},
-          OI_VL = ${examination.oiVL ? `'${examination.oiVL}'` : 'NULL'},
-          OI_QUERATOMETRIA = ${examination.oiQueratometria ? `'${examination.oiQueratometria}'` : 'NULL'},
-          DIP = ${examination.dip ? `'${examination.dip}'` : 'NULL'},
-          OBSERVACIONES = ${examination.observaciones ? `'${examination.observaciones}'` : 'NULL'}
-        WHERE ID = ${examination.id}
-      `);
+          ID_CLIENT = ?,
+          ID_EXAMINATION_TYPE = ?,
+          OD_ESFERA = ?,
+          OD_CILINDRO = ?,
+          OD_EJE = ?,
+          OD_ADD = ?,
+          OD_AV = ?,
+          OD_VP = ?,
+          OD_VL = ?,
+          OD_QUERATOMETRIA = ?,
+          OI_ESFERA = ?,
+          OI_CILINDRO = ?,
+          OI_EJE = ?,
+          OI_ADD = ?,
+          OI_AV = ?,
+          OI_VP = ?,
+          OI_VL = ?,
+          OI_QUERATOMETRIA = ?,
+          DIP = ?,
+          OBSERVACIONES = ?
+        WHERE ID = ?`;
+
+      const values = [
+        examination.idClient ?? null,
+        examination.idExaminationType ?? null,
+        examination.odEsfera ?? null,
+        examination.odCilindro ?? null,
+        examination.odEje ?? null,
+        examination.odADD ?? null,
+        examination.odAV ?? null,
+        examination.odVP ?? null,
+        examination.odVL ?? null,
+        examination.odQueratometria ?? null,
+        examination.oiEsfera ?? null,
+        examination.oiCilindro ?? null,
+        examination.oiEje ?? null,
+        examination.oiADD ?? null,
+        examination.oiAV ?? null,
+        examination.oiVP ?? null,
+        examination.oiVL ?? null,
+        examination.oiQueratometria ?? null,
+        examination.dip ?? null,
+        examination.observaciones ?? null,
+        examination.id
+      ];
+
+      // Pasamos el string SQL y el array de valores a tu función query
+      const [rows] = await query(sql, values);
+
       // @ts-ignore - MySQL insert result contains insertId
       return rows;
     } catch (error) {
@@ -285,22 +312,40 @@ export const registerMysqlIPCHandlers = () => {
 
   ipcMain.handle('mysql-update-product', async (_event, product: ProductModel) => {
     try {
-      const [rows] = await query(`UPDATE PRODUCTS
+      const sql = `UPDATE PRODUCTS
         SET
-          PROVEEDOR = ${product.proveedor ? `'${product.proveedor}'` : 'NULL'},
-          FIRMA = ${product.firma ? `'${product.firma}'` : 'NULL'},
-          ID_PRODUCT_TYPE = ${product.typeId},
-          REFERENCIA = '${product.referencia}',
-          MODELO = ${product.modelo ? `'${product.modelo}'` : 'NULL'},
-          COLOR = ${product.color ? `'${product.color}'` : 'NULL'},
-          CALIBRE_PUENTE = ${product.calibrePuente ? `'${product.calibrePuente}'` : 'NULL'},
-          FECHA_COMPRA = ${product.fechaCompra ? `'${product.fechaCompra}'` : 'NULL'},
-          PRECIO_COMPRA = ${product.precioCompra ? `'${product.precioCompra}'` : 'NULL'},
-          FECHA_VENTA = ${product.fechaVenta ? `'${product.fechaVenta}'` : 'NULL'},
-          PRECIO_VENTA = ${product.precioVenta ? `'${product.precioVenta}'` : 'NULL'},
-          NOTES = ${product.notes ? `'${product.notes}'` : 'NULL'}
-        WHERE ID = ${product.id}
-      `);
+          PROVEEDOR = ?,
+          FIRMA = ?,
+          ID_PRODUCT_TYPE = ?,
+          REFERENCIA = ?,
+          MODELO = ?,
+          COLOR = ?,
+          CALIBRE_PUENTE = ?,
+          FECHA_COMPRA = ?,
+          PRECIO_COMPRA = ?,
+          FECHA_VENTA = ?,
+          PRECIO_VENTA = ?,
+          NOTES = ?
+        WHERE ID = ?`;
+
+      const values = [
+        product.proveedor ?? null,
+        product.firma ?? null,
+        product.typeId,
+        product.referencia,
+        product.modelo ?? null,
+        product.color ?? null,
+        product.calibrePuente ?? null,
+        product.fechaCompra ?? null,
+        product.precioCompra ?? null,
+        product.fechaVenta ?? null,
+        product.precioVenta ?? null,
+        product.notes ?? null,
+        product.id
+      ];
+
+      const [rows] = await query(sql, values);
+
       // @ts-ignore - MySQL insert result contains insertId
       return rows;
     } catch (error) {
