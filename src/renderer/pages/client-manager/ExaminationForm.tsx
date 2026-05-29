@@ -363,14 +363,13 @@ const ExaminationForm: React.FC<Props> = ({
                 </Space>
               </Col>
             </Row>
-
             <Divider />
             <Row justify="center">
               <Col span={8} style={{ textAlign: 'center' }}>
                 <Text strong style={{ display: 'block', marginBottom: 8 }}>
-                  DIP Cerca
+                  DIP Lejos
                 </Text>
-                <Form.Item name="dipCerca">
+                <Form.Item name="dipLejos">
                   <InputNumber suffix="mm" style={{ width: '120px' }} />
                 </Form.Item>
               </Col>
@@ -378,9 +377,9 @@ const ExaminationForm: React.FC<Props> = ({
             <Row justify="center">
               <Col span={8} style={{ textAlign: 'center' }}>
                 <Text strong style={{ display: 'block', marginBottom: 8 }}>
-                  DIP Lejos
+                  DIP Cerca
                 </Text>
-                <Form.Item name="dipLejos">
+                <Form.Item name="dipCerca">
                   <InputNumber suffix="mm" style={{ width: '120px' }} />
                 </Form.Item>
               </Col>
