@@ -9,6 +9,7 @@ import {
   Button,
   Card,
   Col,
+  DatePicker,
   Divider,
   Form,
   Input,
@@ -21,11 +22,11 @@ import {
   Spin,
   Typography,
 } from 'antd';
+import dayjs from 'dayjs';
 import React, { useEffect, useState } from 'react';
 import ExaminationModel from '../../../main/models/examination.model';
 import ExaminationTypeModel from '../../../main/models/examinationType.model';
 import { NEW_ROW_ID_PREFIX } from '../../app/constants';
-import utils from '../../utils/util';
 
 const { Title, Text } = Typography;
 
@@ -60,8 +61,7 @@ const ExaminationForm: React.FC<Props> = ({
       const updatedExamination = {
         ...examination,
         ...values,
-        // Se asignaran automáticamente en la BBDD
-        createdAt: null,
+        examinationDate: values.examinationDate?.format('YYYY-MM-DD'),
         updatedAt: null,
       };
 
@@ -130,7 +130,13 @@ const ExaminationForm: React.FC<Props> = ({
     };
 
     setCardColor(getExaminationCardColor());
-    form.setFieldsValue(examination);
+    form.setFieldsValue({
+      ...examination,
+      // Convertimos la fecha al formato que entiende el DatePicker
+      examinationDate: examination.examinationDate
+        ? dayjs(examination.examinationDate)
+        : null,
+    });
   }, [form, examination, isNewExamination, isLastExamination]);
 
   return (
@@ -138,7 +144,6 @@ const ExaminationForm: React.FC<Props> = ({
       {contextHolder}
       <Form
         form={form}
-        initialValues={examination}
         onFinish={handleSaveExamination}
         style={{ marginTop: 30 }}
       >
@@ -149,21 +154,29 @@ const ExaminationForm: React.FC<Props> = ({
               <Space>
                 <EyeOutlined color={cardColor} />
                 <span>
-                  {utils.formatDateToYYYYMMDD(examination.updatedAt)} -{' '}
-                  <Form.Item name="idExaminationType" noStyle>
-                    <Select
-                      style={{ width: '100%' }}
-                      defaultValue={
-                        examinationTypes.find(
-                          (ex) => ex.id === examination.idExaminationType,
-                        )?.type
-                      }
-                      options={examinationTypes.map((exType) => ({
-                        label: exType.type,
-                        value: exType.id,
-                      }))}
-                    />
-                  </Form.Item>
+                  <Space split={<span>-</span>} align="center">
+                    <Form.Item name="examinationDate" noStyle>
+                      <DatePicker
+                        format="DD-MM-YYYY"
+                        placeholder="Seleccionar fecha"
+                      />
+                    </Form.Item>
+
+                    <Form.Item name="idExaminationType" noStyle>
+                      <Select
+                        style={{ width: '150px' }} // Ajusta el ancho según te convenga
+                        defaultValue={
+                          examinationTypes.find(
+                            (ex) => ex.id === examination.idExaminationType,
+                          )?.type
+                        }
+                        options={examinationTypes.map((exType) => ({
+                          label: exType.type,
+                          value: exType.id,
+                        }))}
+                      />
+                    </Form.Item>
+                  </Space>
                 </span>
               </Space>
             }
@@ -355,9 +368,19 @@ const ExaminationForm: React.FC<Props> = ({
             <Row justify="center">
               <Col span={8} style={{ textAlign: 'center' }}>
                 <Text strong style={{ display: 'block', marginBottom: 8 }}>
-                  Distancia Interpupilar (DIP)
+                  DIP Cerca
                 </Text>
-                <Form.Item name="dip">
+                <Form.Item name="dipCerca">
+                  <InputNumber suffix="mm" style={{ width: '120px' }} />
+                </Form.Item>
+              </Col>
+            </Row>
+            <Row justify="center">
+              <Col span={8} style={{ textAlign: 'center' }}>
+                <Text strong style={{ display: 'block', marginBottom: 8 }}>
+                  DIP Lejos
+                </Text>
+                <Form.Item name="dipLejos">
                   <InputNumber suffix="mm" style={{ width: '120px' }} />
                 </Form.Item>
               </Col>

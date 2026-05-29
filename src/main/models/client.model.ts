@@ -6,6 +6,7 @@ export default class ClientModel {
   ciudad!: string | null;
   codigoPostal!: number | null;
   telefono!: string | null;
+  telefonoAdicional!: string | null;
   DNI!: string | null;
   fechaNacimiento!: number | null;
   notes!: number | null;
@@ -21,6 +22,7 @@ export default class ClientModel {
     this.ciudad = row.CIUDAD;
     this.codigoPostal = row.CODIGO_POSTAL;
     this.telefono = row.TELEFONO;
+    this.telefonoAdicional = row.TELEFONO_ADICIONAL;
     this.DNI = row.DNI;
     this.fechaNacimiento = row.FECHA_NACIMIENTO;
     this.notes = row.NOTES;

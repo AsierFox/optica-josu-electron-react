@@ -1,8 +1,9 @@
-/* eslint-disable no-undef */
-/* eslint-disable react/jsx-props-no-spreading */
-import { GoogleMap, HeatmapLayer, LoadScript } from '@react-google-maps/api';
 import { Card, Col, Row, Spin, Typography } from 'antd';
+import L from 'leaflet';
+import 'leaflet.heat';
+import 'leaflet/dist/leaflet.css';
 import React, { useEffect, useState } from 'react';
+import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import ClientModel from '../../../main/models/client.model';
 
 const { Text } = Typography;
@@ -11,60 +12,92 @@ interface Props {
   clients: ClientModel[];
 }
 
+interface MapPoint {
+  lat: number;
+  lng: number;
+}
+
+const HeatLayerComponent = ({ points }: { points: MapPoint[] }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map || points.length === 0) return;
+
+    // Convertimos los puntos al formato de leaflet.heat: [[lat, lng, intensidad]]
+    const heatData = points.map(
+      (p) => [p.lat, p.lng, 1] as [number, number, number],
+    );
+
+    // Creamos la capa de calor y la añadimos al mapa
+    const heatLayer = (L as any)
+      .heatLayer(heatData, {
+        radius: 25,
+        blur: 15,
+        maxZoom: 10,
+        gradient: { 0.4: 'blue', 0.65: 'lime', 1: 'red' },
+      })
+      .addTo(map);
+
+    // Limpiamos la capa cuando el componente se desmonte o cambien los puntos
+    return () => map.removeLayer(heatLayer);
+  }, [map, points]);
+
+  return null;
+};
+
 const ClientStats: React.FC<Props> = ({ clients }) => {
-  const [mapPoints, setMapPoints] = useState<google.maps.LatLng[]>([]);
+  const [mapPoints, setMapPoints] = useState<MapPoint[]>([]);
   const [loadingMap, setLoadingMap] = useState(false);
 
   useEffect(() => {
     const geocodeAddresses = async () => {
       setLoadingMap(true);
-      const alreadySearchedLatLng: Record<string, google.maps.LatLng> = {};
+      const alreadySearchedCity: Record<string, string> = {};
+      const searchedLatLng: Record<string, MapPoint> = {};
 
       const geolocatingLatLng = clients.map(
-        async (client: ClientModel): Promise<google.maps.LatLng | null> => {
+        async (client: ClientModel): Promise<MapPoint | null> => {
           if (!client.ciudad) {
             return null;
           }
-          if (alreadySearchedLatLng[client.ciudad]) {
-            return alreadySearchedLatLng[client.ciudad];
+          if (alreadySearchedCity[client.ciudad]) {
+            return searchedLatLng[client.ciudad];
           }
           try {
-            // Nominatim para geocodificar gratis
-            const response = await fetch(
-              `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(client.ciudad)}&limit=1`,
-            );
-            const data = await response.json();
+            // Llamamos al proceso Main a través de preload para saltarnos el CORS
+            const data =
+              await window.electron.ipcGeneric.fetchAddressCoordinates(
+                client.ciudad,
+              );
+
             if (data && data.length > 0) {
               const lat = parseFloat(data[0].lat);
               const lng = parseFloat(data[0].lon);
-              alreadySearchedLatLng[client.ciudad] =
-                new window.google.maps.LatLng(lat, lng);
-              return alreadySearchedLatLng[client.ciudad];
+              alreadySearchedCity[client.ciudad] = client.ciudad;
+              searchedLatLng[client.ciudad] = { lat, lng };
+              return searchedLatLng[client.ciudad];
             }
           } catch {
-            console.log('Error geocodificando:', client.ciudad);
+            console.log('Error geocodificando desde el Main:', client.ciudad);
           }
           return null;
         },
       );
 
       const geolocatedLatLng = (await Promise.all(geolocatingLatLng)).filter(
-        (latLng) => !!latLng,
+        (latLng): latLng is MapPoint => !!latLng,
       );
       setMapPoints(geolocatedLatLng);
       setLoadingMap(false);
     };
 
-    try {
-      if (clients.length > 0) {
-        geocodeAddresses();
-      }
-    } catch {
-      setLoadingMap(false);
+    if (clients.length > 0) {
+      geocodeAddresses();
     }
   }, [clients]);
 
-  const mapCenter = { lat: 43.052599929179316, lng: -3.0018205318666356 };
+  // Coordenadas predeterminadas para centrar el mapa
+  const mapCenter: [number, number] = [43.052599, -3.00182];
 
   return (
     <div style={{ marginTop: 16 }}>
@@ -88,39 +121,33 @@ const ClientStats: React.FC<Props> = ({ clients }) => {
                 <div
                   style={{
                     position: 'absolute',
-                    zIndex: 10,
+                    zIndex: 1000, // Leaflet usa z-index altos, ponemos uno superior para el spinner
                     top: '50%',
                     left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    background: 'rgba(255,255,255,0.8)',
+                    padding: '20px',
+                    borderRadius: '8px',
                   }}
                 >
                   <Spin size="large" tip="Geocodificando direcciones..." />
                 </div>
               )}
 
-              <LoadScript
-                googleMapsApiKey="GOOGLE_API_KEY"
-                libraries={['visualization']}
+              <MapContainer
+                center={mapCenter}
+                zoom={9}
+                style={{ height: '100%', width: '100%', borderRadius: '8px' }}
               >
-                <GoogleMap
-                  mapContainerStyle={{
-                    height: '100%',
-                    width: '100%',
-                    borderRadius: '8px',
-                  }}
-                  center={mapCenter}
-                  zoom={9}
-                >
-                  {mapPoints.length > 0 && (
-                    <HeatmapLayer
-                      data={mapPoints}
-                      options={{
-                        radius: 30,
-                        opacity: 0.7,
-                      }}
-                    />
-                  )}
-                </GoogleMap>
-              </LoadScript>
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+
+                {mapPoints.length > 0 && (
+                  <HeatLayerComponent points={mapPoints} />
+                )}
+              </MapContainer>
             </div>
           </Card>
         </Col>

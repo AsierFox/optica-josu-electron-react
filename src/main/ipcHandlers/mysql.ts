@@ -115,14 +115,17 @@ export const registerMysqlIPCHandlers = () => {
         client.DNI ?? null,
         client.fechaNacimiento ?? null,
         client.telefono ?? null,
+        client.telefonoAdicional ?? null,
         client.direccion ?? null,
         client.ciudad ?? null,
         client.codigoPostal ?? null,
         client.notes ?? null,
       ];
+
       const [result] = await query(`INSERT INTO CLIENTS
-        (NOMBRE, APELLIDOS, DNI, FECHA_NACIMIENTO, TELEFONO, DIRECCION, CIUDAD, CODIGO_POSTAL, NOTES)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, params);
+        (NOMBRE, APELLIDOS, DNI, FECHA_NACIMIENTO, TELEFONO, TELEFONO_ADICIONAL, DIRECCION, CIUDAD, CODIGO_POSTAL, NOTES)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, params);
+      // @ts-ignore - MySQL insert result contains insertId
       return result.insertId;
     } catch (error) {
       console.error('Database query error:', error);
@@ -151,15 +154,17 @@ export const registerMysqlIPCHandlers = () => {
         examination.oiVP ?? null,
         examination.oiVL ?? null,
         examination.oiQueratometria ?? null,
-        examination.dip ?? null,
+        examination.dipCerca ?? null,
+        examination.dipLejos ?? null,
         examination.observaciones ?? null,
-        examination.createdAt ?? null,
-        examination.updatedAt ?? null,
+        examination.examinationDate ?? null,
       ];
+
       const [result] = await query(`INSERT INTO EXAMINATIONS
         (ID_CLIENT, ID_EXAMINATION_TYPE, OD_ESFERA, OD_CILINDRO, OD_EJE, OD_ADD, OD_AV, OD_VP, OD_VL, OD_QUERATOMETRIA,
-        OI_ESFERA, OI_CILINDRO, OI_EJE, OI_ADD, OI_AV, OI_VP, OI_VL, OI_QUERATOMETRIA, DIP, OBSERVACIONES, CREATED_AT, UPDATED_AT)
+        OI_ESFERA, OI_CILINDRO, OI_EJE, OI_ADD, OI_AV, OI_VP, OI_VL, OI_QUERATOMETRIA, DIP_CERCA, DIP_LEJOS, OBSERVACIONES, EXAMINATION_DATE)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, params);
+      // @ts-ignore - MySQL insert result contains insertId
       return result.insertId;
     } catch (error) {
       console.error('Database query error:', error);
@@ -188,7 +193,7 @@ export const registerMysqlIPCHandlers = () => {
         (PROVEEDOR, FIRMA, ID_PRODUCT_TYPE, REFERENCIA, MODELO, COLOR, CALIBRE_PUENTE,
         FECHA_COMPRA, PRECIO_COMPRA, FECHA_VENTA, PRECIO_VENTA, NOTES)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, params);
-
+      // @ts-ignore - MySQL insert result contains insertId
       return result.insertId;
     } catch (error) {
       console.error('Database query error:', error);
@@ -199,24 +204,24 @@ export const registerMysqlIPCHandlers = () => {
   ipcMain.handle('mysql-create-products', async (_event, products: ProductModel[]) => {
     try {
       const values = products.map((product) => [
-        product.proveedor ? `'${product.proveedor}'` : 'NULL',
-        product.firma ? `'${product.firma}'` : 'NULL',
-        `'${product.typeId}'`,
-        `'${product.referencia}'`,
-        product.modelo ? `'${product.modelo}'` : 'NULL',
-        product.color ? `'${product.color}'` : 'NULL',
-        product.calibrePuente ? `'${product.calibrePuente}'` : 'NULL',
-        product.fechaCompra ? `'${product.fechaCompra}'` : 'NULL',
-        product.precioCompra ? `'${product.precioCompra}'` : 'NULL',
-        product.fechaVenta ? `'${product.fechaVenta}'` : 'NULL',
-        product.precioVenta ? `'${product.precioVenta}'` : 'NULL',
-        product.notes ? `'${product.notes}'` : 'NULL',
+        product.proveedor ?? null,
+        product.firma ?? null,
+        product.typeId,
+        product.referencia,
+        product.modelo ?? null,
+        product.color ?? null,
+        product.calibrePuente ?? null,
+        product.fechaCompra ?? null,
+        product.precioCompra ?? null,
+        product.fechaVenta ?? null,
+        product.precioVenta ?? null,
+        product.notes ?? null,
       ]);
 
       const sql = `INSERT INTO PRODUCTS
         (PROVEEDOR, FIRMA, ID_PRODUCT_TYPE, REFERENCIA, MODELO, COLOR, CALIBRE_PUENTE,
         FECHA_COMPRA, PRECIO_COMPRA, FECHA_VENTA, PRECIO_VENTA, NOTES)
-        VALUES ${ values.map((value) => `( ${value.join(', ')} )`).join(', ') }`;
+        VALUES ?`;
 
       const [result] = await query(sql, [values]);
       return result;
@@ -228,19 +233,35 @@ export const registerMysqlIPCHandlers = () => {
 
   ipcMain.handle('mysql-update-client', async (_event, client: ClientModel) => {
     try {
-      const [rows] = await query(`UPDATE CLIENTS
+      const sql = `UPDATE CLIENTS
         SET
-          NOMBRE = ${client.nombre ? `'${client.nombre}'` : 'NULL'},
-          APELLIDOS = ${client.apellidos ? `'${client.apellidos}'` : 'NULL'},
-          DNI = ${client.DNI ? `'${client.DNI}'` : 'NULL'},
-          FECHA_NACIMIENTO = ${client.fechaNacimiento ? `'${client.fechaNacimiento}'` : 'NULL'},
-          TELEFONO = ${client.telefono ? `'${client.telefono}'` : 'NULL'},
-          DIRECCION = ${client.direccion ? `'${client.direccion}'` : 'NULL'},
-          CIUDAD = ${client.ciudad ? `'${client.ciudad}'` : 'NULL'},
-          CODIGO_POSTAL = ${client.codigoPostal ? `'${client.codigoPostal}'` : 'NULL'},
-          NOTES = ${client.notes ? `'${client.notes}'` : 'NULL'}
-        WHERE ID = ${client.id}
-      `);
+          NOMBRE = ?,
+          APELLIDOS = ?,
+          DNI = ?,
+          FECHA_NACIMIENTO = ?,
+          TELEFONO = ?,
+          TELEFONO_ADICIONAL = ?,
+          DIRECCION = ?,
+          CIUDAD = ?,
+          CODIGO_POSTAL = ?,
+          NOTES = ?
+        WHERE ID = ?`;
+
+      const values = [
+        client.nombre ?? null,
+        client.apellidos ?? null,
+        client.DNI ?? null,
+        client.fechaNacimiento ?? null,
+        client.telefono ?? null,
+        client.telefonoAdicional ?? null,
+        client.direccion ?? null,
+        client.ciudad ?? null,
+        client.codigoPostal ?? null,
+        client.notes ?? null,
+        client.id
+      ];
+
+      const [rows] = await query(sql, values);
       // @ts-ignore - MySQL insert result contains insertId
       return rows;
     } catch (error) {
@@ -271,8 +292,10 @@ export const registerMysqlIPCHandlers = () => {
           OI_VP = ?,
           OI_VL = ?,
           OI_QUERATOMETRIA = ?,
-          DIP = ?,
-          OBSERVACIONES = ?
+          DIP_CERCA = ?,
+          DIP_LEJOS = ?,
+          OBSERVACIONES = ?,
+          EXAMINATION_DATE = ?
         WHERE ID = ?`;
 
       const values = [
@@ -294,14 +317,15 @@ export const registerMysqlIPCHandlers = () => {
         examination.oiVP ?? null,
         examination.oiVL ?? null,
         examination.oiQueratometria ?? null,
-        examination.dip ?? null,
+        examination.dipCerca ?? null,
+        examination.dipLejos ?? null,
         examination.observaciones ?? null,
+        examination.examinationDate ?? null,
         examination.id
       ];
 
-      // Pasamos el string SQL y el array de valores a tu función query
+      console.log('Updating examination with values:', values);
       const [rows] = await query(sql, values);
-
       // @ts-ignore - MySQL insert result contains insertId
       return rows;
     } catch (error) {
@@ -345,7 +369,6 @@ export const registerMysqlIPCHandlers = () => {
       ];
 
       const [rows] = await query(sql, values);
-
       // @ts-ignore - MySQL insert result contains insertId
       return rows;
     } catch (error) {
@@ -374,4 +397,4 @@ export const registerMysqlIPCHandlers = () => {
     }
   });
 
-}
+};

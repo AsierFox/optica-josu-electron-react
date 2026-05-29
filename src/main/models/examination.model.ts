@@ -24,9 +24,12 @@ export default class ExaminationModel {
   oiVL!: string | null;
   oiQueratometria!: string | null;
 
-  dip!: string | null;
+  dipCerca!: string | null;
+  dipLejos!: string | null;
 
   observaciones!: string | null;
+
+  examinationDate!: string | null;
 
   createdAt!: string | null;
   updatedAt!: string | null;
@@ -57,9 +60,12 @@ export default class ExaminationModel {
     this.oiVL = row.OI_VL;
     this.oiQueratometria = row.OI_QUERATOMETRIA;
 
-    this.dip = row.DIP;
+    this.dipCerca = row.DIP_CERCA;
+    this.dipLejos = row.DIP_LEJOS;
 
     this.observaciones = row.OBSERVACIONES;
+
+    this.examinationDate = row.EXAMINATION_DATE;
 
     this.createdAt = row.CREATED_AT;
     this.updatedAt = row.UPDATED_AT;

@@ -14,7 +14,8 @@ import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
-import { registerMysqlIPCHandlers } from './mysql/mysql';
+import { registerGenericIPCHandlers } from './ipcHandlers/generic';
+import { registerMysqlIPCHandlers } from './ipcHandlers/mysql';
 
 class AppUpdater {
   constructor() {
@@ -27,6 +28,8 @@ class AppUpdater {
 let mainWindow: BrowserWindow | null = null;
 let splash: BrowserWindow | null = null;
 
+
+registerGenericIPCHandlers();
 registerMysqlIPCHandlers();
 
 if (process.env.NODE_ENV === 'production') {

@@ -25,6 +25,7 @@ export const CLIENT_FIELD_NAMES = {
   ciudad: 'Ciudad',
   codigoPostal: 'Código Postal',
   telefono: 'Teléfono',
+  telefonoAdicional: 'Teléfono Adicional',
   DNI: 'DNI',
   fechaNacimiento: 'Fecha de Nacimiento',
   notes: 'Observaciones',

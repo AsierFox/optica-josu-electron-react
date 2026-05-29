@@ -10,6 +10,9 @@ import ExaminationTypeModel from './models/examinationType.model';
 export type Channels = 'ipc-example';
 
 const electronHandler = {
+  ipcGeneric: {
+    fetchAddressCoordinates: (city: string): Promise<any> => ipcRenderer.invoke('fetch-address-coordinates', city),
+  },
   ipcMysql: {
     getClients: (): Promise<ClientModel[]> => ipcRenderer.invoke('mysql-get-clients'),
     getProducts: (): Promise<ProductModel[]> => ipcRenderer.invoke('mysql-get-products'),

@@ -17,7 +17,6 @@ import {
   Divider,
   Form,
   Input,
-  InputNumber,
   notification,
   Row,
   Spin,
@@ -31,8 +30,8 @@ import ExaminationModel from '../../../main/models/examination.model';
 import ExaminationTypeModel from '../../../main/models/examinationType.model';
 import { NEW_ROW_ID_PREFIX, ROUTES } from '../../app/constants';
 import AdminLayout from '../../layouts/AdminLayout';
-import ExaminationForm from './ExaminationForm';
 import utils from '../../utils/util';
+import ExaminationForm from './ExaminationForm';
 
 const { Title } = Typography;
 
@@ -284,12 +283,17 @@ const ClientManagerFormPage: React.FC = () => {
             </Divider>
 
             <Row gutter={16}>
-              <Col xs={24} sm={8}>
+              <Col xs={24} sm={5}>
                 <Form.Item required name="telefono" label="Teléfono">
                   <Input required prefix={<PhoneOutlined />} />
                 </Form.Item>
               </Col>
-              <Col xs={24} sm={16}>
+              <Col xs={24} sm={5}>
+                <Form.Item name="telefonoAdicional" label="Teléfono Adicional">
+                  <Input prefix={<PhoneOutlined />} />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={14}>
                 <Form.Item name="direccion" label="Dirección">
                   <Input />
                 </Form.Item>
