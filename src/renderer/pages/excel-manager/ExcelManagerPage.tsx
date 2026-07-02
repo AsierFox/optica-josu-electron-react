@@ -17,6 +17,7 @@ import ProductModel from '../../../main/models/product.model';
 import ProductTypeModel from '../../../main/models/productType.model';
 import AdminLayout from '../../layouts/AdminLayout';
 import utils from '../../utils/util';
+import SaleModel from '../../../main/models/sale.model';
 
 const { Dragger } = Upload;
 const { Title } = Typography;
@@ -391,6 +392,36 @@ const ExcelImporter: React.FC = () => {
     setErrorMessage(null);
   };
 
+  const handleCurrentSales = async (): Promise<void> => {
+    const salesToInsert: SaleModel[] = [];
+    const productWithoutSales: ProductModel[] = [];
+    const allProducts: ProductModel[] =
+      await window.electron.ipcMysql.getProducts();
+
+    allProducts.forEach((product) => {
+      if (product.fechaVenta) {
+        salesToInsert.push({
+          productId: parseInt(product.id, 10),
+          clientId: 1, // Cliente genérico
+          fechaVenta: product.fechaVenta,
+          precioVenta: product.precioVenta,
+        });
+      } else {
+        productWithoutSales.push(product);
+      }
+    });
+
+    try {
+      await window.electron.ipcMysql.createSales(salesToInsert);
+      api.success({
+        message: 'Migración de ventas completada',
+        description: `Se han migrado ${salesToInsert.length} ventas a la tabla de ventas. ${productWithoutSales.length} productos no tenían fecha de venta.`,
+      });
+    } catch {
+      api.error({ message: 'Error al migrar las ventas' });
+    }
+  };
+
   useEffect(() => {
     const getProductTypes = async () => {
       try {
@@ -515,6 +546,9 @@ const ExcelImporter: React.FC = () => {
               </div>
             )}
           </Space>
+        </Card>
+        <Card style={{ marginTop: '20px' }}>
+          <Button onClick={handleCurrentSales}>Migrar Ventas Actuales</Button>
         </Card>
       </Spin>
     </AdminLayout>

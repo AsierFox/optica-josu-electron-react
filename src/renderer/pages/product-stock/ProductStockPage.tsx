@@ -3,7 +3,15 @@ import {
   FileExcelOutlined,
   PlusOutlined,
 } from '@ant-design/icons';
-import { Alert, Button, Form, notification, Popconfirm } from 'antd';
+import {
+  Alert,
+  Button,
+  Divider,
+  Form,
+  notification,
+  Popconfirm,
+  Typography,
+} from 'antd';
 import dayjs from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -16,6 +24,8 @@ import util from '../../utils/util';
 import ProductStockFilters from './ProductStockFilters';
 import { ProductStockFilterValue } from './ProductStockFilterValue';
 import ProductStockTable from './ProductStockTable';
+
+const { Text } = Typography;
 
 dayjs.extend(isBetween);
 
@@ -220,17 +230,15 @@ const ProductStockPage: React.FC = () => {
       api.success({
         message: `¡Producto ${isNewProduct ? 'creado' : 'editado'} satisfactoriamente!`,
       });
-    } catch (error) {
+    } catch (error: any) {
       if (error && error?.errorFields) {
-        api.error({
-          placement: 'top',
+        api.warning({
           message: 'Por favor, revisa los campos marcados en rojo.',
         });
         return;
       }
       const errorMsg = `Error de conexión con base de datos: ${error?.message || error}`;
       api.error({
-        placement: 'top',
         message: errorMsg,
       });
       setErrorMessage(errorMsg);
@@ -348,6 +356,12 @@ const ProductStockPage: React.FC = () => {
           description={errorMessage}
         />
       ) : null}
+
+      <Text strong style={{ fontSize: '15px', color: '#141414' }}>
+        Gestión de Inventario
+      </Text>
+
+      <Divider />
 
       <ProductStockFilters
         allDisabled={!!editingProduct}

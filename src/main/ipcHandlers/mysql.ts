@@ -2,14 +2,17 @@ import { ipcMain } from 'electron';
 import mysql from 'mysql2/promise';
 import ClientModel from '../models/client.model';
 import ExaminationModel from '../models/examination.model';
+import ExaminationTypeModel from '../models/examinationType.model';
 import ModelParserService from '../models/modelParser.service';
 import ProductModel from '../models/product.model';
+import ProductTypeModel from '../models/productType.model';
+import SaleModel from '../models/sale.model';
 
 async function query(sql: string, params: any[] = []) {
   const connection = await mysql.createConnection({
     host: "127.0.0.1",
     user: "root",
-    password: "root",
+    password: "",
     database: "optica_josu",
   });
   const [rows] = await connection.execute(sql, params);
@@ -19,10 +22,10 @@ async function query(sql: string, params: any[] = []) {
 
 export const registerMysqlIPCHandlers = () => {
 
-  ipcMain.handle('mysql-get-clients', async (_event, params: any[] = []) => {
+  ipcMain.handle('mysql-get-clients', async () : Promise<ClientModel[]> => {
     try {
       const [rows] = await query(`
-        SELECT * FROM CLIENTS`, params);
+        SELECT * FROM CLIENTS`);
       return ModelParserService.parseClientModels(rows as any []);
     } catch (error) {
       console.error('Database query error:', error);
@@ -30,12 +33,12 @@ export const registerMysqlIPCHandlers = () => {
     }
   });
 
-  ipcMain.handle('mysql-get-products', async (_event, params: any[] = []) => {
+  ipcMain.handle('mysql-get-products', async () : Promise<ProductModel[]> => {
     try {
       const [rows] = await query(`
         SELECT PRODUCTS.*, PRODUCT_TYPES.TYPE FROM PRODUCTS
         INNER JOIN PRODUCT_TYPES ON
-          (PRODUCTS.ID_PRODUCT_TYPE = PRODUCT_TYPES.ID)`, params);
+          (PRODUCTS.ID_PRODUCT_TYPE = PRODUCT_TYPES.ID)`);
       return ModelParserService.parseProductModels(rows as any []);
     } catch (error) {
       console.error('Database query error:', error);
@@ -43,7 +46,17 @@ export const registerMysqlIPCHandlers = () => {
     }
   });
 
-  ipcMain.handle('mysql-get-product-types', async () => {
+  ipcMain.handle('mysql-get-all-products-references-and-models', async () : Promise<ProductModel[]> => {
+    try {
+      const [rows] = await query(`SELECT ID, REFERENCIA, MODELO FROM PRODUCTS`);
+      return ModelParserService.parseProductModels(rows as any []);
+    } catch (error) {
+      console.error('Database query error:', error);
+      throw new Error('Database query failed');
+    }
+  });
+
+  ipcMain.handle('mysql-get-product-types', async () : Promise<ProductTypeModel[]> => {
     try {
       const [rows] = await query(`SELECT * FROM PRODUCT_TYPES`);
       return ModelParserService.parseProductTypes(rows as any []);
@@ -53,7 +66,7 @@ export const registerMysqlIPCHandlers = () => {
     }
   });
 
-  ipcMain.handle('mysql-get-examination-types', async () => {
+  ipcMain.handle('mysql-get-examination-types', async () : Promise<ExaminationTypeModel[]> => {
     try {
       const [rows] = await query(`SELECT * FROM EXAMINATION_TYPES`);
       return ModelParserService.parseProductTypes(rows as any []);
@@ -63,7 +76,7 @@ export const registerMysqlIPCHandlers = () => {
     }
   });
 
-  ipcMain.handle('mysql-get-client-examinations', async () => {
+  ipcMain.handle('mysql-get-client-examinations', async () : Promise<ExaminationModel[]> => {
     try {
       const [rows] = await query(`SELECT * FROM EXAMINATIONS`);
       return ModelParserService.parseExaminationModels(rows as any []);
@@ -73,7 +86,7 @@ export const registerMysqlIPCHandlers = () => {
     }
   });
 
-  ipcMain.handle('mysql-get-product-by-reference', async (_event, reference: string) => {
+  ipcMain.handle('mysql-get-product-by-reference', async (_event, reference: string) : Promise<ProductModel | null> => {
     try {
       const [rows] = await query(`
         SELECT * FROM PRODUCTS WHERE REFERENCIA = ?`, [reference]);
@@ -85,7 +98,7 @@ export const registerMysqlIPCHandlers = () => {
     }
   });
 
-  ipcMain.handle('mysql-get-client-by-id', async (_event, clientId: number) => {
+  ipcMain.handle('mysql-get-client-by-id', async (_event, clientId: number) : Promise<ClientModel | null> => {
     try {
       const [rows] = await query(`SELECT * FROM CLIENTS WHERE ID = ?`, [clientId]);
       const clients = ModelParserService.parseClientModels(rows as any []);
@@ -96,11 +109,26 @@ export const registerMysqlIPCHandlers = () => {
     }
   });
 
-  ipcMain.handle('mysql-get-client-examinations-by-id', async (_event, clientId: number) => {
+  ipcMain.handle('mysql-get-client-examinations-by-id', async (_event, clientId: number) : Promise<ExaminationModel[]> => {
     try {
       const [rows] = await query(`
         SELECT * FROM EXAMINATIONS WHERE ID_CLIENT = ? ORDER BY UPDATED_AT DESC`, [clientId]);
       return ModelParserService.parseExaminationModels(rows as any []);
+    } catch (error) {
+      console.error('Database query error:', error);
+      throw new Error('Database query failed');
+    }
+  });
+
+  ipcMain.handle('mysql-get-purchases-by-client-id', async (_event, clientId: number) : Promise<SaleModel[]> => {
+    try {
+      const [rows] = await query(`
+        SELECT s.ID, s.FECHA_VENTA, s.PRECIO_VENTA,
+               p.PROVEEDOR, p.FIRMA, p.REFERENCIA, p.MODELO, p.NOTES, p.PRECIO_COMPRA
+        FROM SALES s
+        RIGHT JOIN PRODUCTS p ON s.ID_PRODUCT = p.ID
+        WHERE s.ID_CLIENT = ? ORDER BY s.UPDATED_AT DESC`, [clientId]);
+      return ModelParserService.parseSaleModels(rows as any []);
     } catch (error) {
       console.error('Database query error:', error);
       throw new Error('Database query failed');
@@ -201,7 +229,7 @@ export const registerMysqlIPCHandlers = () => {
     }
   });
 
-  ipcMain.handle('mysql-create-products', async (_event, products: ProductModel[]) => {
+  ipcMain.handle('mysql-create-products', async (_event, products: ProductModel[]) : Promise<number> => {
     try {
       const values = products.map((product) => [
         product.proveedor ?? null,
@@ -224,14 +252,63 @@ export const registerMysqlIPCHandlers = () => {
         VALUES ?`;
 
       const [result] = await query(sql, [values]);
-      return result;
+      // @ts-ignore - MySQL insert result contains insertId
+      return result.insertId;
     } catch (error) {
       console.error('Database query error:', error);
       throw new Error('Database query failed');
     }
   });
 
-  ipcMain.handle('mysql-update-client', async (_event, client: ClientModel) => {
+  ipcMain.handle('mysql-create-sale', async (_event, sale: SaleModel) : Promise<number> => {
+    try {
+      const sql = `INSERT INTO SALES
+        (ID_PRODUCT, ID_CLIENT, FECHA_VENTA, PRECIO_VENTA)
+        VALUES (
+          ?,
+          ?,
+          ?,
+          ?
+        )`;
+
+      const values = [
+        sale.productId,
+        sale.clientId,
+        sale.fechaVenta,
+        sale.precioVenta,
+      ];
+
+      const [result] = await query(sql, values);
+      // @ts-ignore - MySQL insert result contains insertId
+      return result.insertId;
+    } catch (error) {
+      console.error('Database query error:', error);
+      throw new Error('Database query failed');
+    }
+  });
+
+  ipcMain.handle('mysql-create-sales', async (_event, sales: SaleModel[]) : Promise<number> => {
+    try {
+      const sql = `INSERT INTO SALES
+        (ID_PRODUCT, ID_CLIENT, FECHA_VENTA, PRECIO_VENTA)
+        VALUES ${sales
+          .map((sale) => `(
+            ${sale.productId},
+            ${sale.clientId},
+            ${sale.fechaVenta ? `'${sale.fechaVenta}'` : 'NULL'},
+            ${sale.precioVenta}
+          )`).join(', ')}`;
+
+      const [result] = await query(sql);
+      // @ts-ignore - MySQL insert result contains insertId
+      return result.insertId;
+    } catch (error) {
+      console.error('Database query error:', error);
+      throw new Error('Database query failed');
+    }
+  });
+
+  ipcMain.handle('mysql-update-client', async (_event, client: ClientModel) : Promise<void> => {
     try {
       const sql = `UPDATE CLIENTS
         SET
@@ -270,7 +347,7 @@ export const registerMysqlIPCHandlers = () => {
     }
   });
 
-  ipcMain.handle('mysql-update-examination', async (_event, examination: ExaminationModel) => {
+  ipcMain.handle('mysql-update-examination', async (_event, examination: ExaminationModel) : Promise<void> => {
     try {
       const sql = `UPDATE EXAMINATIONS
         SET
@@ -334,7 +411,7 @@ export const registerMysqlIPCHandlers = () => {
     }
   });
 
-  ipcMain.handle('mysql-update-product', async (_event, product: ProductModel) => {
+  ipcMain.handle('mysql-update-product', async (_event, product: ProductModel) : Promise<void> => {
     try {
       const sql = `UPDATE PRODUCTS
         SET
@@ -377,9 +454,10 @@ export const registerMysqlIPCHandlers = () => {
     }
   });
 
-  ipcMain.handle('mysql-delete-examination', async (_event, examinationId: number) => {
+  ipcMain.handle('mysql-delete-examination', async (_event, examinationId: number) : Promise<void> => {
     try {
       const [rows] = await query(`DELETE FROM EXAMINATIONS WHERE ID = ${examinationId}`);
+      // @ts-ignore - MySQL delete result contains affectedRows
       return rows;
     } catch (error) {
       console.error('Database query error:', error);
@@ -387,9 +465,10 @@ export const registerMysqlIPCHandlers = () => {
     }
   });
 
-  ipcMain.handle('mysql-delete-product', async (_event, productId: number) => {
+  ipcMain.handle('mysql-delete-product', async (_event, productId: number) : Promise<void> => {
     try {
       const [rows] = await query(`DELETE FROM PRODUCTS WHERE ID = ${productId}`);
+      // @ts-ignore - MySQL delete result contains affectedRows
       return rows;
     } catch (error) {
       console.error('Database query error:', error);

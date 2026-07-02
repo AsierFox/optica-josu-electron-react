@@ -3,6 +3,7 @@ import ProductTypeModel from '../models/productType.model';
 import ClientModel from './client.model';
 import ExaminationModel from './examination.model';
 import ExaminationTypeModel from './examinationType.model';
+import SaleModel from './sale.model';
 
 export default class ModelParserService {
 
@@ -25,4 +26,15 @@ export default class ModelParserService {
   static parseExaminationTypes(rows: any[]): ExaminationTypeModel[] {
     return rows.map(row => new ExaminationTypeModel(row));
   }
+
+  static parseSaleModels(rows: any[]): SaleModel[] {
+    return rows.map(row => {
+      const product = new ProductModel(row);
+      return new SaleModel({
+        ...row,
+        product
+      });
+    });
+  }
+
 }

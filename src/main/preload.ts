@@ -3,9 +3,10 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 import ClientModel from './models/client.model';
 import ExaminationModel from './models/examination.model';
+import ExaminationTypeModel from './models/examinationType.model';
 import ProductModel from './models/product.model';
 import ProductTypeModel from './models/productType.model';
-import ExaminationTypeModel from './models/examinationType.model';
+import SaleModel from './models/sale.model';
 
 export type Channels = 'ipc-example';
 
@@ -16,18 +17,22 @@ const electronHandler = {
   ipcMysql: {
     getClients: (): Promise<ClientModel[]> => ipcRenderer.invoke('mysql-get-clients'),
     getProducts: (): Promise<ProductModel[]> => ipcRenderer.invoke('mysql-get-products'),
+    getAllProductsReferencesAndModels: (): Promise<ProductModel[]> => ipcRenderer.invoke('mysql-get-all-products-references-and-models'),
     getProductTypes: (): Promise<ProductTypeModel[]> => ipcRenderer.invoke('mysql-get-product-types'),
     getExaminationTypes: (): Promise<ExaminationTypeModel[]> => ipcRenderer.invoke('mysql-get-examination-types'),
     getClientExaminations: (): Promise<ExaminationModel[]> => ipcRenderer.invoke('mysql-get-client-examinations'),
 
-    getClientById: (clientId: number): Promise<ClientModel> => ipcRenderer.invoke('mysql-get-client-by-id', clientId),
-    getProductByReference: (reference: string): Promise<ProductModel> => ipcRenderer.invoke('mysql-get-product-by-reference', reference),
+    getClientById: (clientId: number): Promise<ClientModel | null> => ipcRenderer.invoke('mysql-get-client-by-id', clientId),
+    getProductByReference: (reference: string): Promise<ProductModel | null> => ipcRenderer.invoke('mysql-get-product-by-reference', reference),
     getClientExaminationsById: (clientId: number): Promise<ExaminationModel[]> => ipcRenderer.invoke('mysql-get-client-examinations-by-id', clientId),
+    getClientPurchasesById: (clientId: number): Promise<SaleModel[]> => ipcRenderer.invoke('mysql-get-purchases-by-client-id', clientId),
 
     createClient: (client: ClientModel): Promise<number> => ipcRenderer.invoke('mysql-create-client', client),
     createExamination: (examination: ExaminationModel): Promise<number> => ipcRenderer.invoke('mysql-create-examination', examination),
     createProduct: (product: ProductModel): Promise<number> => ipcRenderer.invoke('mysql-create-product', product),
     createProducts: (products: ProductModel[]): Promise<number> => ipcRenderer.invoke('mysql-create-products', products),
+    createSale: (sale: SaleModel): Promise<number> => ipcRenderer.invoke('mysql-create-sale', sale),
+    createSales: (sales: SaleModel[]): Promise<number> => ipcRenderer.invoke('mysql-create-sales', sales),
 
     updateClient: (client: ClientModel): Promise<void> => ipcRenderer.invoke('mysql-update-client', client),
     updateExamination: (examination: ExaminationModel): Promise<void> => ipcRenderer.invoke('mysql-update-examination', examination),

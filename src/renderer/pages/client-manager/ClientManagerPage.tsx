@@ -1,5 +1,5 @@
 import { PlusOutlined } from '@ant-design/icons';
-import { Alert, Button, Form, Space } from 'antd';
+import { Alert, Button, Divider, Form, Space, Typography } from 'antd';
 import dayjs from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import React, { useEffect, useState } from 'react';
@@ -8,6 +8,8 @@ import ClientModel from '../../../main/models/client.model';
 import { ROUTES } from '../../app/constants';
 import AdminLayout from '../../layouts/AdminLayout';
 import ClientManagerTable from './ClientManagerTable';
+
+const { Text } = Typography;
 
 dayjs.extend(isBetween);
 
@@ -53,6 +55,12 @@ const ClientManagerPage: React.FC = () => {
           description={errorMessage}
         />
       ) : null}
+
+      <Text strong style={{ fontSize: '15px', color: '#141414' }}>
+        Gestión de Clientes
+      </Text>
+
+      <Divider />
 
       <Space size="middle" style={{ marginBottom: 16 }}>
         <Button

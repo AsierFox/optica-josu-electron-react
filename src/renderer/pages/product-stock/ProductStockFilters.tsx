@@ -215,12 +215,6 @@ const ProductStockFilters: React.FC<Props> = ({
 
   return (
     <div>
-      <Text strong style={{ fontSize: '15px', color: '#141414' }}>
-        Gestión de Inventario
-      </Text>
-
-      <Divider />
-
       <Space size="middle">
         {Object.entries(filters)
           .filter(([, filter]) => filter.type === 'SINGLE')

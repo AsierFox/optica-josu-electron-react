@@ -28,7 +28,6 @@ class AppUpdater {
 let mainWindow: BrowserWindow | null = null;
 let splash: BrowserWindow | null = null;
 
-
 registerGenericIPCHandlers();
 registerMysqlIPCHandlers();
 
@@ -101,15 +100,13 @@ const createWindow = async () => {
     if (!mainWindow) {
       throw new Error('"mainWindow" is not defined');
     }
-    if (process.env.START_MINIMIZED) {
-      mainWindow.minimize();
-    } else {
-      splash?.close();
-      mainWindow.show();
-      mainWindow.setAlwaysOnTop(false);
 
-      splash = null;
-    }
+    splash?.close();
+    mainWindow.show();
+    mainWindow.setAlwaysOnTop(false);
+    mainWindow.maximize();
+
+    splash = null;
   });
 
   mainWindow.on('closed', () => {

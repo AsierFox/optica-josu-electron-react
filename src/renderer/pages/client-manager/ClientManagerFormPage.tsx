@@ -1,5 +1,6 @@
 import {
   ArrowLeftOutlined,
+  EyeOutlined,
   HistoryOutlined,
   HomeOutlined,
   IdcardOutlined,
@@ -13,14 +14,18 @@ import {
   Button,
   Card,
   Col,
+  ConfigProvider,
   DatePicker,
   Divider,
   Form,
   Input,
+  InputNumber,
+  Modal,
   notification,
   Row,
+  Select,
   Spin,
-  Typography,
+  Tabs,
 } from 'antd';
 import dayjs from 'dayjs';
 import React, { useEffect, useState } from 'react';
@@ -28,30 +33,39 @@ import { useNavigate, useParams } from 'react-router-dom';
 import ClientModel from '../../../main/models/client.model';
 import ExaminationModel from '../../../main/models/examination.model';
 import ExaminationTypeModel from '../../../main/models/examinationType.model';
+import ProductModel from '../../../main/models/product.model';
+import SaleModel from '../../../main/models/sale.model';
 import { NEW_ROW_ID_PREFIX, ROUTES } from '../../app/constants';
 import AdminLayout from '../../layouts/AdminLayout';
 import utils from '../../utils/util';
 import ExaminationForm from './ExaminationForm';
-
-const { Title } = Typography;
+import PurchaseHistoryTable from './PurchaseHistoryTable';
 
 const ClientManagerFormPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [api, contextHolder] = notification.useNotification();
+
   const [isNewClient, setIsNewClient] = useState<boolean>(false);
   const [client, setClient] = useState<ClientModel | null>(null);
+
+  const [examinations, setExaminations] = useState<ExaminationModel[]>([]);
   const [examinationTypes, setExaminationTypes] = useState<
     ExaminationTypeModel[]
   >([]);
-  const [examinations, setExaminations] = useState<ExaminationModel[]>([]);
+  const [allProductsReferencesAndModels, setAllProductsReferencesAndModels] =
+    useState<ProductModel[]>([]);
+  const [purchases, setPurchases] = useState<SaleModel[]>([]);
 
   // eslint-disable-next-line camelcase
   const { client_id } = useParams<{ client_id: string }>();
 
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isNewPurchaseModalOpen, setIsNewPurchaseModalOpen] =
+    useState<boolean>(false);
 
   const navigate = useNavigate();
-  const [form] = Form.useForm();
-  const [api, contextHolder] = notification.useNotification();
+  const [clientForm] = Form.useForm();
+  const [purchaseForm] = Form.useForm();
 
   const handleClientSubmit = async (values: any) => {
     setLoading(true);
@@ -93,17 +107,89 @@ const ClientManagerFormPage: React.FC = () => {
     }
   };
 
-  const handleDeleteExamination = (examinationId: string) => {
+  const handleSaveExamination = async (examination: ExaminationModel) => {
     setLoading(true);
-    setExaminations((prevExaminations) =>
-      prevExaminations.filter(
-        (examination) => examination.id !== examinationId,
-      ),
-    );
-    setLoading(false);
-    api.success({
-      message: '¡Graduación Eliminada!',
-    });
+    try {
+      const isNewExamination = examination.id
+        .toString()
+        .startsWith(NEW_ROW_ID_PREFIX);
+      // Guardamos el ID antiguo para poder buscarlo y encontrarlo en el map
+      const oldId = examination.id;
+
+      let examinationToSave = examination;
+
+      if (isNewExamination) {
+        const newExaminationId =
+          await window.electron.ipcMysql.createExamination(examination);
+
+        examinationToSave = {
+          ...examination,
+          // Guardamos el nuevo ID de la BBDD
+          id: newExaminationId.toString(),
+        };
+      } else {
+        await window.electron.ipcMysql.updateExamination(examination);
+      }
+
+      setExaminations((prevExaminations) =>
+        prevExaminations.map((prevExamination) =>
+          prevExamination.id === oldId ? examinationToSave : prevExamination,
+        ),
+      );
+
+      api.success({
+        message: isNewExamination
+          ? 'Graduación guardada exitosamente'
+          : 'Graduación actualizada exitosamente',
+        description: isNewExamination
+          ? 'La nueva graduación ha sido guardada correctamente.'
+          : 'La graduación ha sido actualizada correctamente.',
+      });
+    } catch {
+      api.error({
+        message: 'Error al guardar la graduación',
+        description:
+          'Ocurrió un error al intentar guardar la graduación. Por favor, intenta nuevamente.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteExamination = async (examinationId: string) => {
+    // 1.- Si no está en BBDD, simplemente la eliminamos del estado local
+    if (examinationId.toString().startsWith(NEW_ROW_ID_PREFIX)) {
+      setExaminations((prevExaminations) =>
+        prevExaminations.filter(
+          (examination) => examination.id !== examinationId,
+        ),
+      );
+      return;
+    }
+
+    // 2.- Si la graduación está en BBDD, la eliminamos
+    try {
+      setLoading(true);
+      await window.electron.ipcMysql.deleteExamination(Number(examinationId));
+
+      setExaminations((prevExaminations) =>
+        prevExaminations.filter(
+          (examination) => examination.id !== examinationId,
+        ),
+      );
+
+      api.success({
+        message: '¡Graduación Eliminada!',
+      });
+    } catch {
+      api.error({
+        message: 'Error al eliminar la graduación',
+        description:
+          'Ocurrió un error al intentar eliminar la graduación. Por favor, intenta nuevamente.',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const createNewExamination = () => {
@@ -131,20 +217,66 @@ const ClientManagerFormPage: React.FC = () => {
       return;
     }
 
-    const newExaminationRecordDate = dayjs(new Date()).toISOString();
-
     setExaminations([
       {
         id: NEW_ROW_ID_PREFIX + Date.now(),
         idClient: parseInt(client.id, 10),
-        idExaminationType: 1,
-        createdAt: newExaminationRecordDate,
-        updatedAt: newExaminationRecordDate,
+        idExaminationType: 1, // Por defecto, asignamos Óptica Josu
       } as ExaminationModel,
       ...examinations,
     ]);
 
     setLoading(false);
+  };
+
+  const createNewPurchase = async () => {
+    if (!client) {
+      api.error({
+        message: 'Error',
+        description: '¡No se pudo cargar el cliente!',
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await purchaseForm.validateFields();
+
+      const newSale = new SaleModel({
+        CLIENT_ID: parseInt(client.id, 10),
+        PRODUCT_ID: purchaseForm.getFieldValue('productId'),
+        PRECIO_VENTA: purchaseForm.getFieldValue('precioVenta'),
+        FECHA_VENTA: purchaseForm
+          .getFieldValue('fechaVenta')
+          .format('YYYY-MM-DD'),
+      });
+
+      await window.electron.ipcMysql.createSale(newSale);
+
+      setIsNewPurchaseModalOpen(false);
+
+      api.success({
+        message: 'Éxito',
+        description: '¡Venta registrada correctamente!',
+      });
+
+      purchaseForm.resetFields();
+    } catch (error: any) {
+      if (error && error?.errorFields) {
+        api.warning({
+          message: 'Atención',
+          description:
+            'Por favor, completa todos los campos requeridos antes de guardar la venta.',
+        });
+        return;
+      }
+      const errorMsg = `Error de conexión con base de datos: ${error?.message || error}`;
+      api.error({
+        message: errorMsg,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -166,19 +298,25 @@ const ClientManagerFormPage: React.FC = () => {
 
         const clientExaminationsDDBB =
           await window.electron.ipcMysql.getClientExaminationsById(clientId);
+        const clientPurchasesDDBB =
+          await window.electron.ipcMysql.getClientPurchasesById(clientId);
+        const allProductReferencesAndModelsDDBB =
+          await window.electron.ipcMysql.getAllProductsReferencesAndModels();
 
         setClient(clientDDBB);
         setExaminations(clientExaminationsDDBB);
+        setPurchases(clientPurchasesDDBB);
+        setAllProductsReferencesAndModels(allProductReferencesAndModelsDDBB);
 
-        form.setFieldsValue({
+        clientForm.setFieldsValue({
           ...clientDDBB,
           // Convertimos la fecha al formato que entiende el DatePicker (dayjs),
           // porque si no le pasamos un timestamp/number, el DatePicker no lo muestra.
-          fechaNacimiento: clientDDBB.fechaNacimiento
+          fechaNacimiento: clientDDBB?.fechaNacimiento
             ? dayjs(clientDDBB.fechaNacimiento)
             : null,
         });
-      } catch (error) {
+      } catch (error: any) {
         api.error({
           message: 'Error',
           description: '¡No se pudo guardar el cliente!',
@@ -191,12 +329,12 @@ const ClientManagerFormPage: React.FC = () => {
       }
     };
 
-    form.resetFields();
+    clientForm.resetFields();
     // @ts-ignore
     // eslint-disable-next-line no-restricted-globals, camelcase
     if (utils.isNumeric(client_id)) {
       // Cliente existente, cargamos sus datos y sus graduaciones
-      const clientId = parseInt(client_id, 10);
+      const clientId = Number(client_id);
       getClientAndExaminationsById(clientId);
     } else {
       // Nuevo cliente, inicializamos el formulario vacío
@@ -205,7 +343,7 @@ const ClientManagerFormPage: React.FC = () => {
       setLoading(false);
     }
     // eslint-disable-next-line camelcase, react-hooks/exhaustive-deps
-  }, [client_id, form]);
+  }, [client_id, clientForm]);
 
   return (
     <AdminLayout>
@@ -239,7 +377,11 @@ const ClientManagerFormPage: React.FC = () => {
             </h2>
           </Row>
 
-          <Form form={form} onFinish={handleClientSubmit} layout="vertical">
+          <Form
+            form={clientForm}
+            onFinish={handleClientSubmit}
+            layout="vertical"
+          >
             {/* DATOS PERSONALES */}
             <Divider orientation="left">
               <UserOutlined /> Datos Personales
@@ -324,6 +466,7 @@ const ClientManagerFormPage: React.FC = () => {
               <Button
                 htmlType="submit"
                 type="primary"
+                size="large"
                 icon={<SaveOutlined />}
                 style={{ backgroundColor: '#13c2c2', borderColor: '#13c2c2' }}
               >
@@ -332,32 +475,232 @@ const ClientManagerFormPage: React.FC = () => {
             </Row>
           </Form>
 
-          <Card style={{ marginTop: 30 }} hidden={isNewClient}>
-            <div style={{ marginBottom: '20px' }}>
-              <Title level={3} style={{ marginBottom: '15px' }}>
-                <HistoryOutlined /> Historial de Graduaciones
-              </Title>
+          {/* SECCIÓN DE HISTORIALES */}
+          <div hidden={isNewClient}>
+            <ConfigProvider
+              theme={{
+                components: {
+                  Tabs: {
+                    itemSelectedColor: '#13c2c2',
+                    itemHoverColor: '#08979c',
+                    itemColor: '#484848',
+                  },
+                },
+              }}
+            >
+              <Tabs
+                defaultActiveKey="1"
+                type="card"
+                style={{ marginTop: 20 }}
+                tabBarStyle={{ marginBottom: 0 }}
+                hidden={isNewClient}
+                items={[
+                  {
+                    key: '1',
+                    label: (
+                      <span
+                        style={{
+                          padding: '4px 12px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          fontSize: '20px',
+                          fontWeight: 600,
+                        }}
+                      >
+                        <EyeOutlined />
+                        Historial de Graduaciones
+                      </span>
+                    ),
+                    children: (
+                      <div
+                        style={{ border: '1px solid #f0f0f0', padding: '20px' }}
+                      >
+                        <div style={{ marginTop: 10, marginBottom: 20 }}>
+                          <Button
+                            type="dashed"
+                            size="large"
+                            icon={<PlusOutlined />}
+                            style={{
+                              borderColor: '#13c2c2',
+                              color: '#13c2c2',
+                              fontWeight: 500,
+                            }}
+                            onClick={createNewExamination}
+                          >
+                            Nueva Graduación
+                          </Button>
+                        </div>
 
-              <Button
-                type="dashed"
-                icon={<PlusOutlined />}
-                style={{ borderColor: '#13c2c2', color: '#13c2c2' }}
-                onClick={createNewExamination}
-              >
-                Nueva Graduación
-              </Button>
-            </div>
+                        {examinations.map((examination, i) => (
+                          <ExaminationForm
+                            key={`examination-form-${examination.id}`}
+                            examination={examination}
+                            examinationTypes={examinationTypes}
+                            isLastExamination={i === 0}
+                            onSaveExamination={handleSaveExamination}
+                            onDeleteExamination={handleDeleteExamination}
+                          />
+                        ))}
+                      </div>
+                    ),
+                  },
+                  {
+                    key: '2',
+                    label: (
+                      <span
+                        style={{
+                          padding: '4px 12px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          fontSize: '20px',
+                          fontWeight: 600,
+                        }}
+                      >
+                        <HistoryOutlined />
+                        Historial de Pedidos
+                      </span>
+                    ),
+                    children: (
+                      <div
+                        style={{ border: '1px solid #f0f0f0', padding: '20px' }}
+                      >
+                        <div style={{ marginTop: 10, marginBottom: 20 }}>
+                          <Button
+                            type="dashed"
+                            size="large"
+                            icon={<PlusOutlined />}
+                            style={{
+                              borderColor: '#13c2c2',
+                              color: '#13c2c2',
+                              fontWeight: 500,
+                            }}
+                            onClick={() => setIsNewPurchaseModalOpen(true)}
+                          >
+                            Nueva Venta
+                          </Button>
 
-            {examinations.map((examination, i) => (
-              <ExaminationForm
-                key={`examination-form-${examination.id}`}
-                examination={examination}
-                examinationTypes={examinationTypes}
-                isLastExamination={i === 0}
-                handleDeleteExamination={handleDeleteExamination}
+                          {/* COMPONENTE MODAL */}
+                          <Modal
+                            title="Registrar Nueva Venta"
+                            open={isNewPurchaseModalOpen}
+                            onOk={() => createNewPurchase()}
+                            onCancel={() => setIsNewPurchaseModalOpen(false)}
+                            okText="Guardar"
+                            cancelText="Cancelar"
+                            okButtonProps={{
+                              style: {
+                                backgroundColor: '#13c2c2',
+                                borderColor: '#13c2c2',
+                              },
+                            }}
+                          >
+                            <p>Introduce los datos de la nueva venta.</p>
+                            <Form
+                              form={purchaseForm}
+                              layout="vertical"
+                              initialValues={{
+                                fechaVenta: dayjs(), // Por defecto, mostar fecha de hoy
+                              }}
+                            >
+                              <Form.Item
+                                name="fechaVenta"
+                                label="Fecha de Venta"
+                                rules={[
+                                  {
+                                    required: true,
+                                    message: 'Por favor, selecciona la fecha',
+                                  },
+                                ]}
+                              >
+                                <DatePicker
+                                  style={{ width: '100%' }}
+                                  format="DD/MM/YYYY"
+                                />
+                              </Form.Item>
+
+                              <Form.Item
+                                name="precioVenta"
+                                label="Precio de Venta (€)"
+                                rules={[
+                                  {
+                                    required: true,
+                                    message: 'Por favor, introduce el precio',
+                                  },
+                                ]}
+                              >
+                                <InputNumber
+                                  min={0}
+                                  step={0.01}
+                                  addonAfter="€"
+                                  stringMode
+                                  formatter={utils.priceInputFormatter}
+                                  parser={utils.priceInputParser}
+                                  style={{ width: '100%' }}
+                                />
+                              </Form.Item>
+
+                              <Form.Item
+                                name="productId"
+                                label="Buscar Producto por Referencia o Modelo"
+                                style={{ marginBottom: 0 }}
+                                rules={[
+                                  {
+                                    required: true,
+                                    message: 'Selecciona un producto',
+                                  },
+                                ]}
+                              >
+                                <Select
+                                  showSearch
+                                  placeholder="Escribe el nombre o código del producto..."
+                                  optionFilterProp="children"
+                                  style={{ width: '100%' }}
+                                  filterOption={(input, option) =>
+                                    (option?.label ?? '')
+                                      .toUpperCase()
+                                      .includes(input.toUpperCase())
+                                  }
+                                  filterSort={(optionA, optionB) =>
+                                    (optionA?.label ?? '')
+                                      .toUpperCase()
+                                      .localeCompare(
+                                        (optionB?.label ?? '').toUpperCase(),
+                                      )
+                                  }
+                                  options={allProductsReferencesAndModels.map(
+                                    (product) => ({
+                                      value: product.id,
+                                      label: `${product.referencia} - ${product.modelo}`,
+                                    }),
+                                  )}
+                                />
+                              </Form.Item>
+                            </Form>
+                          </Modal>
+                        </div>
+
+                        {purchases.length > 0 ? (
+                          <PurchaseHistoryTable purchases={purchases} />
+                        ) : (
+                          <p
+                            style={{
+                              color: '#8c8c8c',
+                              fontStyle: 'italic',
+                              fontSize: '18px',
+                            }}
+                          >
+                            No hay pedidos registrados para este cliente.
+                          </p>
+                        )}
+                      </div>
+                    ),
+                  },
+                ]}
               />
-            ))}
-          </Card>
+            </ConfigProvider>
+          </div>
         </Card>
       </Spin>
     </AdminLayout>
