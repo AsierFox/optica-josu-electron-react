@@ -1,5 +1,6 @@
 import { NEW_ROW_ID_PREFIX } from '../../renderer/app/constants';
 import util from '../../renderer/utils/util';
+import SaleModel from './sale.model';
 
 export default class ProductModel {
   id!: string;
@@ -18,6 +19,8 @@ export default class ProductModel {
   notes!: string | null;
   createdAt!: string | null;
   updatedAt!: string | null;
+
+  sale!: SaleModel | null;
 
   constructor(row?: any) {
     if (row)
@@ -48,6 +51,8 @@ export default class ProductModel {
 
     this.createdAt = null;
     this.updatedAt = null;
+
+    this.sale = null;
   }
 
   createNewProductFromDDBB(row: any) {
@@ -57,7 +62,7 @@ export default class ProductModel {
     this.referencia = row.REFERENCIA;
     this.modelo = row.MODELO;
     this.color = row.COLOR;
-    this.typeId = row.ID_PRODUCT_TYPE;
+    this.typeId = row.PRODUCT_TYPE_ID;
     this.type = row.TYPE;
     this.precioCompra = row.PRECIO_COMPRA;
     this.precioVenta = row.PRECIO_VENTA;
@@ -70,5 +75,7 @@ export default class ProductModel {
 
     this.createdAt = row.CREATED_AT;
     this.updatedAt = row.UDPATED_AT;
+
+    this.sale = row.sale ?? null;
   }
 }

@@ -7,6 +7,7 @@ import ModelParserService from '../models/modelParser.service';
 import ProductModel from '../models/product.model';
 import ProductTypeModel from '../models/productType.model';
 import SaleModel from '../models/sale.model';
+import SaleByPeriodModel from '../models/saleByPeriod.model';
 
 async function query(sql: string, params: any[] = []) {
   const connection = await mysql.createConnection({
@@ -38,7 +39,7 @@ export const registerMysqlIPCHandlers = () => {
       const [rows] = await query(`
         SELECT PRODUCTS.*, PRODUCT_TYPES.TYPE FROM PRODUCTS
         INNER JOIN PRODUCT_TYPES ON
-          (PRODUCTS.ID_PRODUCT_TYPE = PRODUCT_TYPES.ID)`);
+          (PRODUCTS.PRODUCT_TYPE_ID = PRODUCT_TYPES.ID)`);
       return ModelParserService.parseProductModels(rows as any []);
     } catch (error) {
       console.error('Database query error:', error);
@@ -46,9 +47,28 @@ export const registerMysqlIPCHandlers = () => {
     }
   });
 
-  ipcMain.handle('mysql-get-all-products-references-and-models', async () : Promise<ProductModel[]> => {
+  ipcMain.handle('mysql-get-products-with-sales', async () : Promise<ProductModel[]> => {
     try {
-      const [rows] = await query(`SELECT ID, REFERENCIA, MODELO FROM PRODUCTS`);
+      const [rows] = await query(`
+        SELECT p.*, pt.TYPE, s.FECHA_VENTA
+        FROM PRODUCTS p
+        INNER JOIN PRODUCT_TYPES pt ON
+          (pt.ID = p.PRODUCT_TYPE_ID)
+        LEFT JOIN SALES s ON
+          (s.PRODUCT_ID = p.ID)`);
+      return ModelParserService.parseProductModels(rows as any []);
+    } catch (error) {
+      console.error('Database query error:', error);
+      throw new Error('Database query failed');
+    }
+  });
+
+  ipcMain.handle('mysql-get-all-products-for-sale', async () : Promise<ProductModel[]> => {
+    try {
+      const [rows] = await query(`
+        SELECT *
+        FROM PRODUCTS
+        WHERE ID NOT IN (SELECT PRODUCT_ID FROM SALES)`);
       return ModelParserService.parseProductModels(rows as any []);
     } catch (error) {
       console.error('Database query error:', error);
@@ -123,12 +143,28 @@ export const registerMysqlIPCHandlers = () => {
   ipcMain.handle('mysql-get-purchases-by-client-id', async (_event, clientId: number) : Promise<SaleModel[]> => {
     try {
       const [rows] = await query(`
-        SELECT s.ID, s.FECHA_VENTA, s.PRECIO_VENTA,
-               p.PROVEEDOR, p.FIRMA, p.REFERENCIA, p.MODELO, p.NOTES, p.PRECIO_COMPRA
+        SELECT s.ID, s.FECHA_VENTA,
+               p.PROVEEDOR, p.FIRMA, p.REFERENCIA, p.MODELO, p.NOTES, p.PRECIO_COMPRA, p.PRECIO_VENTA
         FROM SALES s
-        RIGHT JOIN PRODUCTS p ON s.ID_PRODUCT = p.ID
-        WHERE s.ID_CLIENT = ? ORDER BY s.UPDATED_AT DESC`, [clientId]);
+        RIGHT JOIN PRODUCTS p ON s.PRODUCT_ID = p.ID
+        WHERE s.CLIENT_ID = ?
+        ORDER BY s.FECHA_VENTA DESC`, [clientId]);
       return ModelParserService.parseSaleModels(rows as any []);
+    } catch (error) {
+      console.error('Database query error:', error);
+      throw new Error('Database query failed');
+    }
+  });
+
+  ipcMain.handle('mysql-get-sales-by-year-month', async (_event) : Promise<SaleByPeriodModel[]> => {
+    try {
+      const [rows] = await query(`
+        SELECT
+          COUNT(*) AS TOTAL,
+          DATE_FORMAT(FECHA_VENTA, '%Y-%m') AS PERIOD
+        FROM sales
+        GROUP BY YEAR(FECHA_VENTA), MONTH(FECHA_VENTA);`);
+      return ModelParserService.parseSaleByPeriodModel(rows as any []);
     } catch (error) {
       console.error('Database query error:', error);
       throw new Error('Database query failed');
@@ -212,15 +248,14 @@ export const registerMysqlIPCHandlers = () => {
         product.calibrePuente ?? null,
         product.fechaCompra ?? null,
         product.precioCompra ?? null,
-        product.fechaVenta ?? null,
         product.precioVenta ?? null,
         product.notes ?? null,
       ];
 
       const [result] = await query(`INSERT INTO PRODUCTS
-        (PROVEEDOR, FIRMA, ID_PRODUCT_TYPE, REFERENCIA, MODELO, COLOR, CALIBRE_PUENTE,
-        FECHA_COMPRA, PRECIO_COMPRA, FECHA_VENTA, PRECIO_VENTA, NOTES)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, params);
+        (PROVEEDOR, FIRMA, PRODUCT_TYPE_ID, REFERENCIA, MODELO, COLOR, CALIBRE_PUENTE,
+        FECHA_COMPRA, PRECIO_COMPRA, PRECIO_VENTA, NOTES)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, params);
       // @ts-ignore - MySQL insert result contains insertId
       return result.insertId;
     } catch (error) {
@@ -241,14 +276,13 @@ export const registerMysqlIPCHandlers = () => {
         product.calibrePuente ?? null,
         product.fechaCompra ?? null,
         product.precioCompra ?? null,
-        product.fechaVenta ?? null,
         product.precioVenta ?? null,
         product.notes ?? null,
       ]);
 
       const sql = `INSERT INTO PRODUCTS
-        (PROVEEDOR, FIRMA, ID_PRODUCT_TYPE, REFERENCIA, MODELO, COLOR, CALIBRE_PUENTE,
-        FECHA_COMPRA, PRECIO_COMPRA, FECHA_VENTA, PRECIO_VENTA, NOTES)
+        (PROVEEDOR, FIRMA, PRODUCT_TYPE_ID, REFERENCIA, MODELO, COLOR, CALIBRE_PUENTE,
+        FECHA_COMPRA, PRECIO_COMPRA, PRECIO_VENTA, NOTES)
         VALUES ?`;
 
       const [result] = await query(sql, [values]);
@@ -263,9 +297,8 @@ export const registerMysqlIPCHandlers = () => {
   ipcMain.handle('mysql-create-sale', async (_event, sale: SaleModel) : Promise<number> => {
     try {
       const sql = `INSERT INTO SALES
-        (ID_PRODUCT, ID_CLIENT, FECHA_VENTA, PRECIO_VENTA)
+        (PRODUCT_ID, CLIENT_ID, FECHA_VENTA)
         VALUES (
-          ?,
           ?,
           ?,
           ?
@@ -275,7 +308,6 @@ export const registerMysqlIPCHandlers = () => {
         sale.productId,
         sale.clientId,
         sale.fechaVenta,
-        sale.precioVenta,
       ];
 
       const [result] = await query(sql, values);
@@ -290,13 +322,12 @@ export const registerMysqlIPCHandlers = () => {
   ipcMain.handle('mysql-create-sales', async (_event, sales: SaleModel[]) : Promise<number> => {
     try {
       const sql = `INSERT INTO SALES
-        (ID_PRODUCT, ID_CLIENT, FECHA_VENTA, PRECIO_VENTA)
+        (PRODUCT_ID, CLIENT_ID, FECHA_VENTA)
         VALUES ${sales
           .map((sale) => `(
             ${sale.productId},
             ${sale.clientId},
             ${sale.fechaVenta ? `'${sale.fechaVenta}'` : 'NULL'},
-            ${sale.precioVenta}
           )`).join(', ')}`;
 
       const [result] = await query(sql);
@@ -417,14 +448,13 @@ export const registerMysqlIPCHandlers = () => {
         SET
           PROVEEDOR = ?,
           FIRMA = ?,
-          ID_PRODUCT_TYPE = ?,
+          PRODUCT_TYPE_ID = ?,
           REFERENCIA = ?,
           MODELO = ?,
           COLOR = ?,
           CALIBRE_PUENTE = ?,
           FECHA_COMPRA = ?,
           PRECIO_COMPRA = ?,
-          FECHA_VENTA = ?,
           PRECIO_VENTA = ?,
           NOTES = ?
         WHERE ID = ?`;
@@ -439,7 +469,6 @@ export const registerMysqlIPCHandlers = () => {
         product.calibrePuente ?? null,
         product.fechaCompra ?? null,
         product.precioCompra ?? null,
-        product.fechaVenta ?? null,
         product.precioVenta ?? null,
         product.notes ?? null,
         product.id

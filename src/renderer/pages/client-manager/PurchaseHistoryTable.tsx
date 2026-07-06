@@ -10,7 +10,7 @@ interface Props {
 
 const PurchaseHistoryTable: React.FC<Props> = ({ purchases }) => {
   const columns: TableColumnsType<SaleModel> = [
-    { title: 'ID de Venta', dataIndex: 'id', key: 'id' },
+    { title: 'ID', dataIndex: 'id', key: 'id' },
     {
       title: 'Fecha de Venta',
       dataIndex: 'fechaVenta',
@@ -23,13 +23,13 @@ const PurchaseHistoryTable: React.FC<Props> = ({ purchases }) => {
     },
     {
       title: 'Precio Venta',
-      dataIndex: 'precioVenta',
+      dataIndex: ['product', 'precioVenta'],
       key: 'precioVenta',
       sorter: (a: SaleModel, b: SaleModel) =>
-        (a.precioVenta || 0) - (b.precioVenta || 0),
+        (a.product?.precioVenta || 0) - (b.product?.precioVenta || 0),
       render: (_: any, record: SaleModel) =>
-        record.precioVenta
-          ? `${utils.priceInputFormatter(record.precioVenta)} €`
+        record.product?.precioVenta
+          ? `${utils.priceInputFormatter(record.product.precioVenta)} €`
           : null,
     },
     {
@@ -74,6 +74,9 @@ const PurchaseHistoryTable: React.FC<Props> = ({ purchases }) => {
 
   return (
     <Table<SaleModel>
+      rowKey="id"
+      bordered
+      sticky
       columns={columns}
       dataSource={data}
       pagination={{ pageSize: 25 }}

@@ -192,11 +192,12 @@ const ClientManagerTable: React.FC<Props> = ({
 
       <Table
         rowKey="id"
-        virtual
+        bordered
+        sticky
+        scroll={{ x: 'max-content' }}
         loading={loading}
         columns={columns}
         dataSource={filteredDataSource}
-        scroll={{ x: 'max-content' }}
         pagination={{
           defaultPageSize: 50,
           showSizeChanger: true,

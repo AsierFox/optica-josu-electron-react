@@ -19,7 +19,6 @@ import {
   Divider,
   Form,
   Input,
-  InputNumber,
   Modal,
   notification,
   Row,
@@ -28,7 +27,7 @@ import {
   Tabs,
 } from 'antd';
 import dayjs from 'dayjs';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import ClientModel from '../../../main/models/client.model';
 import ExaminationModel from '../../../main/models/examination.model';
@@ -53,12 +52,12 @@ const ClientManagerFormPage: React.FC = () => {
   const [examinationTypes, setExaminationTypes] = useState<
     ExaminationTypeModel[]
   >([]);
-  const [allProductsReferencesAndModels, setAllProductsReferencesAndModels] =
-    useState<ProductModel[]>([]);
+  const [allProductsForSale, setAllProductsForSale] = useState<ProductModel[]>(
+    [],
+  );
   const [purchases, setPurchases] = useState<SaleModel[]>([]);
 
-  // eslint-disable-next-line camelcase
-  const { client_id } = useParams<{ client_id: string }>();
+  const { client_id: clientIdParam } = useParams<{ client_id: string }>();
 
   const [isNewPurchaseModalOpen, setIsNewPurchaseModalOpen] =
     useState<boolean>(false);
@@ -66,6 +65,28 @@ const ClientManagerFormPage: React.FC = () => {
   const navigate = useNavigate();
   const [clientForm] = Form.useForm();
   const [purchaseForm] = Form.useForm();
+
+  const getExaminationTypesAndProductsForSale = useCallback(async () => {
+    try {
+      const examinationTypesDDBB =
+        await window.electron.ipcMysql.getExaminationTypes();
+      const allProductsForSaleDDBB =
+        await window.electron.ipcMysql.getAllProductsForSale();
+
+      setExaminationTypes(examinationTypesDDBB);
+      setAllProductsForSale(allProductsForSaleDDBB);
+    } catch (error: any) {
+      api.error({
+        message: 'Error',
+        description: '¡No se pudo obtener los productos en venta!',
+      });
+      setErrorMessage(
+        `No se pudo obtener los productos en venta! ${error?.message || error}`,
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [api]);
 
   const handleClientSubmit = async (values: any) => {
     setLoading(true);
@@ -81,7 +102,7 @@ const ClientManagerFormPage: React.FC = () => {
         const newClientId =
           await window.electron.ipcMysql.createClient(updatedClient);
 
-        updatedClient.id = newClientId;
+        updatedClient.id = newClientId.toString();
         // Ahora que el cliente tiene un ID, dejamos de considerarlo "nuevo".
         setIsNewClient(false);
       } else {
@@ -94,7 +115,7 @@ const ClientManagerFormPage: React.FC = () => {
         message: 'Éxito',
         description: `¡Cliente ${isNewClient ? 'creado' : 'actualizado'} correctamente!`,
       });
-    } catch (error) {
+    } catch (error: any) {
       api.error({
         message: 'Error',
         description: '¡No se pudo guardar el cliente!',
@@ -192,7 +213,7 @@ const ClientManagerFormPage: React.FC = () => {
     }
   };
 
-  const createNewExamination = () => {
+  const handleNewExaminationForm = () => {
     if (!client) {
       api.error({
         message: 'Error',
@@ -229,7 +250,7 @@ const ClientManagerFormPage: React.FC = () => {
     setLoading(false);
   };
 
-  const createNewPurchase = async () => {
+  const handleSaveNewSale = async () => {
     if (!client) {
       api.error({
         message: 'Error',
@@ -252,6 +273,16 @@ const ClientManagerFormPage: React.FC = () => {
       });
 
       await window.electron.ipcMysql.createSale(newSale);
+      // Recargamos la lista de compras del cliente para reflejar la nueva venta con el producto asociado
+      const clientPurchasesDDBB =
+        await window.electron.ipcMysql.getClientPurchasesById(
+          parseInt(client.id, 10),
+        );
+      setPurchases(clientPurchasesDDBB);
+
+      // Actualizamos la lista de tipos y los productos en venta,
+      // porque acabamos de crear una venta y ese producto ya no está disponible.
+      getExaminationTypesAndProductsForSale();
 
       setIsNewPurchaseModalOpen(false);
 
@@ -280,13 +311,8 @@ const ClientManagerFormPage: React.FC = () => {
   };
 
   useEffect(() => {
-    const getClientAndExaminationsById = async (clientId: number) => {
+    const getClient = async (clientId: number) => {
       try {
-        const examinationTypesDDBB =
-          await window.electron.ipcMysql.getExaminationTypes();
-
-        setExaminationTypes(examinationTypesDDBB);
-
         const clientDDBB =
           await window.electron.ipcMysql.getClientById(clientId);
 
@@ -296,17 +322,7 @@ const ClientManagerFormPage: React.FC = () => {
           );
         }
 
-        const clientExaminationsDDBB =
-          await window.electron.ipcMysql.getClientExaminationsById(clientId);
-        const clientPurchasesDDBB =
-          await window.electron.ipcMysql.getClientPurchasesById(clientId);
-        const allProductReferencesAndModelsDDBB =
-          await window.electron.ipcMysql.getAllProductsReferencesAndModels();
-
         setClient(clientDDBB);
-        setExaminations(clientExaminationsDDBB);
-        setPurchases(clientPurchasesDDBB);
-        setAllProductsReferencesAndModels(allProductReferencesAndModelsDDBB);
 
         clientForm.setFieldsValue({
           ...clientDDBB,
@@ -319,31 +335,55 @@ const ClientManagerFormPage: React.FC = () => {
       } catch (error: any) {
         api.error({
           message: 'Error',
-          description: '¡No se pudo guardar el cliente!',
+          description: '¡No se pudo obtener el cliente!',
         });
         setErrorMessage(
-          `¡No se pudo guardar el cliente! ${error?.message || error}`,
+          `¡No se pudo obtener el cliente! ${error?.message || error}`,
+        );
+      }
+    };
+
+    const getClientExaminationsAndPurchasesById = async (clientId: number) => {
+      try {
+        const clientExaminationsDDBB =
+          await window.electron.ipcMysql.getClientExaminationsById(clientId);
+        const clientPurchasesDDBB =
+          await window.electron.ipcMysql.getClientPurchasesById(clientId);
+
+        setExaminations(clientExaminationsDDBB);
+        setPurchases(clientPurchasesDDBB);
+      } catch (error: any) {
+        api.error({
+          message: 'Error',
+          description:
+            '¡No se pudieron obtener las posibles graduaciones y ventas del cliente!',
+        });
+        setErrorMessage(
+          `¡No se pudieron obtener las posibles graduaciones y ventas del cliente! ${error?.message || error}`,
         );
       } finally {
         setLoading(false);
       }
     };
 
+    // Limpiamos el formulario por si acaso
     clientForm.resetFields();
+
     // @ts-ignore
-    // eslint-disable-next-line no-restricted-globals, camelcase
-    if (utils.isNumeric(client_id)) {
+    if (utils.isNumeric(clientIdParam)) {
       // Cliente existente, cargamos sus datos y sus graduaciones
-      const clientId = Number(client_id);
-      getClientAndExaminationsById(clientId);
+      const clientIdAsNumber = Number(clientIdParam);
+      getClient(clientIdAsNumber);
+      getClientExaminationsAndPurchasesById(clientIdAsNumber);
+      getExaminationTypesAndProductsForSale();
     } else {
       // Nuevo cliente, inicializamos el formulario vacío
       setIsNewClient(true);
       setClient({ id: NEW_ROW_ID_PREFIX + Date.now() } as ClientModel);
+      getExaminationTypesAndProductsForSale();
       setLoading(false);
     }
-    // eslint-disable-next-line camelcase, react-hooks/exhaustive-deps
-  }, [client_id, clientForm]);
+  }, [api, clientIdParam, clientForm, getExaminationTypesAndProductsForSale]);
 
   return (
     <AdminLayout>
@@ -526,7 +566,7 @@ const ClientManagerFormPage: React.FC = () => {
                               color: '#13c2c2',
                               fontWeight: 500,
                             }}
-                            onClick={createNewExamination}
+                            onClick={handleNewExaminationForm}
                           >
                             Nueva Graduación
                           </Button>
@@ -585,7 +625,7 @@ const ClientManagerFormPage: React.FC = () => {
                           <Modal
                             title="Registrar Nueva Venta"
                             open={isNewPurchaseModalOpen}
-                            onOk={() => createNewPurchase()}
+                            onOk={() => handleSaveNewSale()}
                             onCancel={() => setIsNewPurchaseModalOpen(false)}
                             okText="Guardar"
                             cancelText="Cancelar"
@@ -621,27 +661,6 @@ const ClientManagerFormPage: React.FC = () => {
                               </Form.Item>
 
                               <Form.Item
-                                name="precioVenta"
-                                label="Precio de Venta (€)"
-                                rules={[
-                                  {
-                                    required: true,
-                                    message: 'Por favor, introduce el precio',
-                                  },
-                                ]}
-                              >
-                                <InputNumber
-                                  min={0}
-                                  step={0.01}
-                                  addonAfter="€"
-                                  stringMode
-                                  formatter={utils.priceInputFormatter}
-                                  parser={utils.priceInputParser}
-                                  style={{ width: '100%' }}
-                                />
-                              </Form.Item>
-
-                              <Form.Item
                                 name="productId"
                                 label="Buscar Producto por Referencia o Modelo"
                                 style={{ marginBottom: 0 }}
@@ -669,10 +688,10 @@ const ClientManagerFormPage: React.FC = () => {
                                         (optionB?.label ?? '').toUpperCase(),
                                       )
                                   }
-                                  options={allProductsReferencesAndModels.map(
+                                  options={allProductsForSale.map(
                                     (product) => ({
                                       value: product.id,
-                                      label: `${product.referencia} - ${product.modelo}`,
+                                      label: `${product.referencia} - ${product.modelo ?? 'Sin Modelo Definido'} - ${product.precioVenta ? `${product.precioVenta} €` : 'Sin Precio Venta'}`,
                                     }),
                                   )}
                                 />

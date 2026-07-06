@@ -404,7 +404,6 @@ const ExcelImporter: React.FC = () => {
           productId: parseInt(product.id, 10),
           clientId: 1, // Cliente genérico
           fechaVenta: product.fechaVenta,
-          precioVenta: product.precioVenta,
         });
       } else {
         productWithoutSales.push(product);

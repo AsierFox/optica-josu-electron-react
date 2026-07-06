@@ -4,6 +4,7 @@ import ClientModel from './client.model';
 import ExaminationModel from './examination.model';
 import ExaminationTypeModel from './examinationType.model';
 import SaleModel from './sale.model';
+import SaleByPeriodModel from './saleByPeriod.model';
 
 export default class ModelParserService {
 
@@ -16,7 +17,17 @@ export default class ModelParserService {
   }
 
   static parseProductModels(rows: any[]): ProductModel[] {
-    return rows.map(row => new ProductModel(row));
+    return rows.map(row => {
+      const sale = new SaleModel({
+        FECHA_VENTA: row.FECHA_VENTA,
+        PRODUCTO_ID: row.ID,
+        CLIENTE_ID: row.CLIENTE_ID
+      });
+      return new ProductModel({
+        ...row,
+        sale
+      });
+    });
   }
 
   static parseProductTypes(rows: any[]): ProductTypeModel[] {
@@ -29,12 +40,24 @@ export default class ModelParserService {
 
   static parseSaleModels(rows: any[]): SaleModel[] {
     return rows.map(row => {
-      const product = new ProductModel(row);
+      const product = new ProductModel({
+        PROVEEDOR: row.PROVEEDOR,
+        FIRMA: row.FIRMA,
+        REFERENCIA: row.REFERENCIA,
+        MODELO: row.MODELO,
+        PRECIO_VENTA: row.PRECIO_VENTA,
+        PRECIO_COMPRA: row.PRECIO_COMPRA,
+        NOTES: row.NOTES
+      });
       return new SaleModel({
         ...row,
         product
       });
     });
+  }
+
+  static parseSaleByPeriodModel(rows: any[]): SaleByPeriodModel[] {
+    return rows.map(row => new SaleByPeriodModel(row));
   }
 
 }

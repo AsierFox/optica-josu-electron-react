@@ -1,3 +1,4 @@
+import { Area } from '@ant-design/plots';
 import { Card, Col, Row, Spin, Typography } from 'antd';
 import L from 'leaflet';
 import 'leaflet.heat';
@@ -5,6 +6,7 @@ import 'leaflet/dist/leaflet.css';
 import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import ClientModel from '../../../main/models/client.model';
+import SaleByPeriodModel from '../../../main/models/saleByPeriod.model';
 
 const { Text } = Typography;
 
@@ -46,8 +48,9 @@ const HeatLayerComponent = ({ points }: { points: MapPoint[] }) => {
 };
 
 const ClientStats: React.FC<Props> = ({ clients }) => {
-  const [mapPoints, setMapPoints] = useState<MapPoint[]>([]);
   const [loadingMap, setLoadingMap] = useState(false);
+  const [mapPoints, setMapPoints] = useState<MapPoint[]>([]);
+  const [salesByPeriod, setSalesByPeriod] = useState<SaleByPeriodModel[]>([]);
 
   useEffect(() => {
     const geocodeAddresses = async () => {
@@ -91,9 +94,17 @@ const ClientStats: React.FC<Props> = ({ clients }) => {
       setLoadingMap(false);
     };
 
+    const getSalesStats = async () => {
+      const salesByPeriodDDBB =
+        await window.electron.ipcMysql.getSalesByYearAndMonth();
+      setSalesByPeriod(salesByPeriodDDBB);
+    };
+
     if (clients.length > 0) {
       geocodeAddresses();
     }
+
+    getSalesStats();
   }, [clients]);
 
   // Coordenadas predeterminadas para centrar el mapa
@@ -148,6 +159,50 @@ const ClientStats: React.FC<Props> = ({ clients }) => {
                   <HeatLayerComponent points={mapPoints} />
                 )}
               </MapContainer>
+            </div>
+          </Card>
+        </Col>
+        <Col xs={24} lg={12}>
+          <Card
+            title={
+              <Text strong style={{ fontSize: '18px' }}>
+                Ventas por Mes
+              </Text>
+            }
+            style={{
+              borderRadius: 12,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+            }}
+          >
+            <div
+              style={{ height: '400px', width: '100%', position: 'relative' }}
+            >
+              <Area
+                data={salesByPeriod}
+                xField="period"
+                yField="total"
+                interaction={{
+                  tooltip: {
+                    marker: false,
+                  },
+                }}
+                style={{
+                  fill: 'linear-gradient(-90deg, white 0%, darkgreen 100%)',
+                }}
+                line={{
+                  style: {
+                    stroke: 'darkgreen',
+                    lineWidth: 2,
+                  },
+                }}
+                point={{
+                  sizeField: 4,
+                  style: {
+                    stroke: 'darkgreen',
+                    fill: '#fff',
+                  },
+                }}
+              />
             </div>
           </Card>
         </Col>

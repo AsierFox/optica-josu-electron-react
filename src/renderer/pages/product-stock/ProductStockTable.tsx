@@ -212,14 +212,18 @@ const ProductStockTable: React.FC<Props> = ({
       },
       {
         title: PRODUCT_FIELD_NAMES.fechaVenta,
-        dataIndex: 'fechaVenta',
+        dataIndex: ['sale', 'fechaVenta'],
         sorter: !editingProduct
           ? (a: ProductModel, b: ProductModel) =>
-              dayjs(a.fechaVenta).unix() - dayjs(b.fechaVenta).unix()
+              dayjs(a.sale?.fechaVenta).unix() -
+              dayjs(b.sale?.fechaVenta).unix()
           : false,
+        render: (value: string | null) =>
+          value ? utils.formatDateToYYYYMMDD(value) : null,
         onCell: (record: ProductModel) => ({
-          dataIndex: 'fechaVenta',
+          dataIndex: ['sale', 'fechaVenta'],
           type: 'date',
+          disabled: true,
           record,
           editingProduct,
         }),
@@ -320,11 +324,12 @@ const ProductStockTable: React.FC<Props> = ({
   return (
     <Table
       rowKey="id"
+      bordered
+      sticky
+      scroll={{ x: 'max-content' }}
       loading={loading}
       columns={columns}
       dataSource={dataSource}
-      scroll={{ x: 'max-content' }}
-      sticky
       components={{
         body: {
           // Componente de celda que usa Form.Item

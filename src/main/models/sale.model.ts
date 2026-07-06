@@ -5,7 +5,6 @@ export default class SaleModel {
   productId!: number | null;
   clientId!: number | null;
   fechaVenta!: string | null;
-  precioVenta!: number | null;
   createdAt!: string | null;
   updatedAt!: string | null;
 
@@ -17,7 +16,6 @@ export default class SaleModel {
     this.productId = row.PRODUCT_ID;
     this.clientId = row.CLIENT_ID;
     this.fechaVenta = row.FECHA_VENTA;
-    this.precioVenta = row.PRECIO_VENTA;
     this.createdAt = row.CREATED_AT;
     this.updatedAt = row.UPDATED_AT;
 

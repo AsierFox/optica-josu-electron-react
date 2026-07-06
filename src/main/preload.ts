@@ -7,6 +7,7 @@ import ExaminationTypeModel from './models/examinationType.model';
 import ProductModel from './models/product.model';
 import ProductTypeModel from './models/productType.model';
 import SaleModel from './models/sale.model';
+import SaleByPeriodModel from './models/saleByPeriod.model';
 
 export type Channels = 'ipc-example';
 
@@ -17,15 +18,16 @@ const electronHandler = {
   ipcMysql: {
     getClients: (): Promise<ClientModel[]> => ipcRenderer.invoke('mysql-get-clients'),
     getProducts: (): Promise<ProductModel[]> => ipcRenderer.invoke('mysql-get-products'),
-    getAllProductsReferencesAndModels: (): Promise<ProductModel[]> => ipcRenderer.invoke('mysql-get-all-products-references-and-models'),
+    getProductsWithSales: (): Promise<ProductModel[]> => ipcRenderer.invoke('mysql-get-products-with-sales'),
+    getAllProductsForSale: (): Promise<ProductModel[]> => ipcRenderer.invoke('mysql-get-all-products-for-sale'),
     getProductTypes: (): Promise<ProductTypeModel[]> => ipcRenderer.invoke('mysql-get-product-types'),
     getExaminationTypes: (): Promise<ExaminationTypeModel[]> => ipcRenderer.invoke('mysql-get-examination-types'),
     getClientExaminations: (): Promise<ExaminationModel[]> => ipcRenderer.invoke('mysql-get-client-examinations'),
-
     getClientById: (clientId: number): Promise<ClientModel | null> => ipcRenderer.invoke('mysql-get-client-by-id', clientId),
     getProductByReference: (reference: string): Promise<ProductModel | null> => ipcRenderer.invoke('mysql-get-product-by-reference', reference),
     getClientExaminationsById: (clientId: number): Promise<ExaminationModel[]> => ipcRenderer.invoke('mysql-get-client-examinations-by-id', clientId),
     getClientPurchasesById: (clientId: number): Promise<SaleModel[]> => ipcRenderer.invoke('mysql-get-purchases-by-client-id', clientId),
+    getSalesByYearAndMonth: (): Promise<SaleByPeriodModel[]> => ipcRenderer.invoke('mysql-get-sales-by-year-month'),
 
     createClient: (client: ClientModel): Promise<number> => ipcRenderer.invoke('mysql-create-client', client),
     createExamination: (examination: ExaminationModel): Promise<number> => ipcRenderer.invoke('mysql-create-examination', examination),

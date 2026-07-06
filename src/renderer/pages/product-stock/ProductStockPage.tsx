@@ -56,7 +56,7 @@ const ProductStockPage: React.FC = () => {
   const prepareProductForDDBB = (product: ProductModel): ProductModel => ({
     ...product,
     fechaCompra: product.fechaCompra?.format('YYYY-MM-DD'),
-    fechaVenta: product.fechaVenta?.format('YYYY-MM-DD'),
+    fechaVenta: product.sale?.fechaVenta?.format('YYYY-MM-DD'),
     createNewProduct: product.createNewProduct,
     createNewProductFromDDBB: product.createNewProductFromDDBB,
   });
@@ -72,8 +72,8 @@ const ProductStockPage: React.FC = () => {
     fechaCompra: product.fechaCompra
       ? util.formatDateToYYYYMMDD(dayjs(product.fechaCompra))
       : null,
-    fechaVenta: product.fechaVenta
-      ? util.formatDateToYYYYMMDD(dayjs(product.fechaVenta))
+    fechaVenta: product.sale?.fechaVenta
+      ? util.formatDateToYYYYMMDD(dayjs(product.sale?.fechaVenta))
       : null,
     createNewProduct: product.createNewProduct,
     createNewProductFromDDBB: product.createNewProductFromDDBB,
@@ -84,7 +84,11 @@ const ProductStockPage: React.FC = () => {
   ): ProductModel => ({
     ...product,
     fechaCompra: product?.fechaCompra ? dayjs(product?.fechaCompra) : null,
-    fechaVenta: product?.fechaVenta ? dayjs(product?.fechaVenta) : null,
+    sale: {
+      fechaVenta: product.sale?.fechaVenta
+        ? dayjs(product.sale?.fechaVenta)
+        : null,
+    },
   });
 
   const handleFilter = useCallback(
@@ -245,8 +249,7 @@ const ProductStockPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editingProduct, form, api]);
+  }, [api, form, editingProduct]);
 
   const handleEdit = useCallback(
     (record: ProductModel) => {
@@ -283,7 +286,7 @@ const ProductStockPage: React.FC = () => {
         api.success({
           message: '¡Producto eliminado!',
         });
-      } catch (error) {
+      } catch (error: any) {
         const errorMsg = `Error al eliminar producto: ${error?.message || error}`;
         api.error({
           message: 'Error',
@@ -309,7 +312,7 @@ const ProductStockPage: React.FC = () => {
         'CALIBRE Y PUENTE': product.calibrePuente,
         'FECHA DE COMPRA': product.fechaCompra,
         'PRECIO DE COMPRA': product.precioCompra,
-        'FECHA DE VENTA': product.fechaVenta,
+        'FECHA DE VENTA': product.sale?.fechaVenta,
         'PRECIO DE VENTA': product.precioVenta,
         OBSERVACIONES: product.notes,
       })),
@@ -327,7 +330,8 @@ const ProductStockPage: React.FC = () => {
   useEffect(() => {
     const getProductsWithTypes = async () => {
       try {
-        const productsFetched = await window.electron.ipcMysql.getProducts();
+        const productsFetched =
+          await window.electron.ipcMysql.getProductsWithSales();
         const productsTypesFetched =
           await window.electron.ipcMysql.getProductTypes();
 
