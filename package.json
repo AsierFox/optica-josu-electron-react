@@ -1,6 +1,6 @@
 {
   "name": "optica-josu-electron-react",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A foundation for scalable desktop apps",
   "main": "./.erb/dll/main.bundle.dev.js",
   "scripts": {
