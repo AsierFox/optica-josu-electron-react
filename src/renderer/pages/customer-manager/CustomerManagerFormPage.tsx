@@ -29,24 +29,24 @@ import {
 import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import ClientModel from '../../../main/models/client.model';
+import CustomerModel from '../../../main/models/customer.model';
 import ExaminationModel from '../../../main/models/examination.model';
 import ExaminationTypeModel from '../../../main/models/examinationType.model';
 import ProductModel from '../../../main/models/product.model';
-import SaleModel from '../../../main/models/sale.model';
+import SaleModel from '../../../main/models/order.model';
 import { NEW_ROW_ID_PREFIX, ROUTES } from '../../app/constants';
 import AdminLayout from '../../layouts/AdminLayout';
 import utils from '../../utils/util';
 import ExaminationForm from './ExaminationForm';
-import PurchaseHistoryTable from './PurchaseHistoryTable';
+import OrderHistoryTable from './OrderHistoryTable';
 
-const ClientManagerFormPage: React.FC = () => {
+const CustomerManagerFormPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [api, contextHolder] = notification.useNotification();
 
-  const [isNewClient, setIsNewClient] = useState<boolean>(false);
-  const [client, setClient] = useState<ClientModel | null>(null);
+  const [isNewCustomer, setIsNewCustomer] = useState<boolean>(false);
+  const [customer, setCustomer] = useState<CustomerModel | null>(null);
 
   const [examinations, setExaminations] = useState<ExaminationModel[]>([]);
   const [examinationTypes, setExaminationTypes] = useState<
@@ -57,63 +57,98 @@ const ClientManagerFormPage: React.FC = () => {
   );
   const [purchases, setPurchases] = useState<SaleModel[]>([]);
 
-  const { client_id: clientIdParam } = useParams<{ client_id: string }>();
+  const { customer_id: customerIdParam } = useParams<{ customer_id: string }>();
 
-  const [isNewPurchaseModalOpen, setIsNewPurchaseModalOpen] =
+  const [isPurchaseModalOpen, setIsPurchaseModalOpen] =
     useState<boolean>(false);
+  const [editingSale, setEditingSale] = useState<SaleModel | null>(null);
 
   const navigate = useNavigate();
-  const [clientForm] = Form.useForm();
+  const [customerForm] = Form.useForm();
   const [purchaseForm] = Form.useForm();
 
-  const getExaminationTypesAndProductsForSale = useCallback(async () => {
-    try {
-      const examinationTypesDDBB =
-        await window.electron.ipcMysql.getExaminationTypes();
-      const allProductsForSaleDDBB =
-        await window.electron.ipcMysql.getAllProductsForSale();
+  const getExaminationTypesAndProductsForSale = useCallback(
+    async (productId?: number) => {
+      try {
+        const examinationTypesDDBB =
+          await window.electron.ipcMysql.getExaminationTypes();
+        const allProductsForSaleDDBB =
+          await window.electron.ipcMysql.getAllProductsForSale(productId);
 
-      setExaminationTypes(examinationTypesDDBB);
-      setAllProductsForSale(allProductsForSaleDDBB);
+        setExaminationTypes(examinationTypesDDBB);
+        setAllProductsForSale(allProductsForSaleDDBB);
+      } catch (error: any) {
+        api.error({
+          message: 'Error',
+          description: '¡No se pudo obtener los productos en venta!',
+        });
+        setErrorMessage(
+          `No se pudo obtener los productos en venta! ${error?.message || error}`,
+        );
+      } finally {
+        setLoading(false);
+      }
+    },
+    [api],
+  );
+
+  const openSaleModalOpen = async (sale?: SaleModel) => {
+    setEditingSale(sale ?? null);
+
+    try {
+      // Actualizamos la lista de tipos y los productos en venta.
+      // Porque se puede crear una venta y ese producto ya no está disponible,
+      // o borrar una venta y ese producto ya vuelve a estar disponible.
+      await getExaminationTypesAndProductsForSale(Number(sale?.productId));
+
+      purchaseForm.resetFields();
+
+      if (sale) {
+        purchaseForm.setFieldsValue({
+          fechaVenta: sale.fechaVenta ? dayjs(sale.fechaVenta) : dayjs(),
+          // Preseleccionamos el producto, en caso de edición
+          productId: sale.productId,
+        });
+      }
+
+      setIsPurchaseModalOpen(true);
     } catch (error: any) {
       api.error({
         message: 'Error',
-        description: '¡No se pudo obtener los productos en venta!',
+        description: '¡No se pudo eliminar la venta!',
       });
       setErrorMessage(
-        `No se pudo obtener los productos en venta! ${error?.message || error}`,
+        `¡No se pudo eliminar la venta! ${error?.message || error}`,
       );
-    } finally {
-      setLoading(false);
     }
-  }, [api]);
+  };
 
-  const handleClientSubmit = async (values: any) => {
+  const handleCustomerSubmit = async (values: any) => {
     setLoading(true);
 
     try {
-      const updatedClient: ClientModel = {
-        ...client,
+      const updatedCustomer: CustomerModel = {
+        ...customer,
         ...values,
         fechaNacimiento: values.fechaNacimiento?.format('YYYY-MM-DD'),
-      } as ClientModel;
+      } as CustomerModel;
 
-      if (isNewClient) {
-        const newClientId =
-          await window.electron.ipcMysql.createClient(updatedClient);
+      if (isNewCustomer) {
+        const newCustomerId =
+          await window.electron.ipcMysql.createCustomer(updatedCustomer);
 
-        updatedClient.id = newClientId.toString();
+        updatedCustomer.id = newCustomerId.toString();
         // Ahora que el cliente tiene un ID, dejamos de considerarlo "nuevo".
-        setIsNewClient(false);
+        setIsNewCustomer(false);
       } else {
-        await window.electron.ipcMysql.updateClient(updatedClient);
+        await window.electron.ipcMysql.updateCustomer(updatedCustomer);
       }
 
-      setClient(updatedClient);
+      setCustomer(updatedCustomer);
 
       api.success({
         message: 'Éxito',
-        description: `¡Cliente ${isNewClient ? 'creado' : 'actualizado'} correctamente!`,
+        description: `¡Cliente ${isNewCustomer ? 'creado' : 'actualizado'} correctamente!`,
       });
     } catch (error: any) {
       api.error({
@@ -128,7 +163,7 @@ const ClientManagerFormPage: React.FC = () => {
     }
   };
 
-  const handleSaveExamination = async (examination: ExaminationModel) => {
+  const handleSaveExaminationForm = async (examination: ExaminationModel) => {
     setLoading(true);
     try {
       const isNewExamination = examination.id
@@ -177,7 +212,7 @@ const ClientManagerFormPage: React.FC = () => {
     }
   };
 
-  const handleDeleteExamination = async (examinationId: string) => {
+  const handleDeleteExaminationForm = async (examinationId: string) => {
     // 1.- Si no está en BBDD, simplemente la eliminamos del estado local
     if (examinationId.toString().startsWith(NEW_ROW_ID_PREFIX)) {
       setExaminations((prevExaminations) =>
@@ -214,7 +249,7 @@ const ClientManagerFormPage: React.FC = () => {
   };
 
   const handleNewExaminationForm = () => {
-    if (!client) {
+    if (!customer) {
       api.error({
         message: 'Error',
         description: '¡No se pudo cargar el cliente!',
@@ -241,8 +276,8 @@ const ClientManagerFormPage: React.FC = () => {
     setExaminations([
       {
         id: NEW_ROW_ID_PREFIX + Date.now(),
-        idClient: parseInt(client.id, 10),
-        idExaminationType: 1, // Por defecto, asignamos Óptica Josu
+        customerId: parseInt(customer.id, 10),
+        examinationTypeId: 1, // Por defecto, asignamos Óptica Josu
       } as ExaminationModel,
       ...examinations,
     ]);
@@ -250,8 +285,8 @@ const ClientManagerFormPage: React.FC = () => {
     setLoading(false);
   };
 
-  const handleSaveNewSale = async () => {
-    if (!client) {
+  const handleSaveSaleModal = async () => {
+    if (!customer) {
       api.error({
         message: 'Error',
         description: '¡No se pudo cargar el cliente!',
@@ -263,28 +298,32 @@ const ClientManagerFormPage: React.FC = () => {
     try {
       await purchaseForm.validateFields();
 
-      const newSale = new SaleModel({
-        CLIENT_ID: parseInt(client.id, 10),
-        PRODUCT_ID: purchaseForm.getFieldValue('productId'),
-        PRECIO_VENTA: purchaseForm.getFieldValue('precioVenta'),
-        FECHA_VENTA: purchaseForm
-          .getFieldValue('fechaVenta')
-          .format('YYYY-MM-DD'),
-      });
+      const formValues = await purchaseForm.validateFields();
 
-      await window.electron.ipcMysql.createSale(newSale);
-      // Recargamos la lista de compras del cliente para reflejar la nueva venta con el producto asociado
-      const clientPurchasesDDBB =
-        await window.electron.ipcMysql.getClientPurchasesById(
-          parseInt(client.id, 10),
+      if (editingSale) {
+        await window.electron.ipcMysql.updateSale({
+          ...editingSale,
+          fechaVenta: formValues.fechaVenta.format('YYYY-MM-DD'),
+          productId: formValues.productId,
+        });
+      } else {
+        const newSale = new SaleModel({
+          CUSTOMER_ID: parseInt(customer.id, 10),
+          PRODUCT_ID: formValues.productId,
+          PRECIO_VENTA: formValues.precioVenta,
+          FECHA_VENTA: formValues.fechaVenta.format('YYYY-MM-DD'),
+        });
+        await window.electron.ipcMysql.createSale(newSale);
+      }
+
+      // Recargamos la lista de compras del cliente para reflejar la venta creada/editada con el producto asociado
+      const customerPurchasesDDBB =
+        await window.electron.ipcMysql.getCustomerPurchasesById(
+          parseInt(customer.id, 10),
         );
-      setPurchases(clientPurchasesDDBB);
+      setPurchases(customerPurchasesDDBB);
 
-      // Actualizamos la lista de tipos y los productos en venta,
-      // porque acabamos de crear una venta y ese producto ya no está disponible.
-      getExaminationTypesAndProductsForSale();
-
-      setIsNewPurchaseModalOpen(false);
+      setIsPurchaseModalOpen(false);
 
       api.success({
         message: 'Éxito',
@@ -310,26 +349,55 @@ const ClientManagerFormPage: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    const getClient = async (clientId: number) => {
-      try {
-        const clientDDBB =
-          await window.electron.ipcMysql.getClientById(clientId);
+  const handleEditOrderHistoryTable = (sale: SaleModel) => {
+    openSaleModalOpen(sale);
+  };
 
-        if (!clientDDBB) {
+  const handleDeleteOrderHistoryTable = async (sale: SaleModel) => {
+    try {
+      const saleId = Number(sale.id);
+      await window.electron.ipcMysql.deleteSale(saleId);
+
+      setPurchases((prevPurchases: SaleModel[]) =>
+        prevPurchases.filter(
+          (purchase: SaleModel) => Number(purchase.id) !== saleId,
+        ),
+      );
+
+      api.success({
+        message: 'Venta del Cliente Eliminada!',
+      });
+    } catch (error: any) {
+      api.error({
+        message: 'Error',
+        description: '¡No se pudo eliminar la venta!',
+      });
+      setErrorMessage(
+        `¡No se pudo eliminar la venta! ${error?.message || error}`,
+      );
+    }
+  };
+
+  useEffect(() => {
+    const getCustomer = async (customerId: number) => {
+      try {
+        const customerDDBB =
+          await window.electron.ipcMysql.getCustomerById(customerId);
+
+        if (!customerDDBB) {
           setErrorMessage(
             '¡Ha habido un error buscando el cliente seleccionado!',
           );
         }
 
-        setClient(clientDDBB);
+        setCustomer(customerDDBB);
 
-        clientForm.setFieldsValue({
-          ...clientDDBB,
+        customerForm.setFieldsValue({
+          ...customerDDBB,
           // Convertimos la fecha al formato que entiende el DatePicker (dayjs),
           // porque si no le pasamos un timestamp/number, el DatePicker no lo muestra.
-          fechaNacimiento: clientDDBB?.fechaNacimiento
-            ? dayjs(clientDDBB.fechaNacimiento)
+          fechaNacimiento: customerDDBB?.fechaNacimiento
+            ? dayjs(customerDDBB.fechaNacimiento)
             : null,
         });
       } catch (error: any) {
@@ -343,23 +411,44 @@ const ClientManagerFormPage: React.FC = () => {
       }
     };
 
-    const getClientExaminationsAndPurchasesById = async (clientId: number) => {
+    const getCustomerExaminationsById = async (customerId: number) => {
       try {
-        const clientExaminationsDDBB =
-          await window.electron.ipcMysql.getClientExaminationsById(clientId);
-        const clientPurchasesDDBB =
-          await window.electron.ipcMysql.getClientPurchasesById(clientId);
+        const customerExaminationsDDBB =
+          await window.electron.ipcMysql.getCustomerExaminationsById(
+            customerId,
+          );
 
-        setExaminations(clientExaminationsDDBB);
-        setPurchases(clientPurchasesDDBB);
+        setExaminations(customerExaminationsDDBB);
       } catch (error: any) {
         api.error({
           message: 'Error',
           description:
-            '¡No se pudieron obtener las posibles graduaciones y ventas del cliente!',
+            '¡No se pudieron obtener las posibles graduaciones del cliente!',
         });
         setErrorMessage(
-          `¡No se pudieron obtener las posibles graduaciones y ventas del cliente! ${error?.message || error}`,
+          `¡No se pudieron obtener las posibles graduaciones del cliente! ${error?.message || error}`,
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const getCustomerOrdersById = async (customerId: number) => {
+      try {
+        const customerExaminationsDDBB =
+          await window.electron.ipcMysql.getCustomerExaminationsById(
+            customerId,
+          );
+
+        setExaminations(customerExaminationsDDBB);
+      } catch (error: any) {
+        api.error({
+          message: 'Error',
+          description:
+            '¡No se pudieron obtener las posibles graduaciones del cliente!',
+        });
+        setErrorMessage(
+          `¡No se pudieron obtener las posibles graduaciones del cliente! ${error?.message || error}`,
         );
       } finally {
         setLoading(false);
@@ -367,23 +456,30 @@ const ClientManagerFormPage: React.FC = () => {
     };
 
     // Limpiamos el formulario por si acaso
-    clientForm.resetFields();
+    customerForm.resetFields();
 
     // @ts-ignore
-    if (utils.isNumeric(clientIdParam)) {
+    if (utils.isNumeric(customerIdParam)) {
       // Cliente existente, cargamos sus datos y sus graduaciones
-      const clientIdAsNumber = Number(clientIdParam);
-      getClient(clientIdAsNumber);
-      getClientExaminationsAndPurchasesById(clientIdAsNumber);
+      const customerIdAsNumber = Number(customerIdParam);
+      getCustomer(customerIdAsNumber);
+      getCustomerExaminationsById(customerIdAsNumber);
+      getCustomerOrdersById(customerIdAsNumber);
       getExaminationTypesAndProductsForSale();
     } else {
       // Nuevo cliente, inicializamos el formulario vacío
-      setIsNewClient(true);
-      setClient({ id: NEW_ROW_ID_PREFIX + Date.now() } as ClientModel);
+      setIsNewCustomer(true);
+      setCustomer({ id: NEW_ROW_ID_PREFIX + Date.now() } as CustomerModel);
       getExaminationTypesAndProductsForSale();
-      setLoading(false);
     }
-  }, [api, clientIdParam, clientForm, getExaminationTypesAndProductsForSale]);
+
+    setLoading(false);
+  }, [
+    api,
+    customerIdParam,
+    customerForm,
+    getExaminationTypesAndProductsForSale,
+  ]);
 
   return (
     <AdminLayout>
@@ -407,19 +503,19 @@ const ClientManagerFormPage: React.FC = () => {
           >
             <Button
               icon={<ArrowLeftOutlined />}
-              onClick={() => navigate(ROUTES.CLIENT_MANAGER)}
+              onClick={() => navigate(ROUTES.CUSTOMERS_MANAGER)}
             >
               Volver al listado de clientes
             </Button>
 
             <h2 style={{ color: '#5e7b8a' }}>
-              {isNewClient ? 'Creando Nuevo Cliente' : 'Editando Cliente'}
+              {isNewCustomer ? 'Creando Nuevo Cliente' : 'Editando Cliente'}
             </h2>
           </Row>
 
           <Form
-            form={clientForm}
-            onFinish={handleClientSubmit}
+            form={customerForm}
+            onFinish={handleCustomerSubmit}
             layout="vertical"
           >
             {/* DATOS PERSONALES */}
@@ -516,7 +612,7 @@ const ClientManagerFormPage: React.FC = () => {
           </Form>
 
           {/* SECCIÓN DE HISTORIALES */}
-          <div hidden={isNewClient}>
+          <div hidden={isNewCustomer}>
             <ConfigProvider
               theme={{
                 components: {
@@ -533,7 +629,7 @@ const ClientManagerFormPage: React.FC = () => {
                 type="card"
                 style={{ marginTop: 20 }}
                 tabBarStyle={{ marginBottom: 0 }}
-                hidden={isNewClient}
+                hidden={isNewCustomer}
                 items={[
                   {
                     key: '1',
@@ -578,8 +674,8 @@ const ClientManagerFormPage: React.FC = () => {
                             examination={examination}
                             examinationTypes={examinationTypes}
                             isLastExamination={i === 0}
-                            onSaveExamination={handleSaveExamination}
-                            onDeleteExamination={handleDeleteExamination}
+                            onSaveExamination={handleSaveExaminationForm}
+                            onDeleteExamination={handleDeleteExaminationForm}
                           />
                         ))}
                       </div>
@@ -616,17 +712,16 @@ const ClientManagerFormPage: React.FC = () => {
                               color: '#13c2c2',
                               fontWeight: 500,
                             }}
-                            onClick={() => setIsNewPurchaseModalOpen(true)}
+                            onClick={() => openSaleModalOpen()}
                           >
                             Nueva Venta
                           </Button>
 
-                          {/* COMPONENTE MODAL */}
                           <Modal
-                            title="Registrar Nueva Venta"
-                            open={isNewPurchaseModalOpen}
-                            onOk={() => handleSaveNewSale()}
-                            onCancel={() => setIsNewPurchaseModalOpen(false)}
+                            title={`${editingSale ? 'Editar' : 'Nueva'} Venta`}
+                            open={isPurchaseModalOpen}
+                            onOk={() => handleSaveSaleModal()}
+                            onCancel={() => setIsPurchaseModalOpen(false)}
                             okText="Guardar"
                             cancelText="Cancelar"
                             okButtonProps={{
@@ -701,7 +796,11 @@ const ClientManagerFormPage: React.FC = () => {
                         </div>
 
                         {purchases.length > 0 ? (
-                          <PurchaseHistoryTable purchases={purchases} />
+                          <OrderHistoryTable
+                            purchases={purchases}
+                            onEdit={handleEditOrderHistoryTable}
+                            onDelete={handleDeleteOrderHistoryTable}
+                          />
                         ) : (
                           <p
                             style={{
@@ -726,4 +825,4 @@ const ClientManagerFormPage: React.FC = () => {
   );
 };
 
-export default ClientManagerFormPage;
+export default CustomerManagerFormPage;

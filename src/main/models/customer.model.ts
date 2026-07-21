@@ -1,4 +1,6 @@
-export default class ClientModel {
+import BaseModel from "./base.model";
+
+export default class CustomerModel extends BaseModel {
   id!: string;
   nombre!: string | null;
   apellidos!: string | null;
@@ -14,6 +16,8 @@ export default class ClientModel {
   updatedAt!: string | null;
 
   constructor(row?: any) {
+    super();
+
     this.id = row.ID;
 
     this.nombre = row.NOMBRE;

@@ -1,19 +1,17 @@
 import { Alert, Spin } from 'antd';
 import React, { useEffect, useState } from 'react';
-import ClientModel from '../../../main/models/client.model';
+import CustomerModel from '../../../main/models/customer.model';
 import ExaminationTypeModel from '../../../main/models/examinationType.model';
 import ProductModel from '../../../main/models/product.model';
 import ProductTypeModel from '../../../main/models/productType.model';
 import AdminLayout from '../../layouts/AdminLayout';
-import ClientStats from './ClientStats';
+import CustomerStats from './CustomerStats';
 import ProductStockStats from './ProductStockStats';
-import ExaminationModel from '../../../main/models/examination.model';
 
 const StatisticsPage: React.FC = () => {
   const [isLoading, setLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [clients, setClients] = useState<ClientModel[]>([]);
-  const [examinations, setExaminations] = useState<ExaminationModel[]>();
+  const [customers, setCustomers] = useState<CustomerModel[]>([]);
   const [products, setProducts] = useState<ProductModel[]>([]);
   const [productTypes, setProductTypes] = useState<ProductTypeModel[]>([]);
   const [examinationTypes, setExaminationTypes] = useState<
@@ -23,19 +21,16 @@ const StatisticsPage: React.FC = () => {
   useEffect(() => {
     const fetchAllData = async () => {
       try {
-        const clientsFetched = await window.electron.ipcMysql.getClients();
-        const productsFetched = await window.electron.ipcMysql.getProducts();
+        const customersFetched = await window.electron.ipcMysql.getCustomers();
+        const productsFetched = await window.electron.ipcMysql.getAllProducts();
         const productsTypesFetched =
           await window.electron.ipcMysql.getProductTypes();
-        const examinationsFetched =
-          await window.electron.ipcMysql.getClientExaminations();
         const examinationTypesFetched =
           await window.electron.ipcMysql.getExaminationTypes();
 
-        setClients(clientsFetched);
+        setCustomers(customersFetched);
         setProducts(productsFetched);
         setProductTypes(productsTypesFetched);
-        setExaminations(examinationsFetched);
         setExaminationTypes(examinationTypesFetched);
       } catch {
         setErrorMessage('¡Error al obtener los productos de la Base de Datos!');
@@ -59,7 +54,7 @@ const StatisticsPage: React.FC = () => {
         />
       ) : null}
       <Spin spinning={isLoading} size="large">
-        <ClientStats clients={clients} />
+        <CustomerStats customers={customers} />
         <ProductStockStats products={products} productTypes={productTypes} />
       </Spin>
     </AdminLayout>

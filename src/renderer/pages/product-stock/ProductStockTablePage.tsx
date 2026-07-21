@@ -1,8 +1,4 @@
-import {
-  CloseOutlined,
-  FileExcelOutlined,
-  PlusOutlined,
-} from '@ant-design/icons';
+import { CloseOutlined, PlusOutlined } from '@ant-design/icons';
 import {
   Alert,
   Button,
@@ -13,23 +9,22 @@ import {
   Typography,
 } from 'antd';
 import dayjs from 'dayjs';
-import isBetween from 'dayjs/plugin/isBetween';
 import React, { useCallback, useEffect, useState } from 'react';
 import * as XLSX from 'xlsx';
 import ProductModel from '../../../main/models/product.model';
 import ProductTypeModel from '../../../main/models/productType.model';
-import { NEW_ROW_ID_PREFIX } from '../../app/constants';
+import { NEW_ROW_ID_PREFIX, PRODUCT_STOCK_TYPE } from '../../app/constants';
+import ProductStockTable from '../../components/ProductStockTable';
 import AdminLayout from '../../layouts/AdminLayout';
 import util from '../../utils/util';
-import ProductStockFilters from './ProductStockFilters';
-import { ProductStockFilterValue } from './ProductStockFilterValue';
-import ProductStockTable from './ProductStockTable';
+import ProductMonturaStockFilters from './ProductMonturaStockFilters';
+import ProductTableColumns from './ProductTableColumns';
 
 const { Text } = Typography;
 
-dayjs.extend(isBetween);
-
-const ProductStockPage: React.FC = () => {
+const ProductStockTablePage: React.FC<{
+  type: PRODUCT_STOCK_TYPE;
+}> = ({ type }) => {
   const [isLoading, setLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [tableDataSource, setTableDataSource] = useState<ProductModel[]>([]);
@@ -43,7 +38,7 @@ const ProductStockPage: React.FC = () => {
   const [form] = Form.useForm();
 
   const generateNewProductTableRow = () => {
-    const newProduct: ProductModel = new ProductModel();
+    const newProduct: ProductModel = util.generateNewTempProductByType(type);
 
     // Limpiamos cualquier residuo de ediciones anteriores
     form.resetFields();
@@ -53,111 +48,36 @@ const ProductStockPage: React.FC = () => {
     setEditingProduct(newProduct);
   };
 
-  const prepareProductForDDBB = (product: ProductModel): ProductModel => ({
-    ...product,
-    fechaCompra: product.fechaCompra?.format('YYYY-MM-DD'),
-    fechaVenta: product.sale?.fechaVenta?.format('YYYY-MM-DD'),
-    createNewProduct: product.createNewProduct,
-    createNewProductFromDDBB: product.createNewProductFromDDBB,
-  });
+  const formatProductDateForDDBB = (
+    date: string | dayjs.Dayjs | null | undefined,
+  ): string | null => (date ? dayjs(date).format('YYYY-MM-DD') : null);
 
-  const prepareProductForReadOnTable = (
-    product: ProductModel,
-  ): ProductModel => ({
-    ...product,
-    type:
-      productTypes.find(
-        (productType: ProductTypeModel) => productType.id === product.typeId,
-      )?.type || null,
-    fechaCompra: product.fechaCompra
-      ? util.formatDateToYYYYMMDD(dayjs(product.fechaCompra))
-      : null,
-    fechaVenta: product.sale?.fechaVenta
-      ? util.formatDateToYYYYMMDD(dayjs(product.sale?.fechaVenta))
-      : null,
-    createNewProduct: product.createNewProduct,
-    createNewProductFromDDBB: product.createNewProductFromDDBB,
-  });
+  const prepareProductForDDBB = useCallback(
+    (product: ProductModel): ProductModel => ({
+      ...product,
+      fechaCompra: formatProductDateForDDBB(product.fechaCompra),
+    }),
+    [],
+  );
 
-  const prepareProductForEditOnTable = (
-    product: ProductModel,
-  ): ProductModel => ({
+  const prepareProductForReadOnTable = useCallback(
+    (product: ProductModel): ProductModel => ({
+      ...product,
+      type:
+        productTypes.find(
+          (productType: ProductTypeModel) => productType.id === product.typeId,
+        )?.type || null,
+      fechaCompra: product.fechaCompra
+        ? util.formatDateToYYYYMMDD(dayjs(product.fechaCompra))
+        : null,
+    }),
+    [productTypes],
+  );
+
+  const prepareProductForEditOnTable = (product: ProductModel) => ({
     ...product,
     fechaCompra: product?.fechaCompra ? dayjs(product?.fechaCompra) : null,
-    sale: {
-      fechaVenta: product.sale?.fechaVenta
-        ? dayjs(product.sale?.fechaVenta)
-        : null,
-    },
   });
-
-  const handleFilter = useCallback(
-    (filters: Readonly<Record<string, ProductStockFilterValue>>) => {
-      const filteredData = products.filter((item) => {
-        return Object.values(filters).every(
-          (filter: ProductStockFilterValue) => {
-            const itemValue = item[filter.targetKey];
-
-            switch (filter.type) {
-              case 'SINGLE':
-                if (!filter.value) {
-                  return true;
-                }
-                return util.includesStrings(itemValue, filter.value);
-
-              case 'MULTIPLE': {
-                if (filter.value.length <= 0) {
-                  return true;
-                }
-                // Formateamos el valor en caso de que llegue a ser un number
-                const searchValue = Number.isNaN(itemValue)
-                  ? itemValue.toUpperCase()
-                  : itemValue;
-
-                return filter.value.includes(searchValue);
-              }
-
-              case 'RANGE_NUMBER':
-                const min = filter.value.min ? Number(filter.value.min) : null;
-                const max = filter.value.max ? Number(filter.value.max) : null;
-
-                if (min != null && max != null) {
-                  return Number(itemValue) >= min && Number(itemValue) <= max;
-                }
-                if (min != null) {
-                  return Number(itemValue) >= min;
-                }
-                if (max != null) {
-                  return Number(itemValue) <= max;
-                }
-                return true;
-
-              case 'RANGE_DATE':
-                if (!filter.value.min || !filter.value.max) {
-                  return true;
-                }
-                // Si no hay valor en el campo del registro, y el filtro de fecha busca un rango, lo filtramos
-                if (!itemValue) {
-                  return false;
-                }
-
-                return dayjs(itemValue).isBetween(
-                  dayjs(filter.value.min),
-                  dayjs(filter.value.max),
-                  'day',
-                  '[]',
-                );
-              default:
-                return true;
-            }
-          },
-        );
-      });
-
-      setTableDataSource(filteredData);
-    },
-    [products],
-  );
 
   const handleSave = useCallback(async () => {
     if (!editingProduct) {
@@ -168,7 +88,10 @@ const ProductStockPage: React.FC = () => {
       setLoading(true);
 
       const newValues = await form.validateFields();
-      const finalProduct: ProductModel = { ...editingProduct, ...newValues };
+      const finalProduct: ProductModel = {
+        ...editingProduct,
+        ...newValues,
+      };
 
       const isNewProduct = editingProduct.id
         .toString()
@@ -176,11 +99,14 @@ const ProductStockPage: React.FC = () => {
 
       if (isNewProduct) {
         const newProductId = await window.electron.ipcMysql.createProduct(
+          type,
           prepareProductForDDBB(finalProduct),
         );
-        finalProduct.id = newProductId;
+
+        finalProduct.id = newProductId.toString();
       } else {
         await window.electron.ipcMysql.updateProduct(
+          type,
           prepareProductForDDBB(finalProduct),
         );
       }
@@ -249,7 +175,13 @@ const ProductStockPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [api, form, editingProduct]);
+  }, [
+    api,
+    form,
+    editingProduct,
+    prepareProductForReadOnTable,
+    prepareProductForDDBB,
+  ]);
 
   const handleEdit = useCallback(
     (record: ProductModel) => {
@@ -275,14 +207,16 @@ const ProductStockPage: React.FC = () => {
   const handleDelete = useCallback(
     async (record: ProductModel) => {
       try {
-        if (Number(record.id)) {
-          await window.electron.ipcMysql.deleteProduct(Number(record.id));
+        const recordId = Number(record.id);
+        if (recordId) {
+          await window.electron.ipcMysql.deleteProduct(type, recordId);
         }
         const productsWithRemovedOne = tableDataSource.filter(
           (item: ProductModel) => item.id !== record.id,
         );
         setTableDataSource(productsWithRemovedOne);
         setProducts(productsWithRemovedOne);
+
         api.success({
           message: '¡Producto eliminado!',
         });
@@ -298,10 +232,133 @@ const ProductStockPage: React.FC = () => {
     [api, tableDataSource],
   );
 
+  useEffect(() => {
+    const getProductTypes = async () => {
+      try {
+        const productTypesFetched =
+          await window.electron.ipcMysql.getProductTypes();
+
+        setProductTypes(productTypesFetched);
+      } catch (error) {
+        setErrorMessage(
+          `Error al obtener los tipos de productos de la Base de Datos: ${error}`,
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const getProductMonturas = async () => {
+      try {
+        const productsFetched =
+          await window.electron.ipcMysql.getProductsCheckingOrders(type);
+
+        setProducts(productsFetched);
+        setTableDataSource(productsFetched);
+      } catch (error) {
+        setErrorMessage(
+          `Error al obtener los productos montura de la Base de Datos: ${error}`,
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getProductTypes();
+    getProductMonturas();
+  }, [type]);
+
+  const handleShowProductSale = useCallback(
+    async (record: ProductModel) => {
+      try {
+        const recordId = Number(record.id);
+        const productSalesDDBB =
+          await window.electron.ipcMysql.getSalesByProductId(recordId);
+
+        setProductSales(productSalesDDBB);
+        setIsProductSaleModalOpen(true);
+      } catch (error: any) {
+        const errorMsg = `Error al obtener las ventas del producto: ${error?.message || error}`;
+        api.error({
+          message: 'Error',
+          description: errorMsg,
+        });
+        setErrorMessage(errorMsg);
+      }
+    },
+    [api],
+  );
+
+  const handleFilter = useCallback(
+    (filters: Readonly<Record<string, TableFilterValueType>>) => {
+      const filteredData = products.filter((item) => {
+        return Object.values(filters).every((filter: TableFilterValueType) => {
+          const itemValue = item[filter.targetKey];
+
+          switch (filter.type) {
+            case 'SINGLE':
+              if (!filter.value) {
+                return true;
+              }
+              return util.includesStrings(itemValue, filter.value);
+
+            case 'MULTIPLE': {
+              if (filter.value.length <= 0) {
+                return true;
+              }
+              // Formateamos el valor en caso de que llegue a ser un number
+              const searchValue = Number.isNaN(itemValue)
+                ? itemValue.toUpperCase()
+                : itemValue;
+
+              return filter.value.includes(searchValue);
+            }
+
+            case 'RANGE_NUMBER':
+              const min = filter.value.min ? Number(filter.value.min) : null;
+              const max = filter.value.max ? Number(filter.value.max) : null;
+
+              if (min != null && max != null) {
+                return Number(itemValue) >= min && Number(itemValue) <= max;
+              }
+              if (min != null) {
+                return Number(itemValue) >= min;
+              }
+              if (max != null) {
+                return Number(itemValue) <= max;
+              }
+              return true;
+
+            case 'RANGE_DATE':
+              if (!filter.value.min || !filter.value.max) {
+                return true;
+              }
+              // Si no hay valor en el campo del registro, y el filtro de fecha busca un rango, lo filtramos
+              if (!itemValue) {
+                return false;
+              }
+
+              return dayjs(itemValue).isBetween(
+                dayjs(filter.value.min),
+                dayjs(filter.value.max),
+                'day',
+                '[]',
+              );
+            default:
+              return true;
+          }
+        });
+      });
+
+      setTableDataSource(filteredData);
+    },
+    [products],
+  );
+
   const handleExportExcel = useCallback(() => {
     setLoading(true);
 
-    const worksheet = XLSX.utils.json_to_sheet(
+    const worksheet = XLSX.util.json_to_sheet(
       tableDataSource.map((product) => ({
         PROVEEDOR: product.proveedor,
         FIRMA: product.firma,
@@ -312,13 +369,11 @@ const ProductStockPage: React.FC = () => {
         'CALIBRE Y PUENTE': product.calibrePuente,
         'FECHA DE COMPRA': product.fechaCompra,
         'PRECIO DE COMPRA': product.precioCompra,
-        'FECHA DE VENTA': product.sale?.fechaVenta,
-        'PRECIO DE VENTA': product.precioVenta,
         OBSERVACIONES: product.notes,
       })),
     );
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Productos');
+    const workbook = XLSX.util.book_new();
+    XLSX.util.book_append_sheet(workbook, worksheet, 'Productos');
     XLSX.writeFile(workbook, 'PRODUCTOS_EXPORTADOS.xlsx');
 
     setLoading(false);
@@ -327,26 +382,17 @@ const ProductStockPage: React.FC = () => {
     });
   }, [api, tableDataSource]);
 
-  useEffect(() => {
-    const getProductsWithTypes = async () => {
-      try {
-        const productsFetched =
-          await window.electron.ipcMysql.getProductsWithSales();
-        const productsTypesFetched =
-          await window.electron.ipcMysql.getProductTypes();
-
-        setProducts(productsFetched);
-        setTableDataSource(productsFetched);
-        setProductTypes(productsTypesFetched);
-      } catch {
-        setErrorMessage('¡Error al obtener los productos de la Base de Datos!');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    getProductsWithTypes();
-  }, []);
+  const columns = ProductTableColumns(
+    type,
+    products,
+    productTypes,
+    editingProduct,
+    handleShowProductSale,
+    handleSave,
+    handleCancel,
+    handleEdit,
+    handleDelete,
+  );
 
   return (
     <AdminLayout>
@@ -362,17 +408,24 @@ const ProductStockPage: React.FC = () => {
       ) : null}
 
       <Text strong style={{ fontSize: '15px', color: '#141414' }}>
-        Gestión de Inventario
+        Gestión de Inventario de{' '}
+        {type === PRODUCT_STOCK_TYPE.MONTURA
+          ? 'Monturas'
+          : type === PRODUCT_STOCK_TYPE.LENTE_LENTILLA
+            ? 'Lentes y Lentillas'
+            : 'Genérico'}
       </Text>
 
       <Divider />
 
-      <ProductStockFilters
-        allDisabled={!!editingProduct}
-        products={products}
-        productTypes={productTypes}
-        onFilterChange={handleFilter}
-      />
+      {type === PRODUCT_STOCK_TYPE.MONTURA ? (
+        <ProductMonturaStockFilters
+          allDisabled={!!editingProduct}
+          products={products}
+          productTypes={productTypes}
+          onFilterChange={handleFilter}
+        />
+      ) : null}
 
       <div
         style={{
@@ -406,36 +459,17 @@ const ProductStockPage: React.FC = () => {
             </Button>
           </Popconfirm>
         </div>
-        <Button
-          icon={<FileExcelOutlined />}
-          disabled={!!editingProduct}
-          onClick={handleExportExcel}
-          style={{
-            backgroundColor: '#217346',
-            borderColor: '#217346',
-            color: '#ffffff',
-            fontWeight: '500',
-          }}
-        >
-          Exportar a Excel
-        </Button>
       </div>
 
       <Form form={form} component={false}>
         <ProductStockTable
           loading={isLoading}
+          columns={columns()}
           dataSource={tableDataSource}
-          products={products}
-          editingProduct={editingProduct}
-          productTypes={productTypes}
-          onSave={handleSave}
-          onEdit={handleEdit}
-          onCancel={handleCancel}
-          onDelete={handleDelete}
         />
       </Form>
     </AdminLayout>
   );
 };
 
-export default ProductStockPage;
+export default ProductStockTablePage;

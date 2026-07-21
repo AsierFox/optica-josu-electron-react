@@ -1,10 +1,10 @@
 import { DatePicker, Form, Input, InputNumber, Select } from 'antd';
 import { NamePath } from 'antd/es/form/interface';
 import React from 'react';
-import ProductModel from '../../../main/models/product.model';
-import utils from '../../utils/util';
+import ProductModel from '../../main/models/product.model';
+import utils from '../utils/util';
 
-const EditableTableCell = ({
+const TableEditableCell = ({
   dataIndex,
   required = false,
   type = 'text',
@@ -85,4 +85,4 @@ const EditableTableCell = ({
   );
 };
 
-export default EditableTableCell;
+export default TableEditableCell;

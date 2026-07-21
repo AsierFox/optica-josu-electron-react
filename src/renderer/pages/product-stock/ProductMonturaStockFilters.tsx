@@ -14,7 +14,7 @@ import ProductModel from '../../../main/models/product.model';
 import ProductTypeModel from '../../../main/models/productType.model';
 import { PRODUCT_FIELD_NAMES } from '../../app/constants';
 import PriceRangeSelector from '../../components/PriceRangeSelector';
-import { ProductStockFilterValue } from './ProductStockFilterValue';
+import { TableFilterValueType } from '../../components/TableFilterValueType';
 
 const { Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -24,19 +24,17 @@ interface Props {
   products: ProductModel[];
   productTypes: ProductTypeModel[];
   onFilterChange: (
-    filters: Readonly<Record<string, ProductStockFilterValue>>,
+    filters: Readonly<Record<string, TableFilterValueType>>,
   ) => void;
 }
 
-const ProductStockFilters: React.FC<Props> = ({
+const ProductMonturaStockFilters: React.FC<Props> = ({
   allDisabled = false,
   products,
   productTypes,
   onFilterChange,
 }) => {
-  const [filters, setFilters] = useState<
-    Record<string, ProductStockFilterValue>
-  >({
+  const [filters, setFilters] = useState<Record<string, TableFilterValueType>>({
     proveedorInput: {
       type: 'SINGLE',
       targetKey: 'proveedor',
@@ -109,8 +107,10 @@ const ProductStockFilters: React.FC<Props> = ({
       Array.from(
         new Set(
           products
-            .filter((p) => p.proveedor)
-            .map((p) => p.proveedor?.toUpperCase()),
+            .filter(
+              (p): p is ProductModel & { proveedor: string } => !!p.proveedor,
+            )
+            .map((p) => p.proveedor.toUpperCase()),
         ),
       ).sort(),
     [products],
@@ -120,7 +120,9 @@ const ProductStockFilters: React.FC<Props> = ({
     () =>
       Array.from(
         new Set(
-          products.filter((p) => p.firma).map((p) => p.firma?.toUpperCase()),
+          products
+            .filter((p): p is ProductModel & { firma: string } => !!p.firma)
+            .map((p) => p.firma.toUpperCase()),
         ),
       ).sort(),
     [products],
@@ -221,7 +223,7 @@ const ProductStockFilters: React.FC<Props> = ({
           .map(
             ([filterKey, searchFilterInput]: [
               string,
-              ProductStockFilterValue,
+              TableFilterValueType,
             ]) => (
               <div
                 key={`input_${filterKey}`}
@@ -429,4 +431,4 @@ const ProductStockFilters: React.FC<Props> = ({
   );
 };
 
-export default React.memo(ProductStockFilters);
+export default React.memo(ProductMonturaStockFilters);

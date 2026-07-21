@@ -6,19 +6,19 @@ import {
 } from '@ant-design/icons';
 import { Button, Col, Input, Row, Space, Table, Typography } from 'antd';
 import React, { useMemo } from 'react';
-import ClientModel from '../../../main/models/client.model';
-import { CLIENT_FIELD_NAMES } from '../../app/constants';
+import CustomerModel from '../../../main/models/customer.model';
+import { CUSTOMERS_FIELD_NAMES } from '../../app/constants';
 import utils from '../../utils/util';
 
 const { Text } = Typography;
 
 interface Props {
   loading: boolean;
-  dataSource: ClientModel[];
-  onEdit: (record: ClientModel) => void;
+  dataSource: CustomerModel[];
+  onEdit: (record: CustomerModel) => void;
 }
 
-const ClientManagerTable: React.FC<Props> = ({
+const CustomerManagerTable: React.FC<Props> = ({
   loading,
   dataSource,
   onEdit,
@@ -31,56 +31,56 @@ const ClientManagerTable: React.FC<Props> = ({
   const columns: any = useMemo(() => {
     return [
       {
-        title: CLIENT_FIELD_NAMES.id,
+        title: CUSTOMERS_FIELD_NAMES.id,
         dataIndex: 'id',
       },
       {
-        title: CLIENT_FIELD_NAMES.nombre,
+        title: CUSTOMERS_FIELD_NAMES.nombre,
         dataIndex: 'nombre',
-        sorter: (a: ClientModel, b: ClientModel) =>
-          a.nombre?.localeCompare(b?.nombre),
+        sorter: (a: CustomerModel, b: CustomerModel) =>
+          (a.nombre ?? '').localeCompare(b.nombre ?? ''),
       },
       {
-        title: CLIENT_FIELD_NAMES.apellidos,
+        title: CUSTOMERS_FIELD_NAMES.apellidos,
         dataIndex: 'apellidos',
-        sorter: (a: ClientModel, b: ClientModel) =>
-          a.apellidos?.localeCompare(b?.apellidos),
+        sorter: (a: CustomerModel, b: CustomerModel) =>
+          (a.apellidos ?? '').localeCompare(b.apellidos ?? ''),
       },
       {
-        title: CLIENT_FIELD_NAMES.direccion,
+        title: CUSTOMERS_FIELD_NAMES.direccion,
         dataIndex: 'direccion',
       },
       {
-        title: CLIENT_FIELD_NAMES.ciudad,
+        title: CUSTOMERS_FIELD_NAMES.ciudad,
         dataIndex: 'ciudad',
       },
       {
-        title: CLIENT_FIELD_NAMES.codigoPostal,
+        title: CUSTOMERS_FIELD_NAMES.codigoPostal,
         dataIndex: 'codigoPostal',
       },
       {
-        title: CLIENT_FIELD_NAMES.telefono,
+        title: CUSTOMERS_FIELD_NAMES.telefono,
         dataIndex: 'telefono',
       },
       {
-        title: CLIENT_FIELD_NAMES.DNI,
+        title: CUSTOMERS_FIELD_NAMES.DNI,
         dataIndex: 'DNI',
       },
       {
-        title: CLIENT_FIELD_NAMES.fechaNacimiento,
+        title: CUSTOMERS_FIELD_NAMES.fechaNacimiento,
         dataIndex: 'fechaNacimiento',
         render: (value: string) =>
           // @ts-ignore
           value ? utils.formatDateToYYYYMMDD(value) : null,
       },
       {
-        title: CLIENT_FIELD_NAMES.notes,
+        title: CUSTOMERS_FIELD_NAMES.notes,
         dataIndex: 'notes',
       },
       {
         title: 'Operaciones',
         fixed: 'right',
-        render: (_: any, record: ClientModel) => (
+        render: (_: any, record: CustomerModel) => (
           <Space>
             <Button
               size="small"
@@ -115,7 +115,9 @@ const ClientManagerTable: React.FC<Props> = ({
             return false;
           }
           default: {
-            if (item[field]?.includes(value)) {
+            const key = field as keyof CustomerModel;
+            const fieldValue = item[key];
+            if (typeof fieldValue === 'string' && fieldValue.includes(value)) {
               return true;
             }
             return false;
@@ -211,4 +213,4 @@ const ClientManagerTable: React.FC<Props> = ({
   );
 };
 
-export default React.memo(ClientManagerTable);
+export default React.memo(CustomerManagerTable);

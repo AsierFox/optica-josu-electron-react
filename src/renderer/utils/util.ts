@@ -1,5 +1,9 @@
 import dayjs, { Dayjs } from 'dayjs';
-import { DATE_FORMATS } from '../app/constants';
+import { DATE_FORMATS, NEW_ROW_ID_PREFIX, PRODUCT_STOCK_TYPE } from '../app/constants';
+import ProductModel from '../../main/models/product.model';
+import ProductGenericoModel from '../../main/models/productGenerico.model';
+import ProductMonturaModel from '../../main/models/productMontura.model';
+import ProductLenteLentillaModel from '../../main/models/productLenteLentilla.model';
 
 const uniq = <T,>(a: T[]): T[] => [...new Set(a)];
 
@@ -30,6 +34,28 @@ const priceInputParser = (value: any) => {
   return value.replace(/\./g, '').replace(',', '.');
 };
 
+const generateNewTempProductByType = (type: PRODUCT_STOCK_TYPE): ProductModel => {
+  let newProduct: ProductModel;
+
+  switch (type) {
+    case PRODUCT_STOCK_TYPE.GENERICO:
+      newProduct = new ProductGenericoModel();
+      break;
+    case PRODUCT_STOCK_TYPE.MONTURA:
+      newProduct = new ProductMonturaModel();
+      break;
+    case PRODUCT_STOCK_TYPE.LENTE_LENTILLA:
+      newProduct =  new ProductLenteLentillaModel();
+      break;
+  }
+
+  const newTemporalId = NEW_ROW_ID_PREFIX + Date.now();
+  newProduct.id = newTemporalId;
+
+  return newProduct;
+}
+
+
 const util = {
   uniq,
   sortAlphabetically,
@@ -39,6 +65,7 @@ const util = {
   isNumeric,
   priceInputFormatter,
   priceInputParser,
+  generateNewTempProductByType,
 };
 
 export default util;

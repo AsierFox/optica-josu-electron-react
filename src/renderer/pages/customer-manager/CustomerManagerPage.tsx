@@ -4,36 +4,36 @@ import dayjs from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ClientModel from '../../../main/models/client.model';
+import CustomerModel from '../../../main/models/customer.model';
 import { ROUTES } from '../../app/constants';
 import AdminLayout from '../../layouts/AdminLayout';
-import ClientManagerTable from './ClientManagerTable';
+import CustomerManagerTable from './CustomerManagerTable';
 
 const { Text } = Typography;
 
 dayjs.extend(isBetween);
 
-const ClientManagerPage: React.FC = () => {
+const CustomerManagerPage: React.FC = () => {
   const [isLoading, setLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [clients, setClients] = useState<ClientModel[]>([]);
+  const [customers, setCustomers] = useState<CustomerModel[]>([]);
 
   const navigate = useNavigate();
   const [form] = Form.useForm();
 
-  const handleNewClient = () => {
-    navigate(ROUTES.CLIENT_MANAGER_FORM);
+  const handleNewCustomer = () => {
+    navigate(ROUTES.CUSTOMERS_MANAGER_FORM);
   };
 
-  const handleEdit = (record: ClientModel) => {
-    navigate(ROUTES.CLIENT_MANAGER_FORM.replace(':client_id', record.id));
+  const handleEdit = (record: CustomerModel) => {
+    navigate(ROUTES.CUSTOMERS_MANAGER_FORM.replace(':customer_id', record.id));
   };
 
   useEffect(() => {
-    const getClients = async () => {
+    const getCustomers = async () => {
       try {
-        const clientsFetched = await window.electron.ipcMysql.getClients();
-        setClients(clientsFetched);
+        const customersFetched = await window.electron.ipcMysql.getCustomers();
+        setCustomers(customersFetched);
       } catch {
         setErrorMessage('¡Error al obtener los clientes de la Base de Datos!');
       } finally {
@@ -41,7 +41,7 @@ const ClientManagerPage: React.FC = () => {
       }
     };
 
-    getClients();
+    getCustomers();
   }, []);
 
   return (
@@ -66,16 +66,16 @@ const ClientManagerPage: React.FC = () => {
         <Button
           type="primary"
           icon={<PlusOutlined />}
-          onClick={handleNewClient}
+          onClick={handleNewCustomer}
         >
           Crear Nuevo Cliente
         </Button>
       </Space>
 
       <Form form={form} component={false}>
-        <ClientManagerTable
+        <CustomerManagerTable
           loading={isLoading}
-          dataSource={clients}
+          dataSource={customers}
           onEdit={handleEdit}
         />
       </Form>
@@ -83,4 +83,4 @@ const ClientManagerPage: React.FC = () => {
   );
 };
 
-export default ClientManagerPage;
+export default CustomerManagerPage;

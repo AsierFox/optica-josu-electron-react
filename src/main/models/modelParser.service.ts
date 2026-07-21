@@ -1,32 +1,33 @@
-import ProductModel from '../models/product.model';
 import ProductTypeModel from '../models/productType.model';
-import ClientModel from './client.model';
+import ProductRepository from '../repositories/product.repository';
+import CustomerModel from './customer.model';
 import ExaminationModel from './examination.model';
 import ExaminationTypeModel from './examinationType.model';
-import SaleModel from './sale.model';
-import SaleByPeriodModel from './saleByPeriod.model';
+import OrderByPeriodModel from './orderByPeriod.model';
+import ProductModel from './product.model';
+import ProductGenericoModel from './productGenerico.model';
+import ProductLenteLentillaModel from './productLenteLentilla.model';
+import ProductMonturaModel from './productMontura.model';
 
 export default class ModelParserService {
 
-  static parseClientModels(rows: any[]): ClientModel[] {
-    return rows.map(row => new ClientModel(row));
+  static parseCustomerModels(rows: any[]): CustomerModel[] {
+    return rows.map(row => new CustomerModel(row));
   }
 
   static parseExaminationModels(rows: any[]): ExaminationModel[] {
     return rows.map(row => new ExaminationModel(row));
   }
 
-  static parseProductModels(rows: any[]): ProductModel[] {
+  static parseProductsModels(rows: any[]): ProductModel[] {
     return rows.map(row => {
-      const sale = new SaleModel({
-        FECHA_VENTA: row.FECHA_VENTA,
-        PRODUCTO_ID: row.ID,
-        CLIENTE_ID: row.CLIENTE_ID
-      });
-      return new ProductModel({
-        ...row,
-        sale
-      });
+      if (ProductRepository.SPECIFIC_PRODUCT_TYPE_IDS.MONTURA.includes(row.PRODUCT_TYPE_ID)) {
+        return new ProductMonturaModel(row);
+      }
+      if (ProductRepository.SPECIFIC_PRODUCT_TYPE_IDS.LENTE_LENTILLAS.includes(row.PRODUCT_TYPE_ID)) {
+        return new ProductLenteLentillaModel(row);
+      }
+      return new ProductGenericoModel(row);
     });
   }
 
@@ -38,26 +39,8 @@ export default class ModelParserService {
     return rows.map(row => new ExaminationTypeModel(row));
   }
 
-  static parseSaleModels(rows: any[]): SaleModel[] {
-    return rows.map(row => {
-      const product = new ProductModel({
-        PROVEEDOR: row.PROVEEDOR,
-        FIRMA: row.FIRMA,
-        REFERENCIA: row.REFERENCIA,
-        MODELO: row.MODELO,
-        PRECIO_VENTA: row.PRECIO_VENTA,
-        PRECIO_COMPRA: row.PRECIO_COMPRA,
-        NOTES: row.NOTES
-      });
-      return new SaleModel({
-        ...row,
-        product
-      });
-    });
-  }
-
-  static parseSaleByPeriodModel(rows: any[]): SaleByPeriodModel[] {
-    return rows.map(row => new SaleByPeriodModel(row));
+  static parseOrderByPeriodModel(rows: any[]): OrderByPeriodModel[] {
+    return rows.map(row => new OrderByPeriodModel(row));
   }
 
 }

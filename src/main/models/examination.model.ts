@@ -1,8 +1,10 @@
-export default class ExaminationModel {
+import BaseModel from "./base.model";
+
+export default class ExaminationModel extends BaseModel {
   id!: string;
 
-  idClient!: number;
-  idExaminationType!: number | null;
+  customerId!: number;
+  examinationTypeId!: number | null;
 
   // Ojo Derecho (OD)
   odEsfera!: string | null;
@@ -35,10 +37,12 @@ export default class ExaminationModel {
   updatedAt!: string | null;
 
   constructor(row?: any) {
+    super();
+
     this.id = row.ID;
 
-    this.idClient = row.ID_CLIENT;
-    this.idExaminationType = row.ID_EXAMINATION_TYPE;
+    this.customerId = row.CUSTOMER_ID;
+    this.examinationTypeId = row.EXAMINATION_TYPE_ID;
 
     // Ojo Derecho
     this.odEsfera = row.OD_ESFERA;

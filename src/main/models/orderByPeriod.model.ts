@@ -1,4 +1,4 @@
-export default class SaleByPeriodModel {
+export default class OrderByPeriodModel {
   period!: string;
   total!: number;
 

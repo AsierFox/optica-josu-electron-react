@@ -9,14 +9,13 @@ import {
   Routes,
 } from 'react-router-dom';
 import './App.css';
-import { ROUTES } from './app/constants';
+import { PRODUCT_STOCK_TYPE, ROUTES } from './app/constants';
 import { store } from './app/store';
-import ClientManagerPage from './pages/client-manager/ClientManagerPage';
-import ClientManagerFormPage from './pages/client-manager/ClientManagerFormPage';
-import ExcelManagerPage from './pages/excel-manager/ExcelManagerPage';
+import CustomerManagerFormPage from './pages/customer-manager/CustomerManagerFormPage';
+import CustomerManagerPage from './pages/customer-manager/CustomerManagerPage';
 import HomeSelector from './pages/HomeSelectorPage';
 import PresupuestoGenerator from './pages/presupuesto-generator/PresupuestoGeneratorPage';
-import ProductStockPage from './pages/product-stock/ProductStockPage';
+import ProductStockTablePage from './pages/product-stock/ProductStockTablePage';
 import StatisticsPage from './pages/statistics/StatisticsPage';
 
 require('dayjs/locale/es');
@@ -33,26 +32,38 @@ export default function App() {
             <Routes>
               <Route path={ROUTES.HOME} element={<HomeSelector />} />
               <Route
-                path={ROUTES.CLIENT_MANAGER}
-                element={<ClientManagerPage />}
+                path={ROUTES.CUSTOMERS_MANAGER}
+                element={<CustomerManagerPage />}
               />
               <Route
-                path={ROUTES.CLIENT_MANAGER_FORM}
-                element={<ClientManagerFormPage />}
+                path={ROUTES.CUSTOMERS_MANAGER_FORM}
+                element={<CustomerManagerFormPage />}
               />
               <Route
-                path={ROUTES.PRODUCT_STOCK}
-                element={<ProductStockPage />}
+                path={ROUTES.STOCK_MONTURAS}
+                element={
+                  <ProductStockTablePage type={PRODUCT_STOCK_TYPE.MONTURA} />
+                }
+              />
+              <Route
+                path={ROUTES.STOCK_LENTES_LENTILLAS}
+                element={
+                  <ProductStockTablePage
+                    type={PRODUCT_STOCK_TYPE.LENTE_LENTILLA}
+                  />
+                }
+              />
+              <Route
+                path={ROUTES.STOCK_GENERICO}
+                element={
+                  <ProductStockTablePage type={PRODUCT_STOCK_TYPE.GENERICO} />
+                }
               />
               <Route
                 path={ROUTES.PRESUPUESTO_GENERATOR}
                 element={<PresupuestoGenerator />}
               />
               <Route path={ROUTES.STATISTICS} element={<StatisticsPage />} />
-              <Route
-                path={ROUTES.EXCEL_MANAGER}
-                element={<ExcelManagerPage />}
-              />
               <Route path="*" element={<Navigate to={ROUTES.HOME} />} />
             </Routes>
           </Router>

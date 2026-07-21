@@ -1,8 +1,16 @@
-export default class ProductTypeModel {
-  id: number;
-  type: string;
+import BaseModel from "./base.model";
 
-  constructor(row: any) {
+export default class ProductTypeModel extends BaseModel {
+  id!: number;
+  type!: string;
+
+  constructor(row?: any) {
+    super();
+
+    if (!row) {
+      return;
+    }
+
     this.id = row.ID;
     this.type = row.TYPE;
   }

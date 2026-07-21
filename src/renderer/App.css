@@ -58,6 +58,15 @@ body,
   color: rgba(255, 255, 255, 0.8);
 }
 
+.option-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.option-card:hover {
+  transform: scale(1.03);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+}
+
 .main-title {
   letter-spacing: -1.5px;
   background: linear-gradient(90deg, #1a1a1a, #434343);

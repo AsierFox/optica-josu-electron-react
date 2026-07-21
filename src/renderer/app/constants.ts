@@ -1,23 +1,29 @@
 export const APP_NAME = 'Josu Optica Electron';
-export const APP_VERSION = '1.0.3';
 
 export const DATE_FORMATS = {
   YYYY_MM_DD: 'YYYY-MM-DD',
 };
 
+export enum PRODUCT_STOCK_TYPE {
+  GENERICO = 1,
+  MONTURA = 2,
+  LENTE_LENTILLA = 3,
+};
+
 export const ROUTES = {
   HOME: '/',
-  PRODUCT_STOCK: '/product-stock',
+  STOCK_MONTURAS: '/stock-monturas',
+  STOCK_LENTES_LENTILLAS: '/stock-lentes-lentillas',
+  STOCK_GENERICO: '/stock-generico',
   PRESUPUESTO_GENERATOR: '/presupuesto-generator',
-  CLIENT_MANAGER: '/client-manager',
-  CLIENT_MANAGER_FORM: '/client-manager/:client_id?',
+  CUSTOMERS_MANAGER: '/customer-manager',
+  CUSTOMERS_MANAGER_FORM: '/customer-manager/:customer_id?',
   STATISTICS: '/statistics',
-  EXCEL_MANAGER: '/excel-manager',
 };
 
 export const NEW_ROW_ID_PREFIX = 'temp_';
 
-export const CLIENT_FIELD_NAMES = {
+export const CUSTOMERS_FIELD_NAMES = {
   id: 'ID',
   nombre: 'Nombre',
   apellidos: 'Apellidos',
@@ -40,6 +46,14 @@ export const PRODUCT_FIELD_NAMES = {
   color: 'Color',
   type: 'Tipo de Producto',
   calibrePuente: 'Calibre y Puente',
+  numeroPedido: 'Número de Pedido',
+  odGraduacion: 'Graduación Ojo Derecho',
+  oiGraduacion: 'Graduación Ojo Izquierdo',
+  odAdicion: 'Adición Ojo Derecho',
+  oiAdicion: 'Adición Ojo Izquierdo',
+  odPrisma: 'Ojo Derecho Prisma',
+  oiPrisma: 'Ojo Izquierdo Prisma',
+  description: 'Descripción',
   precioCompra: 'Precio de Compra',
   precioVenta: 'Precio de Venta',
   fechaCompra: 'Fecha de Compra',

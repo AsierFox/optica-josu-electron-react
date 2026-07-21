@@ -26,27 +26,39 @@ const MenuSlider: React.FC = () => {
       key: '1',
       label: 'HERRAMIENTAS',
     },
-    [ROUTES.CLIENT_MANAGER]: {
+    [ROUTES.CUSTOMERS_MANAGER]: {
       key: '2',
       label: 'Clientes',
     },
-    [ROUTES.PRODUCT_STOCK]: {
+    [ROUTES.STOCK_MONTURAS]: {
       key: '3',
-      label: 'Inventario',
+      label: 'Monturas',
+    },
+    [ROUTES.STOCK_LENTES_LENTILLAS]: {
+      key: '4',
+      label: 'Lentes y Lentillas',
+    },
+    [ROUTES.STOCK_GENERICO]: {
+      key: '5',
+      label: 'Genérico',
     },
     [ROUTES.PRESUPUESTO_GENERATOR]: {
-      key: '4',
+      key: '6',
       label: 'Presupuesto',
     },
     [ROUTES.STATISTICS]: {
-      key: '5',
+      key: '7',
       label: 'Estadísticas',
     },
   };
 
   const getCurrentMenuSelection = () => {
-    return menuOptions[location.pathname]?.key
-      ? [menuOptions[location.pathname].key]
+    const getUrlFirstSegment = location.pathname
+      .split('/')
+      .slice(0, 2)
+      .join('/');
+    return menuOptions[getUrlFirstSegment]?.key
+      ? [menuOptions[getUrlFirstSegment].key]
       : [''];
   };
 
@@ -99,20 +111,40 @@ const MenuSlider: React.FC = () => {
             },
           },
           {
-            key: menuOptions[ROUTES.CLIENT_MANAGER].key,
+            key: menuOptions[ROUTES.CUSTOMERS_MANAGER].key,
             icon: <UsergroupAddOutlined />,
-            label: menuOptions[ROUTES.CLIENT_MANAGER].label,
+            label: menuOptions[ROUTES.CUSTOMERS_MANAGER].label,
             onClick: () => {
-              navigate(ROUTES.CLIENT_MANAGER);
+              navigate(ROUTES.CUSTOMERS_MANAGER);
             },
           },
           {
-            key: menuOptions[ROUTES.PRODUCT_STOCK].key,
+            key: 'stock',
             icon: <LineChartOutlined />,
-            label: menuOptions[ROUTES.PRODUCT_STOCK].label,
-            onClick: () => {
-              navigate(ROUTES.PRODUCT_STOCK);
-            },
+            label: 'Inventarios',
+            children: [
+              {
+                key: menuOptions[ROUTES.STOCK_MONTURAS].key,
+                label: menuOptions[ROUTES.STOCK_MONTURAS].label,
+                onClick: () => {
+                  navigate(ROUTES.STOCK_MONTURAS);
+                },
+              },
+              {
+                key: menuOptions[ROUTES.STOCK_LENTES_LENTILLAS].key,
+                label: menuOptions[ROUTES.STOCK_LENTES_LENTILLAS].label,
+                onClick: () => {
+                  navigate(ROUTES.STOCK_LENTES_LENTILLAS);
+                },
+              },
+              {
+                key: menuOptions[ROUTES.STOCK_GENERICO].key,
+                label: menuOptions[ROUTES.STOCK_GENERICO].label,
+                onClick: () => {
+                  navigate(ROUTES.STOCK_GENERICO);
+                },
+              },
+            ],
           },
           {
             key: menuOptions[ROUTES.PRESUPUESTO_GENERATOR].key,

@@ -87,7 +87,7 @@ const PresupuestoGeneratorPage: React.FC = () => {
 
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       pdf.save(
-        `Presupuesto_${form.getFieldValue('cliente') || 'SinNombre'}_${dayjs().format('YYYY_MM_DD')}.pdf`,
+        `Presupuesto_${form.getFieldValue('customer') || 'SinNombre'}_${dayjs().format('YYYY_MM_DD')}.pdf`,
       );
     } catch (error) {
       console.error(error);
@@ -146,7 +146,7 @@ const PresupuestoGeneratorPage: React.FC = () => {
             <Row gutter={[16, 16]}>
               <Col xs={24} sm={12}>
                 <Form.Item
-                  name="cliente"
+                  name="customer"
                   label={<Text strong>Cliente / Razón Social</Text>}
                   rules={[
                     { required: true, message: 'El nombre es obligatorio' },
@@ -580,7 +580,7 @@ const PresupuestoGeneratorPage: React.FC = () => {
                           }}
                         >
                           <span style={labelStyle}>Nombre:</span>
-                          <span style={valueStyle}>{values.cliente}</span>
+                          <span style={valueStyle}>{values.customer}</span>
                         </div>
                       </div>
                       <div style={rowStyle}>

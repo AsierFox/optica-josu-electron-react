@@ -115,12 +115,12 @@ const ExaminationFormPage: React.FC<Props> = ({
                     />
                   </Form.Item>
 
-                  <Form.Item name="idExaminationType" noStyle>
+                  <Form.Item name="examinationTypeId" noStyle>
                     <Select
                       style={{ width: '150px' }} // Ajusta el ancho según te convenga
                       defaultValue={
                         examinationTypes.find(
-                          (ex) => ex.id === examination.idExaminationType,
+                          (ex) => ex.id === examination.examinationTypeId,
                         )?.type
                       }
                       options={examinationTypes.map((exType) => ({

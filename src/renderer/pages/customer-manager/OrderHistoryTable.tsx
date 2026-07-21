@@ -1,14 +1,21 @@
-import { Table, TableColumnsType } from 'antd';
+import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
+import { Button, Popconfirm, Space, Table, TableColumnsType } from 'antd';
 import dayjs from 'dayjs';
 import React from 'react';
-import SaleModel from '../../../main/models/sale.model';
+import SaleModel from '../../../main/models/order.model';
 import utils from '../../utils/util';
 
 interface Props {
   purchases: SaleModel[];
+  onEdit: (record: SaleModel) => void;
+  onDelete: (record: SaleModel) => void;
 }
 
-const PurchaseHistoryTable: React.FC<Props> = ({ purchases }) => {
+const OrderHistoryTable: React.FC<Props> = ({
+  purchases,
+  onEdit,
+  onDelete,
+}) => {
   const columns: TableColumnsType<SaleModel> = [
     { title: 'ID', dataIndex: 'id', key: 'id' },
     {
@@ -68,6 +75,34 @@ const PurchaseHistoryTable: React.FC<Props> = ({ purchases }) => {
       dataIndex: ['product', 'notes'],
       key: 'notes',
     },
+    {
+      title: 'Operaciones',
+      fixed: 'right',
+      render: (_: any, record: SaleModel) => (
+        <Space>
+          <Button
+            size="small"
+            color="cyan"
+            variant="dashed"
+            icon={<EditOutlined />}
+            onClick={() => onEdit(record)}
+          >
+            Editar
+          </Button>
+          <Popconfirm
+            title="¿Desea eliminar la venta?"
+            okText="Sí, eliminar"
+            cancelText="No"
+            okButtonProps={{ danger: true }}
+            onConfirm={() => onDelete(record)}
+          >
+            <Button danger size="small" icon={<DeleteOutlined />}>
+              Eliminar
+            </Button>
+          </Popconfirm>
+        </Space>
+      ),
+    },
   ];
 
   const data: SaleModel[] = purchases;
@@ -77,6 +112,7 @@ const PurchaseHistoryTable: React.FC<Props> = ({ purchases }) => {
       rowKey="id"
       bordered
       sticky
+      scroll={{ x: 'max-content' }}
       columns={columns}
       dataSource={data}
       pagination={{ pageSize: 25 }}
@@ -84,4 +120,4 @@ const PurchaseHistoryTable: React.FC<Props> = ({ purchases }) => {
   );
 };
 
-export default PurchaseHistoryTable;
+export default OrderHistoryTable;

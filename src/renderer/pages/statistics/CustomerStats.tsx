@@ -5,13 +5,13 @@ import 'leaflet.heat';
 import 'leaflet/dist/leaflet.css';
 import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
-import ClientModel from '../../../main/models/client.model';
-import SaleByPeriodModel from '../../../main/models/saleByPeriod.model';
+import CustomerModel from '../../../main/models/customer.model';
+import SaleByPeriodModel from '../../../main/models/orderByPeriod.model';
 
 const { Text } = Typography;
 
 interface Props {
-  clients: ClientModel[];
+  customers: CustomerModel[];
 }
 
 interface MapPoint {
@@ -47,7 +47,7 @@ const HeatLayerComponent = ({ points }: { points: MapPoint[] }) => {
   return null;
 };
 
-const ClientStats: React.FC<Props> = ({ clients }) => {
+const CustomerStats: React.FC<Props> = ({ customers }) => {
   const [loadingMap, setLoadingMap] = useState(false);
   const [mapPoints, setMapPoints] = useState<MapPoint[]>([]);
   const [salesByPeriod, setSalesByPeriod] = useState<SaleByPeriodModel[]>([]);
@@ -58,30 +58,30 @@ const ClientStats: React.FC<Props> = ({ clients }) => {
       const alreadySearchedCity: Record<string, string> = {};
       const searchedLatLng: Record<string, MapPoint> = {};
 
-      const geolocatingLatLng = clients.map(
-        async (client: ClientModel): Promise<MapPoint | null> => {
-          if (!client.ciudad) {
+      const geolocatingLatLng = customers.map(
+        async (customer: CustomerModel): Promise<MapPoint | null> => {
+          if (!customer.ciudad) {
             return null;
           }
-          if (alreadySearchedCity[client.ciudad]) {
-            return searchedLatLng[client.ciudad];
+          if (alreadySearchedCity[customer.ciudad]) {
+            return searchedLatLng[customer.ciudad];
           }
           try {
             // Llamamos al proceso Main a través de preload para saltarnos el CORS
             const data =
               await window.electron.ipcGeneric.fetchAddressCoordinates(
-                client.ciudad,
+                customer.ciudad,
               );
 
             if (data && data.length > 0) {
               const lat = parseFloat(data[0].lat);
               const lng = parseFloat(data[0].lon);
-              alreadySearchedCity[client.ciudad] = client.ciudad;
-              searchedLatLng[client.ciudad] = { lat, lng };
-              return searchedLatLng[client.ciudad];
+              alreadySearchedCity[customer.ciudad] = customer.ciudad;
+              searchedLatLng[customer.ciudad] = { lat, lng };
+              return searchedLatLng[customer.ciudad];
             }
           } catch {
-            console.log('Error geocodificando desde el Main:', client.ciudad);
+            console.log('Error geocodificando desde el Main:', customer.ciudad);
           }
           return null;
         },
@@ -95,17 +95,17 @@ const ClientStats: React.FC<Props> = ({ clients }) => {
     };
 
     const getSalesStats = async () => {
-      const salesByPeriodDDBB =
-        await window.electron.ipcMysql.getSalesByYearAndMonth();
-      setSalesByPeriod(salesByPeriodDDBB);
+      // const salesByPeriodDDBB =
+      //   await window.electron.ipcMysql.getSalesByYearAndMonth();
+      setSalesByPeriod([]);
     };
 
-    if (clients.length > 0) {
+    if (customers.length > 0) {
       geocodeAddresses();
     }
 
     getSalesStats();
-  }, [clients]);
+  }, [customers]);
 
   // Coordenadas predeterminadas para centrar el mapa
   const mapCenter: [number, number] = [43.052599, -3.00182];
@@ -211,4 +211,4 @@ const ClientStats: React.FC<Props> = ({ clients }) => {
   );
 };
 
-export default React.memo(ClientStats);
+export default React.memo(CustomerStats);
