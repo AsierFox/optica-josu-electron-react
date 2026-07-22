@@ -87,7 +87,7 @@ const PresupuestoGeneratorPage: React.FC = () => {
 
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       pdf.save(
-        `Presupuesto_${form.getFieldValue('customer') || 'SinNombre'}_${dayjs().format('YYYY_MM_DD')}.pdf`,
+        `Presupuesto_${form.getFieldValue('customer') ?? 'SinNombre'}_${dayjs().format('YYYY_MM_DD')}.pdf`,
       );
     } catch (error) {
       console.error(error);
@@ -309,9 +309,9 @@ const PresupuestoGeneratorPage: React.FC = () => {
                           <Form.Item shouldUpdate noStyle>
                             {() => {
                               const item = form.getFieldValue(['items', name]);
-                              const precioConIva = item?.precio || 0;
-                              const tasaIva = item?.iva || 0;
-                              const cantidad = item?.cantidad || 0;
+                              const precioConIva = item?.precio ?? 0;
+                              const tasaIva = item?.iva ?? 0;
+                              const cantidad = item?.cantidad ?? 0;
 
                               const baseUnitario = precioConIva / (1 + tasaIva);
                               const totalLinea = precioConIva * cantidad;
@@ -394,14 +394,14 @@ const PresupuestoGeneratorPage: React.FC = () => {
                 >
                   <Form.Item shouldUpdate noStyle>
                     {() => {
-                      const items = form.getFieldValue('items') || [];
+                      const items = form.getFieldValue('items') ?? [];
 
                       // CÁLCULOS INVERSOS
                       const totales = items.reduce(
                         (acc: any, cur: any) => {
                           const totalLinea =
-                            (cur?.precio || 0) * (cur?.cantidad || 0);
-                          const tasaIva = cur?.iva || 0;
+                            (cur?.precio ?? 0) * (cur?.cantidad ?? 0);
+                          const tasaIva = cur?.iva ?? 0;
 
                           // Fórmula: Base = Total / (1 + IVA)
                           const baseLinea = totalLinea / (1 + tasaIva);
@@ -662,7 +662,7 @@ const PresupuestoGeneratorPage: React.FC = () => {
           {/* Tabla de Conceptos */}
           <Form.Item shouldUpdate noStyle>
             {() => {
-              const items = form.getFieldValue('items') || [];
+              const items = form.getFieldValue('items') ?? [];
               let subtotal = 0;
               let totalIva = 0;
 
@@ -720,9 +720,9 @@ const PresupuestoGeneratorPage: React.FC = () => {
                     </thead>
                     <tbody>
                       {items.map((it: any, i: number) => {
-                        const cant = it.cantidad || 0;
-                        const precioConIva = it.precio || 0;
-                        const tasaIva = it.iva || 0;
+                        const cant = it.cantidad ?? 0;
+                        const precioConIva = it.precio ?? 0;
+                        const tasaIva = it.iva ?? 0;
 
                         const totalLinea = precioConIva * cant;
                         const baseUnit = precioConIva / (1 + tasaIva);

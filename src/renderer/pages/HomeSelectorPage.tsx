@@ -50,7 +50,7 @@ const HomeSelectorPage: React.FC = () => {
               src={logoOptica}
               alt="Logo Óptica Josu"
               style={{
-                width: '500px',
+                width: '400px',
                 height: 'auto',
                 filter: 'drop-shadow(0px 4px 12px rgba(0,0,0,0.05))',
               }}

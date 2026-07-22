@@ -89,7 +89,7 @@ const CustomerManagerTable: React.FC<Props> = ({
               icon={<EditOutlined />}
               onClick={() => onEdit(record)}
             >
-              Editar
+              Ver / Editar
             </Button>
           </Space>
         ),

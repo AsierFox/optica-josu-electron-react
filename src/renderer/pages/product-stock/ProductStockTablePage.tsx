@@ -1,20 +1,40 @@
-import { CloseOutlined, PlusOutlined } from '@ant-design/icons';
+import {
+  CalendarOutlined,
+  CloseOutlined,
+  PlusOutlined,
+  RightOutlined,
+  ShoppingOutlined
+} from '@ant-design/icons';
 import {
   Alert,
+  Avatar,
   Button,
+  Card,
+  Col,
   Divider,
   Form,
+  Modal,
   notification,
   Popconfirm,
-  Typography,
+  Row,
+  Space,
+  Tag,
+  Typography
 } from 'antd';
 import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
+import OrderModel from '../../../main/models/order.model';
 import ProductModel from '../../../main/models/product.model';
 import ProductTypeModel from '../../../main/models/productType.model';
-import { NEW_ROW_ID_PREFIX, PRODUCT_STOCK_TYPE } from '../../app/constants';
+import {
+  NEW_ROW_ID_PREFIX,
+  PRODUCT_STOCK_TYPE,
+  ROUTES,
+} from '../../app/constants';
 import ProductStockTable from '../../components/ProductStockTable';
+import { TableFilterValueType } from '../../components/TableFilterValueType';
 import AdminLayout from '../../layouts/AdminLayout';
 import util from '../../utils/util';
 import ProductMonturaStockFilters from './ProductMonturaStockFilters';
@@ -33,9 +53,12 @@ const ProductStockTablePage: React.FC<{
   const [editingProduct, setEditingProduct] = useState<ProductModel | null>(
     null,
   );
+  const [productOrders, setProductOrders] = useState<OrderModel[]>([]);
+  const [isOrdersModalOpen, setIsOrdersModalOpen] = useState(false);
 
   const [api, contextHolder] = notification.useNotification();
   const [form] = Form.useForm();
+  const navigate = useNavigate();
 
   const generateNewProductTableRow = () => {
     const newProduct: ProductModel = util.generateNewTempProductByType(type);
@@ -66,7 +89,7 @@ const ProductStockTablePage: React.FC<{
       type:
         productTypes.find(
           (productType: ProductTypeModel) => productType.id === product.typeId,
-        )?.type || null,
+        )?.type ?? null,
       fechaCompra: product.fechaCompra
         ? util.formatDateToYYYYMMDD(dayjs(product.fechaCompra))
         : null,
@@ -178,6 +201,7 @@ const ProductStockTablePage: React.FC<{
   }, [
     api,
     form,
+    type,
     editingProduct,
     prepareProductForReadOnTable,
     prepareProductForDDBB,
@@ -229,7 +253,7 @@ const ProductStockTablePage: React.FC<{
         setErrorMessage(errorMsg);
       }
     },
-    [api, tableDataSource],
+    [api, type, tableDataSource],
   );
 
   useEffect(() => {
@@ -268,17 +292,17 @@ const ProductStockTablePage: React.FC<{
     getProductMonturas();
   }, [type]);
 
-  const handleShowProductSale = useCallback(
+  const handleShowProductOrder = useCallback(
     async (record: ProductModel) => {
       try {
         const recordId = Number(record.id);
-        const productSalesDDBB =
-          await window.electron.ipcMysql.getSalesByProductId(recordId);
+        const productOrdersDDBB =
+          await window.electron.ipcMysql.getOrdersByProductId(recordId);
 
-        setProductSales(productSalesDDBB);
-        setIsProductSaleModalOpen(true);
+        setProductOrders(productOrdersDDBB);
+        setIsOrdersModalOpen(true);
       } catch (error: any) {
-        const errorMsg = `Error al obtener las ventas del producto: ${error?.message || error}`;
+        const errorMsg = `Error al obtener los pedidos del producto: ${error?.message || error}`;
         api.error({
           message: 'Error',
           description: errorMsg,
@@ -387,12 +411,23 @@ const ProductStockTablePage: React.FC<{
     products,
     productTypes,
     editingProduct,
-    handleShowProductSale,
+    handleShowProductOrder,
     handleSave,
     handleCancel,
     handleEdit,
     handleDelete,
   );
+
+  const getTypeLabel = () => {
+    switch (type) {
+      case PRODUCT_STOCK_TYPE.MONTURA:
+        return 'Monturas';
+      case PRODUCT_STOCK_TYPE.LENTE_LENTILLA:
+        return 'Lentes y Lentillas';
+      default:
+        return 'Genérico';
+    }
+  };
 
   return (
     <AdminLayout>
@@ -408,12 +443,7 @@ const ProductStockTablePage: React.FC<{
       ) : null}
 
       <Text strong style={{ fontSize: '15px', color: '#141414' }}>
-        Gestión de Inventario de{' '}
-        {type === PRODUCT_STOCK_TYPE.MONTURA
-          ? 'Monturas'
-          : type === PRODUCT_STOCK_TYPE.LENTE_LENTILLA
-            ? 'Lentes y Lentillas'
-            : 'Genérico'}
+        Gestión de Inventario de {getTypeLabel()}
       </Text>
 
       <Divider />
@@ -468,6 +498,77 @@ const ProductStockTablePage: React.FC<{
           dataSource={tableDataSource}
         />
       </Form>
+
+      <Modal
+        title="Pedidos del producto"
+        open={isOrdersModalOpen}
+        width={900}
+        onCancel={() => setIsOrdersModalOpen(false)}
+        footer={[
+          <Button key="close" onClick={() => setIsOrdersModalOpen(false)}>
+            Cerrar
+          </Button>,
+        ]}
+      >
+        <Row gutter={[16, 16]}>
+          {productOrders.map((order) => (
+            <Col xs={24} sm={24} md={12} key={order.id}>
+              <Card
+                hoverable
+                size="small"
+                style={{ height: '100%', cursor: 'pointer' }}
+                onClick={() =>
+                  navigate(
+                    ROUTES.CUSTOMERS_MANAGER_FORM.replace(
+                      ':customer_id',
+                      order.customerId?.toString(),
+                    ),
+                  )
+                }
+              >
+                <Card.Meta
+                  avatar={
+                    <Avatar
+                      icon={<ShoppingOutlined />}
+                      style={{ backgroundColor: '#1677ff' }}
+                    />
+                  }
+                  title={
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Text>ID Pedido {order.id}</Text>
+
+                      <Space size={8}>
+                        {order.status && (
+                          <Tag color="green">{order.status}</Tag>
+                        )}
+                        <RightOutlined style={{ color: '#8c8c8c' }} />
+                      </Space>
+                    </div>
+                  }
+                  description={
+                    <Space direction="vertical" size={4}>
+                      <Text>
+                        <CalendarOutlined style={{ marginRight: 6 }} />
+                        Fecha: {dayjs(order.fechaVenta).format('DD/MM/YYYY')}
+                      </Text>
+
+                      <Button type="link">
+                        Pulsa para ir a la ficha del cliente
+                      </Button>
+                    </Space>
+                  }
+                />
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      </Modal>
     </AdminLayout>
   );
 };

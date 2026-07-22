@@ -5,8 +5,8 @@ import { PRODUCT_STOCK_TYPE } from '../renderer/app/constants';
 import CustomerModel from './models/customer.model';
 import ExaminationModel from './models/examination.model';
 import ExaminationTypeModel from './models/examinationType.model';
-import SaleModel from './models/order.model';
-import SaleByPeriodModel from './models/orderByPeriod.model';
+import OrderModel from './models/order.model';
+import OrderByPeriodModel from './models/orderByPeriod.model';
 import ProductModel from './models/product.model';
 import ProductMonturaModel from './models/productMontura.model';
 import ProductTypeModel from './models/productType.model';
@@ -37,7 +37,6 @@ const electronHandler = {
 
     // EXAMINATION
     getExaminationTypes: (): Promise<ExaminationTypeModel[]> => ipcRenderer.invoke('mysql-get-examination-types'),
-    getProductByReference: (reference: string): Promise<ProductModel | null> => ipcRenderer.invoke('mysql-get-product-by-reference', reference),
     getCustomerExaminationsById: (customerId: number): Promise<ExaminationModel[]> => ipcRenderer.invoke('mysql-get-customer-examinations-by-id', customerId),
 
     createExamination: (examination: ExaminationModel): Promise<number> => ipcRenderer.invoke('mysql-create-examination', examination),
@@ -45,12 +44,12 @@ const electronHandler = {
     deleteExamination: (examinationId: number): Promise<void> => ipcRenderer.invoke('mysql-delete-examination', examinationId),
 
     // ORDER
-    getCustomerPurchasesById: (customerId: number): Promise<SaleModel[]> => ipcRenderer.invoke('mysql-get-purchases-by-customer-id', customerId),
-    getSalesByProductId: (productId: number): Promise<SaleModel[]> => ipcRenderer.invoke('mysql-get-sales-by-product-id', productId),
-    getSalesByYearAndMonth: (): Promise<SaleByPeriodModel[]> => ipcRenderer.invoke('mysql-get-sales-by-year-month'),
+    getOrdersWithItemsByCustomerId: (customerId: number): Promise<OrderModel[]> => ipcRenderer.invoke('mysql-get-orders-with-items-by-customer-id', customerId),
+    getOrdersByProductId: (productId: number): Promise<OrderModel[]> => ipcRenderer.invoke('mysql-get-orders-by-product-id', productId),
+    getSalesByYearAndMonth: (): Promise<OrderByPeriodModel[]> => ipcRenderer.invoke('mysql-get-sales-by-year-month'),
 
-    createSale: (sale: SaleModel): Promise<number> => ipcRenderer.invoke('mysql-create-sale', sale),
-    updateSale: (sale: SaleModel): Promise<void> => ipcRenderer.invoke('mysql-update-sale', sale),
+    createSale: (sale: OrderModel): Promise<number> => ipcRenderer.invoke('mysql-create-sale', sale),
+    updateSale: (sale: OrderModel): Promise<void> => ipcRenderer.invoke('mysql-update-sale', sale),
     deleteSale: (saleId: number): Promise<void> => ipcRenderer.invoke('mysql-delete-sale', saleId),
   },
   ipcRenderer: {

@@ -17,7 +17,7 @@ const ProductTableColumns =
     products: ProductModel[],
     productTypes: ProductTypeModel[],
     editingProduct: ProductModel | null,
-    handleShowProductSale: (product: ProductModel) => Promise<void>,
+    handleShowProductOrder: (product: ProductModel) => Promise<void>,
     handleSave: () => void,
     handleCancel: () => void,
     handleEdit: (product: ProductModel) => void,
@@ -338,7 +338,7 @@ const ProductTableColumns =
         dataIndex: 'precioCompra',
         sorter: !editingProduct
           ? (a: ProductModel, b: ProductModel) =>
-              (a.precioCompra || 0) - (b.precioCompra || 0)
+              (a.precioCompra ?? 0) - (b.precioCompra ?? 0)
           : false,
         render: (_: any, record: ProductModel) =>
           record.precioCompra
@@ -356,7 +356,7 @@ const ProductTableColumns =
         dataIndex: 'precioVenta',
         sorter: !editingProduct
           ? (a: ProductModel, b: ProductModel) =>
-              (a.precioVenta || 0) - (b.precioVenta || 0)
+              (a.precioVenta ?? 0) - (b.precioVenta ?? 0)
           : false,
         render: (_: any, record: ProductModel) =>
           record.precioVenta
@@ -403,13 +403,16 @@ const ProductTableColumns =
             </Space>
           ) : (
             <Space>
-              <Button
-                size="small"
-                disabled={!!editingProduct}
-                onClick={() => handleShowProductSale(record)}
-              >
-                Ver Venta
-              </Button>
+              {record?.hasOrder && (
+                <Button
+                  size="small"
+                  hidden
+                  disabled={!!editingProduct}
+                  onClick={() => handleShowProductOrder(record)}
+                >
+                  Ver Pedido/s
+                </Button>
+              )}
               <Button
                 size="small"
                 color="cyan"

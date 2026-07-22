@@ -34,7 +34,7 @@ export default abstract class ProductModel extends BaseModel {
     this.createdAt = row.CREATED_AT;
     this.updatedAt = row.UDPATED_AT;
 
-    this.hasOrder = row.HAS_ORDER || false;
+    this.hasOrder = row.HAS_ORDER === 1;
     this.order = row.order ?? null;
   }
 

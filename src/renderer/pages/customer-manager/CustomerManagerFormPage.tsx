@@ -32,13 +32,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 import CustomerModel from '../../../main/models/customer.model';
 import ExaminationModel from '../../../main/models/examination.model';
 import ExaminationTypeModel from '../../../main/models/examinationType.model';
+import OrderModel from '../../../main/models/order.model';
 import ProductModel from '../../../main/models/product.model';
-import SaleModel from '../../../main/models/order.model';
 import { NEW_ROW_ID_PREFIX, ROUTES } from '../../app/constants';
 import AdminLayout from '../../layouts/AdminLayout';
 import utils from '../../utils/util';
+import CustomerOrderHistoryTable from './CustomerOrderHistoryTable';
 import ExaminationForm from './ExaminationForm';
-import OrderHistoryTable from './OrderHistoryTable';
 
 const CustomerManagerFormPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -55,13 +55,13 @@ const CustomerManagerFormPage: React.FC = () => {
   const [allProductsForSale, setAllProductsForSale] = useState<ProductModel[]>(
     [],
   );
-  const [purchases, setPurchases] = useState<SaleModel[]>([]);
+  const [orders, setOrders] = useState<OrderModel[]>([]);
 
   const { customer_id: customerIdParam } = useParams<{ customer_id: string }>();
 
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] =
     useState<boolean>(false);
-  const [editingSale, setEditingSale] = useState<SaleModel | null>(null);
+  const [editingSale, setEditingSale] = useState<OrderModel | null>(null);
 
   const navigate = useNavigate();
   const [customerForm] = Form.useForm();
@@ -92,7 +92,7 @@ const CustomerManagerFormPage: React.FC = () => {
     [api],
   );
 
-  const openSaleModalOpen = async (sale?: SaleModel) => {
+  const openSaleModalOpen = async (sale?: OrderModel) => {
     setEditingSale(sale ?? null);
 
     try {
@@ -307,7 +307,7 @@ const CustomerManagerFormPage: React.FC = () => {
           productId: formValues.productId,
         });
       } else {
-        const newSale = new SaleModel({
+        const newSale = new OrderModel({
           CUSTOMER_ID: parseInt(customer.id, 10),
           PRODUCT_ID: formValues.productId,
           PRECIO_VENTA: formValues.precioVenta,
@@ -317,12 +317,12 @@ const CustomerManagerFormPage: React.FC = () => {
       }
 
       // Recargamos la lista de compras del cliente para reflejar la venta creada/editada con el producto asociado
-      const customerPurchasesDDBB =
-        await window.electron.ipcMysql.getCustomerPurchasesById(
+      const customerOrdersDDBB =
+        await window.electron.ipcMysql.getOrdersWithItemsByCustomerId(
           parseInt(customer.id, 10),
         );
-      setPurchases(customerPurchasesDDBB);
 
+      setOrders(customerOrdersDDBB);
       setIsPurchaseModalOpen(false);
 
       api.success({
@@ -349,18 +349,18 @@ const CustomerManagerFormPage: React.FC = () => {
     }
   };
 
-  const handleEditOrderHistoryTable = (sale: SaleModel) => {
+  const handleEditCustomerOrderHistoryTable = (sale: OrderModel) => {
     openSaleModalOpen(sale);
   };
 
-  const handleDeleteOrderHistoryTable = async (sale: SaleModel) => {
+  const handleDeleteCustomerOrderHistoryTable = async (sale: OrderModel) => {
     try {
       const saleId = Number(sale.id);
       await window.electron.ipcMysql.deleteSale(saleId);
 
-      setPurchases((prevPurchases: SaleModel[]) =>
+      setOrders((prevPurchases: OrderModel[]) =>
         prevPurchases.filter(
-          (purchase: SaleModel) => Number(purchase.id) !== saleId,
+          (purchase: OrderModel) => Number(purchase.id) !== saleId,
         ),
       );
 
@@ -435,12 +435,13 @@ const CustomerManagerFormPage: React.FC = () => {
 
     const getCustomerOrdersById = async (customerId: number) => {
       try {
-        const customerExaminationsDDBB =
-          await window.electron.ipcMysql.getCustomerExaminationsById(
+        const customerOrdersDDBB =
+          await window.electron.ipcMysql.getOrdersWithItemsByCustomerId(
             customerId,
           );
 
-        setExaminations(customerExaminationsDDBB);
+        setOrders(customerOrdersDDBB);
+        console.log(customerOrdersDDBB);
       } catch (error: any) {
         api.error({
           message: 'Error',
@@ -668,16 +669,28 @@ const CustomerManagerFormPage: React.FC = () => {
                           </Button>
                         </div>
 
-                        {examinations.map((examination, i) => (
-                          <ExaminationForm
-                            key={`examination-form-${examination.id}`}
-                            examination={examination}
-                            examinationTypes={examinationTypes}
-                            isLastExamination={i === 0}
-                            onSaveExamination={handleSaveExaminationForm}
-                            onDeleteExamination={handleDeleteExaminationForm}
-                          />
-                        ))}
+                        {examinations.length > 0 ? (
+                          examinations.map((examination, i) => (
+                            <ExaminationForm
+                              key={`examination-form-${examination.id}`}
+                              examination={examination}
+                              examinationTypes={examinationTypes}
+                              isLastExamination={i === 0}
+                              onSaveExamination={handleSaveExaminationForm}
+                              onDeleteExamination={handleDeleteExaminationForm}
+                            />
+                          ))
+                        ) : (
+                          <p
+                            style={{
+                              color: '#8c8c8c',
+                              fontStyle: 'italic',
+                              fontSize: '18px',
+                            }}
+                          >
+                            No hay graduaciones registradas para este cliente.
+                          </p>
+                        )}
                       </div>
                     ),
                   },
@@ -795,11 +808,11 @@ const CustomerManagerFormPage: React.FC = () => {
                           </Modal>
                         </div>
 
-                        {purchases.length > 0 ? (
-                          <OrderHistoryTable
-                            purchases={purchases}
-                            onEdit={handleEditOrderHistoryTable}
-                            onDelete={handleDeleteOrderHistoryTable}
+                        {orders.length > 0 ? (
+                          <CustomerOrderHistoryTable
+                            orders={orders}
+                            onEdit={handleEditCustomerOrderHistoryTable}
+                            onDelete={handleDeleteCustomerOrderHistoryTable}
                           />
                         ) : (
                           <p

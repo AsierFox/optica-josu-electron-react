@@ -1,4 +1,5 @@
 import BaseModel from './base.model';
+import OrderItemModel from './orderItem.model';
 
 export default class OrderModel extends BaseModel {
   id!: string;
@@ -9,17 +10,21 @@ export default class OrderModel extends BaseModel {
   createdAt!: string | null;
   updatedAt!: string | null;
 
-  constructor(row?: any) {
+  orderItems!: OrderItemModel[] | [];
+
+  constructor(row?: any, orderItems?: OrderItemModel[]) {
     super();
 
     this.id = row.ID;
 
     this.statusId = row.ORDER_STATUS_ID;
-    this.statusId = row.ORDER_STATUS;
+    this.status = row.ORDER_STATUS;
     this.customerId = row.CUSTOMER_ID;
     this.fechaVenta = row.FECHA_VENTA;
     this.createdAt = row.CREATED_AT;
     this.updatedAt = row.UPDATED_AT;
+
+    this.orderItems = orderItems ?? [];
   }
 
 }

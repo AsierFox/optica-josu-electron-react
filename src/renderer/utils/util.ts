@@ -1,11 +1,31 @@
 import dayjs, { Dayjs } from 'dayjs';
-import { DATE_FORMATS, NEW_ROW_ID_PREFIX, PRODUCT_STOCK_TYPE } from '../app/constants';
 import ProductModel from '../../main/models/product.model';
 import ProductGenericoModel from '../../main/models/productGenerico.model';
-import ProductMonturaModel from '../../main/models/productMontura.model';
 import ProductLenteLentillaModel from '../../main/models/productLenteLentilla.model';
+import ProductMonturaModel from '../../main/models/productMontura.model';
+import { DATE_FORMATS, NEW_ROW_ID_PREFIX, PRODUCT_STOCK_TYPE } from '../app/constants';
 
 const uniq = <T,>(a: T[]): T[] => [...new Set(a)];
+
+function groupBy<T, K extends keyof T>(
+  array: T[],
+  key: K,
+): Record<string, T[]> {
+  return array.reduce(
+    (acc, item) => {
+      const value = String(item[key]);
+
+      if (!acc[value]) {
+        acc[value] = [];
+      }
+
+      acc[value].push(item);
+
+      return acc;
+    },
+    {} as Record<string, T[]>,
+  );
+}
 
 const sortAlphabetically = (a: string, b: string) => a?.localeCompare(b);
 
@@ -58,6 +78,7 @@ const generateNewTempProductByType = (type: PRODUCT_STOCK_TYPE): ProductModel =>
 
 const util = {
   uniq,
+  groupBy,
   sortAlphabetically,
   equalsStrings,
   includesStrings,

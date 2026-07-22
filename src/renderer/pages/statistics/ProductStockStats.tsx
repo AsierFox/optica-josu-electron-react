@@ -19,7 +19,7 @@ const ProductStockStats: React.FC<Props> = ({ products, productTypes }) => {
     }
 
     const groupByMonth = products.reduce((acc: any, product: ProductModel) => {
-      const dateFormatted = dayjs(product.createdAt || new Date()).format(
+      const dateFormatted = dayjs(product.createdAt ?? new Date()).format(
         'YYYY-MM',
       );
       if (!acc[dateFormatted]) {
@@ -147,6 +147,4 @@ const ProductStockStats: React.FC<Props> = ({ products, productTypes }) => {
   );
 };
 
-// React.memo evita que la gráfica se repinte si el padre cambia
-// por algo que no sean los productos (como el estado de edición de la tabla)
-export default React.memo(ProductStockStats);
+export default ProductStockStats;

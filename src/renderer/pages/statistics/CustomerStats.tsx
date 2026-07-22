@@ -211,4 +211,4 @@ const CustomerStats: React.FC<Props> = ({ customers }) => {
   );
 };
 
-export default React.memo(CustomerStats);
+export default CustomerStats;

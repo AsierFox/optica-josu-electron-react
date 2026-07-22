@@ -65,10 +65,7 @@ export default class ProductRepository extends BaseRepository {
         EXISTS (
           SELECT 1
           FROM ${TABLE_NAME.order_item} oi
-          JOIN ${TABLE_NAME.order} o
-            ON o.id = oi.order_id
           WHERE oi.product_id = p.id
-            AND o.fecha_venta IS NOT NULL
         ) AS HAS_ORDER
       FROM ${TABLE_NAME.product} p
       INNER JOIN ${TABLE_NAME.product_type} ON

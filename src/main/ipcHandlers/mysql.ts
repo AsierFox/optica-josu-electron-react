@@ -5,7 +5,7 @@ import CustomerModel from '../models/customer.model';
 import ExaminationModel from '../models/examination.model';
 import ExaminationTypeModel from '../models/examinationType.model';
 import ModelParserService from '../models/modelParser.service';
-import SaleModel from '../models/order.model';
+import OrderModel from '../models/order.model';
 import SaleByPeriodModel from '../models/orderByPeriod.model';
 import ProductModel from '../models/product.model';
 import ProductTypeModel from '../models/productType.model';
@@ -134,18 +134,6 @@ export const registerMysqlIPCHandlers = () => {
     }
   });
 
-  ipcMain.handle('mysql-get-product-by-reference', async (_event, reference: string) : Promise<ProductModel | null> => {
-    try {
-      const [rows] = await query(`
-        SELECT * FROM ${TABLE_NAME.product} WHERE REFERENCIA = ?`, [reference]);
-      const foundProducts = ModelParserService.parseProductModels(rows as any []);
-      return foundProducts.length > 0 ? foundProducts[0] : null;
-    } catch (error) {
-      console.error('Database query error:', error);
-      throw new Error('Database query failed');
-    }
-  });
-
   ipcMain.handle('mysql-get-customer-by-id', async (_event, customerId: number) : Promise<CustomerModel | null> => {
     try {
       const [rows] = await query(`SELECT * FROM ${TABLE_NAME.customer} WHERE ID = ?`, [customerId]);
@@ -168,32 +156,44 @@ export const registerMysqlIPCHandlers = () => {
     }
   });
 
-  ipcMain.handle('mysql-get-purchases-by-customer-id', async (_event, customerId: number) : Promise<SaleModel[]> => {
+  ipcMain.handle('mysql-get-orders-with-items-by-customer-id', async (_event, customerId: number) : Promise<OrderModel[]> => {
     try {
       const [rows] = await query(`
-        SELECT o.ID, o.PRODUCT_ID, o.CUSTOMER_ID, o.FECHA_VENTA,
-               p.PROVEEDOR, p.FIRMA, p.REFERENCIA, p.MODELO, p.NOTES, p.PRECIO_COMPRA, p.PRECIO_VENTA
+        SELECT o.*, oi.*,
+          p.*, pt.*, p_montura.*, p_lente_lentilla.*, p_generico.*,
+          o.ID as ID,
+          os.STATUS as ORDER_STATUS,
+          o.FECHA_VENTA,
+          oi.PRECIO_VENTA
         FROM ${TABLE_NAME.order} o
-        RIGHT JOIN ${TABLE_NAME.product} p ON o.PRODUCT_ID = p.ID
+        RIGHT JOIN ${TABLE_NAME.order_status} os ON os.ID = o.ORDER_STATUS_ID
+        RIGHT JOIN ${TABLE_NAME.order_item} oi ON oi.ORDER_ID = o.ID
+        RIGHT JOIN ${TABLE_NAME.product} p ON p.ID = oi.PRODUCT_ID
+        RIGHT JOIN ${TABLE_NAME.product_type} pt ON pt.ID = p.PRODUCT_TYPE_ID
+        LEFT JOIN ${TABLE_NAME.product_montura} p_montura ON p_montura.product_id = p.id
+        LEFT JOIN ${TABLE_NAME.product_lente_lentilla} p_lente_lentilla ON p_lente_lentilla.product_id = p.id
+        LEFT JOIN ${TABLE_NAME.product_generico} p_generico ON p_generico.product_id = p.id
         WHERE o.CUSTOMER_ID = ?
-        ORDER BY s.FECHA_VENTA DESC`, [customerId]);
-      return ModelParserService.parseSaleModels(rows as any []);
+        ORDER BY o.FECHA_VENTA DESC`, [customerId]);
+      return ModelParserService.parseOrdersModels(rows as any []);
     } catch (error) {
       console.error('Database query error:', error);
       throw new Error('Database query failed');
     }
   });
 
-  ipcMain.handle('mysql-get-sales-by-product-id', async (_event, productId: number) : Promise<SaleModel[]> => {
+  ipcMain.handle('mysql-get-orders-by-product-id', async (_event, productId: number) : Promise<OrderModel[]> => {
     try {
       const [rows] = await query(`
-        SELECT o.ID, o.FECHA_VENTA, o.CUSTOMER_ID,
-               p.PROVEEDOR, p.FIRMA, p.REFERENCIA, p.MODELO, p.NOTES, p.PRECIO_COMPRA, p.PRECIO_VENTA
+        SELECT o.ID, o.ORDER_STATUS_ID, o.CUSTOMER_ID, o.FECHA_VENTA,
+          os.STATUS as ORDER_STATUS
         FROM ${TABLE_NAME.order} o
-        RIGHT JOIN ${TABLE_NAME.product} p ON o.PRODUCT_ID = p.ID
-        WHERE s.PRODUCT_ID = ?
-        ORDER BY s.FECHA_VENTA DESC`, [productId]);
-      return ModelParserService.parseSaleModels(rows as any []);
+        RIGHT JOIN ${TABLE_NAME.order_status} os ON os.ID = o.ORDER_STATUS_ID
+        RIGHT JOIN ${TABLE_NAME.order_item} oi ON oi.ORDER_ID = o.ID
+        WHERE oi.PRODUCT_ID = ?
+        GROUP BY o.ID, o.ORDER_STATUS_ID, o.CUSTOMER_ID, o.FECHA_VENTA, os.STATUS
+        ORDER BY o.FECHA_VENTA DESC`, [productId]);
+      return ModelParserService.parseOrdersModels(rows as any []);
     } catch (error) {
       console.error('Database query error:', error);
       throw new Error('Database query failed');
@@ -313,7 +313,7 @@ export const registerMysqlIPCHandlers = () => {
     }
   });
 
-  ipcMain.handle('mysql-create-sale', async (_event, sale: SaleModel) : Promise<number> => {
+  ipcMain.handle('mysql-create-sale', async (_event, sale: OrderModel) : Promise<number> => {
     try {
       const sql = `INSERT INTO ${TABLE_NAME.order}
         (PRODUCT_ID, CUSTOMER_ID, FECHA_VENTA)
@@ -476,7 +476,7 @@ export const registerMysqlIPCHandlers = () => {
     }
   });
 
-  ipcMain.handle('mysql-update-sale', async (_event, sale: SaleModel) : Promise<void> => {
+  ipcMain.handle('mysql-update-sale', async (_event, sale: OrderModel) : Promise<void> => {
     try {
       const sql = `UPDATE ${TABLE_NAME.order}
         SET
